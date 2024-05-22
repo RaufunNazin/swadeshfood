@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from . import models
 from .database import engine
-from .routers import user, auth
+from .routers import user, auth, product
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -21,9 +21,9 @@ origins = [
     "https://localhost",
     "http://localhost:8000",
     "https://localhost:8000",
-    "https://snapgenix.com",
-    "https://www.snapgenix.com",
-    "http://snapgenix.com",
+    "https://swadeshfood.com",
+    "https://www.swadeshfood.com",
+    "http://swadeshfood.com",
 ]
 
 app.add_middleware(
@@ -36,3 +36,4 @@ app.add_middleware(
 
 app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(product.router)

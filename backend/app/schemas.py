@@ -7,6 +7,16 @@ class User(BaseModel) :
     password : str
     role : int
     
+class Product(BaseModel) :
+    name : str
+    description : str
+    price : float
+    image : str
+    category : str
+    stock : int
+    size : str
+    new : int
+    
      
 class ResponseUser(BaseModel) :
     id : int
