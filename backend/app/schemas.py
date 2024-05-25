@@ -17,6 +17,33 @@ class Product(BaseModel) :
     size : str
     new : int
     
+class OrderDetails(BaseModel):
+    order_id: int
+    product_id: int
+    product_name: str
+    description: str
+    price: float
+    quantity: int
+    category: str
+    size: str
+    new: int
+    image: str
+    paid : int
+    status : str
+    phone : str
+    address : str
+    description : str
+    
+class Order(BaseModel) :
+    user_id : int
+    product_id : int
+    quantity : int
+    paid : int
+    status : str
+    phone : str
+    address : str
+    description : str
+    
      
 class ResponseUser(BaseModel) :
     id : int

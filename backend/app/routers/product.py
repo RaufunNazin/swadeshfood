@@ -16,12 +16,22 @@ def save_file(file, file_path):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+# get request with pagination
 @router.get("/products", status_code=200, tags=['product'])
-def get_products(db: Session = Depends(get_db)):
-    products = db.query(models.Product).all()
+def get_products(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    products = db.query(models.Product).offset(offset).limit(limit).all()
     return products
 
-@router.post("/products", status_code=201, tags=['photo'])
+# get products sizes
+router.get("/sizes/{product_id}", status_code=200, tags=['product'])
+def get_sizes(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).all()
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product.size
+
+# post request to upload photo and save photo information to the database
+@router.post("/products", status_code=201, tags=['product'])
 async def upload_photo(request: Request, image: UploadFile = File(...), name: str = Form(...), description: str = Form(...), category: str = Form(...), price: str = Form(...), stock: str = Form(...), size: str = Form(...), new: str = Form(...), user = Depends(oauth2.get_current_user)):
     check_authorization(user)
     
@@ -32,7 +42,7 @@ async def upload_photo(request: Request, image: UploadFile = File(...), name: st
     current_directory = os.path.dirname(os.path.realpath(__file__))
 
     # Create a new folder named 'photos' in the current directory if it doesn't exist
-    folder_path = os.path.join(current_directory, "..", "..", "assets", "images")
+    folder_path = os.path.join(current_directory, "..", "..", "assets", "products")
     os.makedirs(folder_path, exist_ok=True)
 
     # Save the uploaded photo to the specified folder
@@ -41,7 +51,7 @@ async def upload_photo(request: Request, image: UploadFile = File(...), name: st
         file_object.write(image.file.read())
 
     # Construct the URL for the uploaded photo
-    photo_url = f"{base_url}assets/images/{name}.png"
+    photo_url = f"{base_url}assets/products/{name}.png"
 
     # Save photo information to the database
     db = SessionLocal()
@@ -53,6 +63,7 @@ async def upload_photo(request: Request, image: UploadFile = File(...), name: st
 
     return {"filename": image.filename, "name": name, "description": description, "category": category, "photo_url": photo_url, "price": price, "stock": stock, "size": size, "new": new}
 
+# get product by id
 @router.get("/products/{product_id}", status_code=200, tags=['product'])
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
@@ -60,6 +71,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
+# update product by id
 @router.put("/products/{product_id}", status_code=200, response_model=Product, tags=['product'])
 def update_product(product_id: int, product: Product, user = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
     check_authorization(user)
@@ -97,6 +109,7 @@ def sort_products(order: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid order")
     return products.all()
 
+# delete product by id
 @router.delete("/products/{product_id}", status_code=204, tags=['product'])
 def delete_product(product_id: int, user = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
     check_authorization(user)
