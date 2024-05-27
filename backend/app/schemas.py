@@ -10,8 +10,10 @@ class User(BaseModel) :
 class Product(BaseModel) :
     name : str
     description : str
+    image1 : str
+    image2 : Optional[str]
+    image3 : Optional[str]
     price : float
-    image : str
     category : str
     stock : int
     size : str
@@ -27,7 +29,9 @@ class OrderDetails(BaseModel):
     category: str
     size: str
     new: int
-    image: str
+    image1: str
+    image2: Optional[str]
+    image3: Optional[str]
     paid : int
     status : str
     phone : str

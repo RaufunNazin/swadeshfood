@@ -31,12 +31,28 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(100), nullable=False),
     sa.Column('description', sa.String(300), nullable=False),
+    sa.Column('image1', sa.String(300), nullable=False),
+    sa.Column('image2', sa.String(300), nullable=True),
+    sa.Column('image3', sa.String(300), nullable=True),
     sa.Column('price', sa.Float(), nullable=False),
-    sa.Column('image', sa.String(100), nullable=False),
     sa.Column('category', sa.String(100), nullable=False),
     sa.Column('stock', sa.Integer(), nullable=False),
     sa.Column('size', sa.String(20), nullable=False),
     sa.Column('new', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    
+    # orders table
+    op.create_table('orders',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id')),
+    sa.Column('product_id', sa.Integer(), sa.ForeignKey('products.id')),
+    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('paid', sa.Integer(), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('phone', sa.String(20), nullable=False),
+    sa.Column('address', sa.String(300), nullable=False),
+    sa.Column('description', sa.String(300), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
 
@@ -44,3 +60,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table('users')
     op.drop_table('products')
+    op.drop_table('orders')
