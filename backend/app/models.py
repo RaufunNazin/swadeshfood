@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import Integer, String, Column, ForeignKey
+from sqlalchemy import Integer, String, Column, ForeignKey, Float
 from sqlalchemy.orm import relationship
 
 class User(Base) :
@@ -9,6 +9,7 @@ class User(Base) :
     email = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     role = Column(Integer, nullable=False)
+    orders = relationship("Order", back_populates="user")
     
 class Product(Base) :
     __tablename__ = "products"
@@ -18,11 +19,12 @@ class Product(Base) :
     image1 = Column(String(300), nullable=False)
     image2 = Column(String(300), nullable=True)
     image3 = Column(String(300), nullable=True)
-    price = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
     category = Column(String(100), nullable=False)
     stock = Column(Integer, nullable=False)
     size = Column(String(20), nullable=False)
     new = Column(Integer, nullable=False)
+    orders = relationship("Order", back_populates="product")
     
 # order table
 class Order(Base) :
@@ -35,6 +37,11 @@ class Order(Base) :
     status = Column(String(20), nullable=False)
     phone = Column(String(20), nullable=False)
     address = Column(String(300), nullable=False)
-    description = Column(String(300), nullable=False)
+    order_description = Column(String(300), nullable=False)
     user = relationship("User", back_populates="orders")
     product = relationship("Product", back_populates="orders")
+    
+class Category(Base) :
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(String(100), nullable=False)

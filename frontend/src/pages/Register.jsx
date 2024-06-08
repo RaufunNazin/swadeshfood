@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +32,8 @@ const Register = () => {
       })
       .then((res) => {
         if (res.status === 201) {
-          navigate("/", { state: "register" });
+          if (state && state === "checkout") navigate(`/${state}`);
+          else navigate("/", { state: "register" });
           localStorage.setItem("token", res.data.access_token);
         }
       })
@@ -65,7 +67,7 @@ const Register = () => {
           Create your account
         </p>
         <p className="lg:text-md text-sm text-xgray">
-          Authentic and healthy food for you
+          Serving authentic and healthy food for you
         </p>
       </div>
       <div className="flex w-[360px] flex-col gap-y-8 lg:w-[400px]">
@@ -105,7 +107,7 @@ const Register = () => {
           <button
             type="button"
             onClick={register}
-            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-sky-500 transition-all duration-200"
+            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-red-500 transition-all duration-200"
           >
             Register
           </button>

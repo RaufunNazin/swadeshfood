@@ -24,7 +24,8 @@ const Login = () => {
       })
       .then((res) => {
         if (res.status === 200) {
-          navigate("/", { state: "login" });
+          if (state && state === "checkout") navigate(`/${state}`);
+          else navigate("/", { state: "login" });
           localStorage.setItem("token", res.data.access_token);
         }
       })
@@ -59,10 +60,10 @@ const Login = () => {
       </button>
       <div className="flex flex-col items-center gap-y-2">
         <p className="text-3xl font-black text-xgray lg:text-4xl">
-          Login to your account
+          Login to Swadesh Food
         </p>
         <p className="lg:text-md text-sm text-xgray">
-          Authentic and healthy food for you
+          Serving authentic and healthy food for you
         </p>
       </div>
       <div className="flex w-[360px] flex-col gap-y-8 lg:w-[400px]">
@@ -88,7 +89,7 @@ const Login = () => {
           <button
             type="button"
             onClick={login}
-            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-sky-500 transition-all duration-200"
+            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-red-500 transition-all duration-200"
           >
             Login
           </button>

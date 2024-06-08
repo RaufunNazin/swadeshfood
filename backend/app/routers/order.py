@@ -36,7 +36,7 @@ def get_orders(user_id: int = None, paid: int = None, status: str = None, db: Se
                 status=order.status,
                 phone=order.phone,
                 address=order.address,
-                description=order.description
+                order_description=order.order_description
             )
             if user_id is not None and user_id != order.user_id:
                 continue
@@ -74,7 +74,7 @@ def get_orders_by_user(user_id: int, db: Session = Depends(get_db)):
                 status=order.status,
                 phone=order.phone,
                 address=order.address,
-                description=order.description
+                order_description=order.order_description
             )
             order_details.append(order_detail)
 

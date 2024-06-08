@@ -52,7 +52,14 @@ def upgrade() -> None:
     sa.Column('status', sa.String(20), nullable=False),
     sa.Column('phone', sa.String(20), nullable=False),
     sa.Column('address', sa.String(300), nullable=False),
-    sa.Column('description', sa.String(300), nullable=False),
+    sa.Column('order_description', sa.String(300), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    
+    # categories table
+    op.create_table('categories',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(100), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
 
@@ -61,3 +68,4 @@ def downgrade() -> None:
     op.drop_table('users')
     op.drop_table('products')
     op.drop_table('orders')
+    op.drop_table('categories')
