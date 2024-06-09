@@ -34,8 +34,8 @@ const Navbar = ({ active }) => {
   }, []);
 
   return (
-    <div className="bg-accent py-3 lg:py-0">
-      <div className="flex justify-between items-center px-3 lg:px-32 lg:py-5">
+    <div className="bg-accent py-2 lg:py-0">
+      <div className="flex justify-between items-center px-3 lg:px-32 lg:py-3">
         <div className="flex md:hidden flex-1 justify-start gap-x-5"></div>
         <div className="hidden md:flex flex-1 justify-start gap-x-5">
           <button
@@ -44,7 +44,7 @@ const Navbar = ({ active }) => {
               active === "store"
                 ? "text-brand underline underline-offset-2"
                 : "text-xdark"
-            } hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
+            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
           >
             store
           </button>
@@ -54,7 +54,7 @@ const Navbar = ({ active }) => {
               active === "new"
                 ? "text-brand underline underline-offset-2"
                 : "text-xdark"
-            } hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
+            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
           >
             new arrivals
           </button>
@@ -64,7 +64,7 @@ const Navbar = ({ active }) => {
               active === "connect"
                 ? "text-brand underline underline-offset-2"
                 : "text-xdark"
-            } hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
+            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
           >
             connect
           </button>
@@ -75,7 +75,7 @@ const Navbar = ({ active }) => {
                 active === "admin"
                   ? "text-brand underline underline-offset-2"
                   : "text-xdark"
-              } hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
+              } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
             >
               Admin Panel
             </button>
@@ -112,23 +112,23 @@ const Navbar = ({ active }) => {
               }}
             >
               {isLoggedIn ? (
-                <Tooltip title="Profile" color={"#d21820"} key={"profile"}>
+                <Tooltip title="Profile" color={"#026839"} key={"profile"}>
                   <FiUser className="text-brand text-2xl" />
                 </Tooltip>
               ) : (
-                <Tooltip title="Login" color={"#d21820"} key={"login"}>
+                <Tooltip title="Login" color={"#026839"} key={"login"}>
                   <FiLogIn className="text-brand text-2xl" />
                 </Tooltip>
               )}
             </button>
           )}
           <button onClick={() => navigate("/favorites")}>
-            <Tooltip title="Favorites" color={"#d21820"} key={"favorites"}>
+            <Tooltip title="Favorites" color={"#026839"} key={"favorites"}>
               <MdFavoriteBorder className="text-brand text-2xl" />
             </Tooltip>
           </button>
           <button onClick={() => navigate("/cart")}>
-            <Tooltip title="Cart" color={"#d21820"} key={"cart"}>
+            <Tooltip title="Cart" color={"#026839"} key={"cart"}>
               <RiShoppingCartLine className="text-brand text-2xl" />
             </Tooltip>
           </button>

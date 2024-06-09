@@ -1,13 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        brand: "#151515",
+        brand: "#026839",
         accent: "#FAFAFA",
         xgray: "#555555",
         xlightgray: "#A1A1A1",
@@ -15,9 +12,9 @@ export default {
         xlightergray: "#F0F0F0",
         xlightestgray: "#FAFAFA",
         xred: "#ff5733",
-        xyellow: "#EED36E",
+        xyellow: "#ebd23d",
       },
     },
   },
   plugins: [],
-}
+};

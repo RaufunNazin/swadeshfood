@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Carousel from "../components/Carousel";
 import Navbar from "../components/Navbar";
 import api from "../api";
 import "../App.css";
@@ -8,6 +7,8 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ItemCard from "../components/ItemCard";
+import Notification from "../components/Notification";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Home = () => {
   useEffect(() => {
     const getProducts = () => {
       api
-        .get(`/products/${offset}/${limit}`)
+        .get(`/products/price-range/${offset}/${limit}`)
         .then((res) => {
           setProducts(res.data);
         })
@@ -38,7 +39,7 @@ const Home = () => {
   useEffect(() => {
     const getNewProducts = () => {
       api
-        .get(`/products/new/${offset}/${limit}`)
+        .get(`/products/new/price-range/${offset}/${limit}`)
         .then((res) => {
           setNewProducts(res.data);
         })
@@ -76,16 +77,17 @@ const Home = () => {
         pauseOnHover={false}
         theme="colored"
       />
-      <div className="bg-brand text-white text-center w-full py-2 text-sm font-semibold">
-        Offers coming soon!
-      </div>
+      <Notification />
       <div className="lg:sticky top-0 z-50 bg-accent">
         <Navbar active="home" />
       </div>
-      <Carousel />
+      {/* <Carousel /> */}
       <div>
-        <div className="px-3 lg:px-32 py-5 my-10">
-          <h1 className="text-2xl font-semibold text-xdark text-center my-10 uppercase">
+        <img src="Banner.jpg" alt="banner" />
+      </div>
+      <div>
+        <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 mt-5 md:mt-10 flex flex-col justify-evenly gap-y-5 md:gap-y-10">
+          <h1 className="text-lg md:text-2xl font-semibold text-xdark text-center uppercase">
             Healthy products from our farm
           </h1>
           {loading ? (
@@ -95,122 +97,60 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
               {products.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                  className="bg-white relative shadow-md rounded-md flex flex-col items-center gap-y-2 cursor-pointer"
-                >
-                  {product.new === 1 && (
-                    <div className="absolute top-2 right-2 bg-white p-1 rounded-md font-bold text-sm">
-                      New!
-                    </div>
-                  )}
-                  <img
-                    src={product.image3}
-                    alt={product.name}
-                    className="w-full h-full object-contain rounded-t-md"
-                  />
-                  <div className="p-2 md:p-5 w-full flex flex-col gap-1.5 md:gap-3">
-                    <h1 className="text-xl font-semibold text-xdark text-center">
-                      {product.name}
-                    </h1>
-                    <p className="text-xl text-center text-brand font-semibold">
-                      ৳ {product.price}/-
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const productWithQuantity = { ...product, quantity: 1 };
-                        const updatedCartItems = [
-                          ...(JSON.parse(localStorage.getItem("cart")) || []),
-                          productWithQuantity,
-                        ];
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify(updatedCartItems)
-                        );
-                        toast.success("Added to cart");
-                      }}
-                      className="border border-brand text-brand font-semibold p-3 w-full rounded-md uppercase"
-                    >
-                      Add to cart
-                    </button>
-                  </div>
-                </div>
+                <ItemCard key={product.id} product={product} />
               ))}
             </div>
           )}
           <div className="flex justify-center w-full">
-            <button className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200">
+            <button
+              onClick={() => {
+                navigate("/store");
+              }}
+              className="bg-brand text-white py-2 px-5 rounded-md hover:scale-105 transition-all duration-200"
+            >
               View All
             </button>
           </div>
         </div>
 
-        <div className="bg-accent px-3 lg:px-32 my-10 py-20">
-          <h1 className="text-2xl font-semibold text-xdark text-center mb-10 uppercase">
-            Check out our <span className="text-brand">new arrivals!</span>
-          </h1>
-          {loading ? (
-            <div className="w-full flex items-center justify-center">
-              <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
+        <div
+          className="px-3 py-20 lg:h-[700px]"
+          style={{
+            backgroundImage: "url('bg.svg')",
+            backgroundSize: "cover",
+            backgroundPosition: "top",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          <div className="md:w-4/5 lg:w-4/5 xl:w-3/5 h-full mx-auto flex flex-col justify-evenly gap-y-5 md:gap-y-0">
+            <h1 className="text-lg md:text-2xl font-semibold text-white text-center uppercase">
+              Check out our <span className="text-xyellow">new arrivals!</span>
+            </h1>
+            {loading ? (
+              <div className="w-full flex items-center justify-center">
+                <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
+                {newProducts.map((product) => (
+                  <ItemCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+            <div className="flex justify-center w-full">
+              <button
+                onClick={() => {
+                  navigate("/new");
+                }}
+                className="bg-white text-brand py-2 px-5 rounded-md hover:scale-105 transition-all duration-200"
+              >
+                View All
+              </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
-              {newProducts.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                  className="bg-white relative shadow-md rounded-md flex flex-col items-center gap-y-2 cursor-pointer"
-                >
-                  {product.new === 1 && (
-                    <div className="absolute top-2 right-2 bg-white p-1 rounded-md font-bold text-sm">
-                      New!
-                    </div>
-                  )}
-                  <img
-                    src={product.image3}
-                    alt={product.name}
-                    className="w-full h-full object-contain rounded-t-md"
-                  />
-                  <div className="p-2 md:p-5 w-full flex flex-col gap-1.5 md:gap-3">
-                    <h1 className="text-xl font-semibold text-xdark text-center">
-                      {product.name}
-                    </h1>
-                    <p className="text-xl text-center text-brand font-semibold">
-                      ৳ {product.price}/-
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const productWithQuantity = { ...product, quantity: 1 };
-                        const updatedCartItems = [
-                          ...(JSON.parse(localStorage.getItem("cart")) || []),
-                          productWithQuantity,
-                        ];
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify(updatedCartItems)
-                        );
-                        toast.success("Added to cart");
-                      }}
-                      className="border border-brand text-brand font-semibold p-3 w-full rounded-md uppercase"
-                    >
-                      Add to cart
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="flex justify-center w-full">
-            <button className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200">
-              View All
-            </button>
           </div>
         </div>
-        <div className="px-3 lg:px-32 py-5 my-10">
-          <h1 className="text-2xl font-semibold text-xdark text-center my-10 uppercase">
+        <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto flex flex-col mb-5 md:mb-10 justify-evenly gap-y-5 md:gap-y-0">
+          <h1 className="text-lg md:text-2xl font-semibold text-xdark text-center uppercase">
             Choose a category to explore
           </h1>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-10">
@@ -221,9 +161,9 @@ const Home = () => {
                     navigate(`/store/${category.name}`);
                   }}
                   key={category.id}
-                  className="my-10"
+                  className="my-3 md:my-10"
                 >
-                  <div className="bg-brand text-white p-5 font-semibold text-2xl uppercase text-center rounded-md hover:scale-110 transition-all duration-200">
+                  <div className="bg-brand text-white p-2 md:p-5 font-semibold text-lg md:text-2xl uppercase text-center rounded-md hover:scale-110 transition-all duration-200">
                     {category.name}
                   </div>
                 </button>

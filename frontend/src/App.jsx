@@ -27,8 +27,8 @@ function App() {
             <Route path="/store" element={<Store />} />
             <Route path="/store/:searchCategory" element={<Store />} />
             <Route path="/new" element={<New />} />
-            <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/product/:productId" element={<SingleProduct />} />
+            <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/images" element={<AdminImages />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/categories" element={<AdminCategories />} />

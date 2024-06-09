@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
+import Notification from "../components/Notification";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -34,9 +35,7 @@ const Cart = () => {
 
   return (
     <div className="relative">
-      <div className="bg-brand text-white text-center w-full py-2 text-sm font-semibold">
-        Offers coming soon!
-      </div>
+      <Notification />
       <div className="lg:sticky top-0 z-50 bg-accent">
         <Navbar active="home" />
       </div>
@@ -62,62 +61,66 @@ const Cart = () => {
           </div>
         ) : (
           <div className=" my-10">
-            <div className="px-3 lg:px-32 my-10">
-              <h1 className="text-2xl font-semibold text-xdark  my-10 uppercase">
+            <div className="px-3 lg:px-32 my-5 md:my-10">
+              <h1 className="text-lg md:text-2xl font-semibold text-xdark my-0 md:my-10 uppercase">
                 Cart
               </h1>
-              <div className="flex gap-x-2 items-start">
-                <div className="grid grid-cols-1 gap-5 flex-1">
+              <div className="flex flex-col-reverse md:flex-row gap-x-2 gap-y-2 items-start">
+                <div className="grid grid-cols-1 gap-5 w-full">
                   {cart.map((product) => (
                     <div
                       key={product.id}
-                      className="bg-white relative shadow-sm p-2 flex justify-evenly w-full items-center cursor-pointer"
+                      className="bg-white relative shadow-sm p-2 flex flex-col gap-y-2 md:flex-row justify-evenly w-full items-center cursor-pointer"
                     >
-                      <img
-                        src={product.image3}
-                        alt={product.name}
-                        className="w-16 h-16 object-contain rounded-md"
-                      />
-                      <h1 className="text-xl font-semibold text-xdark text-center">
-                        {product.name}
-                      </h1>
-                      <p className="text-xl text-center text-brand font-semibold">
-                        ৳ {product.price}/-
-                      </p>
-                      <div className="flex items-center gap-x-5 px-5 border border-brand rounded-md">
+                      <div className="flex w-full justify-between md:justify-evenly items-center cursor-pointer">
+                        <img
+                          src={product.image1}
+                          alt={product.name}
+                          className="w-16 h-16 object-contain rounded-md"
+                        />
+                        <h1 className="text-xl font-semibold text-xdark text-center">
+                          {product.name}
+                        </h1>
+                        <p className="text-xl text-center text-brand font-semibold">
+                          ৳ {product.price}/-
+                        </p>
+                      </div>
+                      <div className="flex w-full justify-between md:justify-evenly items-center cursor-pointer gap-x-2">
+                        <div className="flex items-center gap-x-5 px-5 border border-brand rounded-md">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateQuantity(product.id, -1);
+                            }}
+                            className="text-brand font-semibold p-1 rounded-md"
+                          >
+                            -
+                          </button>
+                          <span className="mx-2">{product.quantity}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateQuantity(product.id, 1);
+                            }}
+                            className="text-brand font-semibold p-1 rounded-md"
+                          >
+                            +
+                          </button>
+                        </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            updateQuantity(product.id, -1);
+                            removeFromCart(product.id);
                           }}
-                          className="text-brand font-semibold p-1 rounded-md"
+                          className="border border-brand text-brand font-semibold p-1 md:p-3 w-fit rounded-md uppercase"
                         >
-                          -
-                        </button>
-                        <span className="mx-2">{product.quantity}</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updateQuantity(product.id, 1);
-                          }}
-                          className="text-brand font-semibold p-1 rounded-md"
-                        >
-                          +
+                          Remove from cart
                         </button>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFromCart(product.id);
-                        }}
-                        className="border border-brand text-brand font-semibold p-3 w-fit rounded-md uppercase"
-                      >
-                        Remove from cart
-                      </button>
                     </div>
                   ))}
                 </div>
-                <div>
+                <div className="w-full md:w-fit">
                   <div className="bg-white p-5 rounded-md shadow-md">
                     <h1 className="text-2xl font-semibold text-xdark">
                       Cart Summary

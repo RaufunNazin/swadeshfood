@@ -2,6 +2,7 @@ from fastapi import Depends, APIRouter, HTTPException, Form, File, UploadFile, R
 from fastapi.exceptions import HTTPException
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..schemas import Product
 from .. import models, oauth2
 from ..oauth2 import check_authorization
@@ -162,9 +163,65 @@ def delete_product(product_id: int, user = Depends(oauth2.get_current_user), db:
     db.commit()
     return None
 
-# filter by price range with pagination with offset and limit
-@router.get("/filter/price", status_code=200, tags=['product'])
-def filter_by_price(min_price: float, max_price: float, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    products = db.query(models.Product).offset(offset).limit(limit).filter(models.Product.price >= min_price, models.Product.price <= max_price)
-    return products.all()
+@router.get("/products/price-range/{offset}/{limit}", status_code=200, tags=['product'])
+def get_products_price_range(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    subquery = (
+        db.query(
+            models.Product.name,
+            func.min(models.Product.price).label("min_price"),
+            func.max(models.Product.price).label("max_price"),
+            func.count(models.Product.id).label("count")
+        )
+        .group_by(models.Product.name)
+        .subquery()
+    )
 
+    query = (
+        db.query(models.Product, subquery.c.min_price, subquery.c.max_price, subquery.c.count)
+        .join(subquery, models.Product.name == subquery.c.name)
+        .filter(models.Product.price == subquery.c.max_price)
+        .offset(offset)
+        .limit(limit)
+    )
+
+    results = query.all()
+
+    products = []
+    for product, min_price, max_price, count in results:
+        product_dict = product.__dict__.copy()
+        product_dict["price_range"] = None if count == 1 else f"{min_price} - {max_price}"
+        products.append(product_dict)
+
+    return products
+
+@router.get("/products/new/price-range/{offset}/{limit}", status_code=200, tags=['product'])
+def get_new_products_price_range(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    subquery = (
+        db.query(
+            models.Product.name,
+            func.min(models.Product.price).label("min_price"),
+            func.max(models.Product.price).label("max_price"),
+            func.count(models.Product.id).label("count")
+        )
+        .group_by(models.Product.name)
+        .subquery()
+    )
+
+    query = (
+        db.query(models.Product, subquery.c.min_price, subquery.c.max_price, subquery.c.count)
+        .join(subquery, models.Product.name == subquery.c.name)
+        .filter(models.Product.price == subquery.c.max_price)
+        .filter(models.Product.new == 1)
+        .offset(offset)
+        .limit(limit)
+    )
+
+    results = query.all()
+
+    products = []
+    for product, min_price, max_price, count in results:
+        product_dict = product.__dict__.copy()
+        product_dict["price_range"] = None if count == 1 else f"{min_price} - {max_price}"
+        products.append(product_dict)
+
+    return products

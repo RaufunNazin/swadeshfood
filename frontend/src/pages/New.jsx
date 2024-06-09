@@ -8,6 +8,8 @@ import { AiOutlineLoading } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { CiFilter } from "react-icons/ci";
 import { Select } from "antd";
+import ItemCard from "../components/ItemCard";
+import Notification from "../components/Notification";
 
 const New = () => {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ const New = () => {
   useEffect(() => {
     const getProducts = () => {
       api
-        .get(`/products/new/${offset}/${limit}`)
+        .get(`/products/new/price-range/${offset}/${limit}`)
         .then((res) => {
           setProducts(res.data);
         })
@@ -74,13 +76,23 @@ const New = () => {
         pauseOnHover={false}
         theme="colored"
       />
-      <div className="bg-brand text-white text-center w-full py-2 text-sm font-semibold">
-        Offers coming soon!
-      </div>
+      <Notification />
       <div className="lg:sticky top-0 z-50 bg-accent">
         <Navbar active="new" />
       </div>
-      <div className="px-3 lg:px-32 py-5 my-5 lg:my-10">
+      <div
+        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
+        style={{
+          backgroundImage: "url('Navigation.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="text-xdark text-4xl md:text-7xl font-bold">New Arrivals</div>
+        <div className="">Home / New Arrivals</div>
+      </div>
+      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
         {loading ? (
           <div className="w-full flex items-center justify-center">
             <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
@@ -92,48 +104,7 @@ const New = () => {
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
             {products.map((product) => (
-              <div
-                key={product.id}
-                onClick={() => navigate(`/product/${product.id}`)}
-                className="bg-white relative shadow-md rounded-md flex flex-col items-center gap-y-2 cursor-pointer"
-              >
-                {product.new === 1 && (
-                  <div className="absolute top-2 right-2 bg-white p-1 rounded-md font-bold text-sm">
-                    New!
-                  </div>
-                )}
-                <img
-                  src={product.image3}
-                  alt={product.name}
-                  className="w-full h-full object-contain rounded-t-md"
-                />
-                <div className="p-2 md:p-5 w-full flex flex-col gap-1.5 md:gap-3">
-                  <h1 className="text-xl font-semibold text-xdark text-center">
-                    {product.name}
-                  </h1>
-                  <p className="text-xl text-center text-brand font-semibold">
-                    ৳ {product.price}/-
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const productWithQuantity = { ...product, quantity: 1 };
-                      const updatedCartItems = [
-                        ...(JSON.parse(localStorage.getItem("cart")) || []),
-                        productWithQuantity,
-                      ];
-                      localStorage.setItem(
-                        "cart",
-                        JSON.stringify(updatedCartItems)
-                      );
-                      toast.success("Added to cart");
-                    }}
-                    className="border border-brand text-brand font-semibold p-1.5 md:p-3 w-full rounded-md uppercase"
-                  >
-                    Add to cart
-                  </button>
-                </div>
-              </div>
+              <ItemCard key={product.id} product={product} />
             ))}
           </div>
         )}

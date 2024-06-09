@@ -72,15 +72,18 @@ const Sidebar = () => {
         onClose={() => setOpen(!isOpen)}
       >
         {user?.role === 1 && (
-          <div onClick={() => to("admin/photos")} className="menu-item">
+          <div onClick={() => to("admin/products")} className="menu-item">
             Admin Panel
           </div>
         )}
-        <div onClick={() => to("gallery")} className="menu-item">
-          Gallery
+        <div onClick={() => to("store")} className="menu-item">
+          Store
         </div>
-        <div onClick={() => to("clients")} className="menu-item">
-          Clients
+        <div onClick={() => to("new")} className="menu-item">
+          New Arrivals
+        </div>
+        <div onClick={() => to("connect")} className="menu-item">
+          Connect
         </div>
         {isLoggedIn ? (
           <div onClick={() => to("profile")} className="menu-item">
