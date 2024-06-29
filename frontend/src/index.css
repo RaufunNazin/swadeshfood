@@ -20,7 +20,7 @@ p {
   width: 1.25rem;
   height: 1rem;
   left: 12px;
-  top: 64px;
+  top: 60px;
 }
 
 .hideButton {
@@ -39,14 +39,14 @@ p {
 
 /* Position and sizing of clickable cross button */
 .bm-cross-button {
-  left: 20px;
+  right: 20px;
   height: 24px;
   width: 24px;
 }
 
 /* Color/shape of close button cross */
 .bm-cross {
-  background: #151515;
+  background: #FFFFFF;
 }
 
 /*
@@ -60,7 +60,7 @@ p {
 
 /* General sidebar styles */
 .bm-menu {
-  background: whitesmoke;
+  background: #026839;
   padding: 2.5em 1.5em 0;
   font-size: 1.15em;
   width: screen/4;
@@ -81,7 +81,7 @@ p {
 .bm-item {
   display: inline-block;
   line-height: 3em;
-  color: #151515;
+  color: #FFFFFF;
   margin-bottom: 10px;
   text-align: left;
   text-decoration: none;

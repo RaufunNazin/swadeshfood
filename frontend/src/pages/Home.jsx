@@ -149,7 +149,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto flex flex-col mb-5 md:mb-10 justify-evenly gap-y-5 md:gap-y-0">
+        <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto flex flex-col my-5 md:my-10 justify-evenly gap-y-5 md:gap-y-0">
           <h1 className="text-lg md:text-2xl font-semibold text-xdark text-center uppercase">
             Choose a category to explore
           </h1>
@@ -171,6 +171,13 @@ const Home = () => {
             })}
           </div>
         </div>
+      </div>
+      <div className="">
+        <img
+          src="farm.jpeg"
+          className="md:h-80 w-full object-cover origin-center"
+          alt="banner"
+        />
       </div>
       <Footer />
     </div>

@@ -40,9 +40,6 @@ const SidePanel = () => {
           navigate("/", { state: "unauthorized" });
         }
         setUser(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
       });
   };
 

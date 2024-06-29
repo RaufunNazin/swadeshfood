@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useLocation, useParams } from "react-router-dom";
 import { all } from "axios";
 import ItemCard from "../components/ItemCard";
+import Notification from "../components/Notification";
 
 const SingleProduct = () => {
   const { productId } = useParams();
@@ -65,7 +66,7 @@ const SingleProduct = () => {
         });
     };
     getProduct();
-  }, []);
+  }, [productId]);
 
   const handleAddToCart = () => {
     const updatedCartItems = [
@@ -89,9 +90,7 @@ const SingleProduct = () => {
         pauseOnHover={false}
         theme="colored"
       />
-      <div className="bg-brand text-white text-center w-full py-2 text-sm font-semibold">
-        Offers coming soon!
-      </div>
+      <Notification />
       <div className="sticky top-0 z-50 bg-white">
         <Navbar active="home" />
         <div className="px-2 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto grid grid-cols-1 lg:grid-cols-3 w-full gap-y-5 lg:gap-y-0 lg:gap-5 my-5 lg:my-10">
@@ -136,7 +135,7 @@ const SingleProduct = () => {
               <h1 className="text-2xl md:text-4xl font-semibold text-xdark">
                 {product.name}
               </h1>
-              {product.new && (
+              {product.new === 1 && (
                 <div className="bg-brand h-fit text-sm lg:text-lg rounded-full px-2 py-1 lg:px-5 text-white">
                   NEW
                 </div>

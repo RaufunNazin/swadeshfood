@@ -9,7 +9,6 @@ class User(Base) :
     email = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     role = Column(Integer, nullable=False)
-    orders = relationship("Order", back_populates="user")
     
 class Product(Base) :
     __tablename__ = "products"
@@ -24,22 +23,19 @@ class Product(Base) :
     stock = Column(Integer, nullable=False)
     size = Column(String(20), nullable=False)
     new = Column(Integer, nullable=False)
-    orders = relationship("Order", back_populates="product")
     
-# order table
 class Order(Base) :
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    product_id = Column(Integer, ForeignKey('products.id'))
-    quantity = Column(Integer, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    products = Column(String(300), nullable=False)
     paid = Column(Integer, nullable=False)
-    status = Column(String(20), nullable=False)
+    status = Column(String(100), nullable=False)
+    name = Column(String(100), nullable=False)
+    email = Column(String(100), nullable=True)
     phone = Column(String(20), nullable=False)
     address = Column(String(300), nullable=False)
-    order_description = Column(String(300), nullable=False)
-    user = relationship("User", back_populates="orders")
-    product = relationship("Product", back_populates="orders")
+    order_description = Column(String(300), nullable=True)
     
 class Category(Base) :
     __tablename__ = "categories"

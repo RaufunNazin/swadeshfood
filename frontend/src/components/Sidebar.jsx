@@ -13,7 +13,9 @@ const Sidebar = () => {
   let location = useLocation();
   const [modal2Open, setModal2Open] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [isOpen, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const to = (address) => {
     setOpen(false);
@@ -29,9 +31,6 @@ const Sidebar = () => {
       })
       .then((res) => {
         setUser(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
       });
   };
 
@@ -71,6 +70,19 @@ const Sidebar = () => {
         onOpen={() => setOpen(!isOpen)}
         onClose={() => setOpen(!isOpen)}
       >
+        <div className="block md:hidden">
+          <input
+            type="text"
+            placeholder="Search Products"
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                navigate(`/search/${searchText}`);
+              }
+            }}
+            className="w-full rounded-md border border-[#DED2D9] px-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand"
+          />
+        </div>
         {user?.role === 1 && (
           <div onClick={() => to("admin/products")} className="menu-item">
             Admin Panel

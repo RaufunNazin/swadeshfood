@@ -24,9 +24,8 @@ const Navbar = ({ active }) => {
           setIsLoggedIn(true);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setIsLoggedIn(false);
-        console.log(err);
       });
   };
   useEffect(() => {
@@ -38,6 +37,16 @@ const Navbar = ({ active }) => {
       <div className="flex justify-between items-center px-3 lg:px-32 lg:py-3">
         <div className="flex md:hidden flex-1 justify-start gap-x-5"></div>
         <div className="hidden md:flex flex-1 justify-start gap-x-5">
+          <button
+            onClick={() => navigate("/")}
+            className={`${
+              active === "home"
+                ? "text-brand underline underline-offset-2"
+                : "text-xdark"
+            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
+          >
+            home
+          </button>
           <button
             onClick={() => navigate("/store")}
             className={`${
@@ -122,24 +131,15 @@ const Navbar = ({ active }) => {
               )}
             </button>
           )}
-          <button onClick={() => navigate("/favorites")}>
-            <Tooltip title="Favorites" color={"#026839"} key={"favorites"}>
-              <MdFavoriteBorder className="text-brand text-2xl" />
-            </Tooltip>
-          </button>
-          <button onClick={() => navigate("/cart")}>
+          <button onClick={() => navigate("/cart")} className="relative">
             <Tooltip title="Cart" color={"#026839"} key={"cart"}>
+              <div className="absolute -top-1 -right-2 bg-brand text-white rounded-full text-[10px] h-4 w-4">
+                {JSON.parse(localStorage.getItem("cart"))?.length}
+              </div>
               <RiShoppingCartLine className="text-brand text-2xl" />
             </Tooltip>
           </button>
         </div>
-      </div>
-      <div className="block md:hidden px-3 my-2">
-        <input
-          type="text"
-          placeholder="Search Products"
-          className="w-full rounded-md border border-[#DED2D9] px-2 py-0.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand"
-        />
       </div>
       <hr className="bg-xlightgray h-0.5 hidden md:block" />
     </div>

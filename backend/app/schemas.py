@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
+import json
 
 class User(BaseModel):
     username: str
@@ -18,35 +19,23 @@ class Product(BaseModel):
     stock: int
     size: str
     new: int
-
-class OrderDetails(BaseModel):
-    order_id: int
-    product_id: int
-    product_name: str
-    description: str
-    price: float
+    
+class ProductsOrdered(BaseModel):
+    product: int
     quantity: int
-    category: str
-    size: str
-    new: int
-    image1: str
-    image2: Optional[str]
-    image3: Optional[str]
-    paid: int
-    status: str
-    phone: str
-    address: str
-    order_description: str
+    product_name: Optional[str] = None
 
 class Order(BaseModel):
+    id: Optional[int] = None
     user_id: int
-    product_id: int
-    quantity: int
+    products: str
     paid: int
     status: str
+    name: str
+    email: Optional[str]
     phone: str
     address: str
-    order_description: str
+    order_description: Optional[str]
 
 class Category(BaseModel):
     name: str

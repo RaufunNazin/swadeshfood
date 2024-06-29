@@ -225,3 +225,9 @@ def get_new_products_price_range(offset: int = 0, limit: int = 10, db: Session =
         products.append(product_dict)
 
     return products
+
+# search by name with pagination with offset and limit
+@router.get("/search/{name}/{offset}/{limit}", status_code=200, tags=['product'])
+def search_product(name: str, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    products = db.query(models.Product).filter(models.Product.name.ilike(f"%{name}%")).offset(offset).limit(limit)
+    return products.all()

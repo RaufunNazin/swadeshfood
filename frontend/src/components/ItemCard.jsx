@@ -51,7 +51,7 @@ const ItemCard = ({ product }) => {
               localStorage.setItem("cart", JSON.stringify(updatedCartItems));
               toast.success("Added to cart");
             }}
-            className="text-sm lg:text-md bg-brand hover:scale-105 text-white font-semibold py-1 px-3 lg:py-2 lg:px-7 w-fit mx-auto rounded-md uppercase"
+            className="text-sm lg:text-md bg-brand transition-all duration-200 hover:scale-105 text-white font-semibold py-1 px-3 lg:py-2 lg:px-7 w-fit mx-auto rounded-md uppercase"
           >
             Add to cart
           </button>
