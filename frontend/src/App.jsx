@@ -15,6 +15,7 @@ import New from "./pages/New";
 import Checkout from "./pages/Checkout";
 import Search from "./pages/Search";
 import Connect from "./pages/Connect";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
             <Route path="/search/:searchText" element={<Search />} />
             <Route path="/new" element={<New />} />
             <Route path="/connect" element={<Connect />} />
+            <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/product/:productId" element={<SingleProduct />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/images" element={<AdminImages />} />

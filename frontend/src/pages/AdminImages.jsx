@@ -108,7 +108,7 @@ const AdminImages = () => {
               size="large"
               options={products.map((product) => ({
                 value: product.id,
-                label: product.name,
+                label: `${product.name} - ${product.size} - ${product.price} TK`,
               }))}
             />
             {productById.id && productById.image2 === null && (

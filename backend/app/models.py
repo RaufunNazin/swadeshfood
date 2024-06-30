@@ -36,6 +36,8 @@ class Order(Base) :
     phone = Column(String(20), nullable=False)
     address = Column(String(300), nullable=False)
     order_description = Column(String(300), nullable=True)
+    method = Column(Integer, nullable=False)
+    created_at = Column(Integer, nullable=True)
     
 class Category(Base) :
     __tablename__ = "categories"

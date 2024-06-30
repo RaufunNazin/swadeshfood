@@ -83,7 +83,7 @@ const Home = () => {
       </div>
       {/* <Carousel /> */}
       <div>
-        <img src="Banner.jpg" alt="banner" />
+        <img src="banner.jpeg" alt="banner" />
       </div>
       <div>
         <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 mt-5 md:mt-10 flex flex-col justify-evenly gap-y-5 md:gap-y-10">

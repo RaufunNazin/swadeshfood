@@ -89,7 +89,9 @@ const New = () => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">New Arrivals</div>
+        <div className="text-xdark text-4xl md:text-7xl font-bold">
+          New Arrivals
+        </div>
         <div className="">Home / New Arrivals</div>
       </div>
       <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
@@ -98,8 +100,15 @@ const New = () => {
             <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center font-bold text-3xl">
-            New products coming soon!
+          <div className="my-10 flex flex-col gap-10">
+            <img
+              src="/emptynew.png"
+              alt="No new products"
+              className="w-1/4 mx-auto"
+            />
+            <div className="text-center text-2xl font-semibold">
+              New products coming soon!
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">

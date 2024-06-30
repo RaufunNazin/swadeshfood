@@ -42,18 +42,19 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     
-    # orders table
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('products', sa.String(500), nullable=False),
+    sa.Column('products', sa.String(300), nullable=False),
     sa.Column('paid', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(100), nullable=False),
     sa.Column('name', sa.String(100), nullable=False),
-    sa.Column('email', sa.String(100), nullable=True),
+    sa.Column('email', sa.String(100), nullable=True, default=None),
     sa.Column('phone', sa.String(20), nullable=False),
     sa.Column('address', sa.String(300), nullable=False),
-    sa.Column('order_description', sa.String(300), nullable=True),
+    sa.Column('order_description', sa.String(300), nullable=True, default=None),
+    sa.Column('method', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.Integer(), nullable=True, default=None),
     sa.PrimaryKeyConstraint('id')
     )
     

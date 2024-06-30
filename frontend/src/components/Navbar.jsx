@@ -114,7 +114,7 @@ const Navbar = ({ active }) => {
             <button
               onClick={() => {
                 if (isLoggedIn) {
-                  navigate("/profile");
+                  navigate(`/profile/${user.id}`);
                 } else {
                   navigate("/login");
                 }

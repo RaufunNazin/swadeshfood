@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,8 +8,10 @@ import { RxCross2 } from "react-icons/rx";
 import { IoAdd, IoRemove } from "react-icons/io5";
 import Notification from "../components/Notification";
 import api from "../api";
+import { Modal, Radio } from "antd";
 
 const Checkout = () => {
+  const { state } = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [cart, setCart] = useState([]);
@@ -19,6 +21,10 @@ const Checkout = () => {
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [products, setProducts] = useState([]);
+  const [cod, setCod] = useState(true);
+  const [openLogin, setOpenLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   const getProfile = () => {
     api
@@ -28,9 +34,7 @@ const Checkout = () => {
         },
       })
       .then((res) => {
-        if (res.status !== 200) {
-          navigate("/login");
-        } else setUser(res.data);
+        setUser(res.data);
       })
       .catch((err) => {
         console.log(err);
@@ -40,6 +44,10 @@ const Checkout = () => {
   const PlaceOrder = () => {
     if (!name || !phone || !address) {
       toast.error("Please fill all the required fields");
+      return;
+    }
+    if (!user.id) {
+      setOpenLogin(true);
       return;
     }
     const data = {
@@ -52,6 +60,7 @@ const Checkout = () => {
       products: JSON.stringify(products),
       paid: 0,
       status: "new",
+      method: cod ? 1 : 0,
     };
 
     api
@@ -70,6 +79,14 @@ const Checkout = () => {
   };
 
   useEffect(() => {
+    if (state && state.from === "/login") {
+      setName(state.name);
+      setEmail(state.email);
+      setPhone(state.phone);
+      setAddress(state.address);
+      setDescription(state.description);
+    }
+
     getProfile();
 
     const cartItems = JSON.parse(localStorage.getItem("cart")).map((item) => {
@@ -235,6 +252,22 @@ const Checkout = () => {
                   ).toFixed(2)}
                 </div>
               </div>
+              <div className="flex justify-between items-center my-5">
+                <div>Payment Method</div>
+                <div>
+                  <Radio
+                    defaultChecked
+                    onChange={() => {
+                      setCod(true);
+                    }}
+                  >
+                    Cash on Delivery
+                  </Radio>
+                  <Radio defaultChecked={false} disabled>
+                    Digital Payment
+                  </Radio>
+                </div>
+              </div>
               <button
                 onClick={PlaceOrder}
                 className="bg-brand text-white px-5 py-2 rounded-md w-full"
@@ -246,6 +279,50 @@ const Checkout = () => {
         </div>
       </div>
       <Footer />
+      <Modal
+        title="Please Login to continue"
+        open={openLogin}
+        onOk={() => {
+          api
+            .post("/login", {
+              username: loginEmail,
+              password: loginPassword,
+            })
+            .then((res) => {
+              if (res.status === 200) {
+                localStorage.setItem("token", res.data.access_token);
+                getProfile();
+                setOpenLogin(false);
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }}
+        onCancel={() => setOpenLogin(false)}
+      >
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand mt-2"
+          onChange={(e) => setLoginEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand mt-2"
+          onChange={(e) => setLoginPassword(e.target.value)}
+        />
+        <div className="flex justify-between items-center mt-2">
+          <div className="text-xlightgray font-light">Need an account?</div>
+          <button
+            onClick={() => navigate("/register")}
+            className="text-brand hover:underline"
+          >
+            Create One!
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

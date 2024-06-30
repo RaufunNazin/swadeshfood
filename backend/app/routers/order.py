@@ -7,23 +7,19 @@ from .. import models, oauth2
 from ..oauth2 import check_authorization
 from typing import List
 import json
+import time
 
 router = APIRouter()
 
-# get request for orders with product name added to it by json parsing the products field
 @router.get("/order", response_model = List[Order])
 def read_order_with_products(user=Depends(oauth2.get_current_user), db: Session=Depends(get_db)):
     check_authorization(user)
     orders = db.query(models.Order).all()
     for order in orders:
-        # Parse the JSON string
         products = json.loads(order.products)
         for product in products:
-            # Get the product name from the database
             product_name = db.query(models.Product).filter(models.Product.id == product["product"]).first().name
-            # Add the product name to the product dictionary
             product["product_name"] = product_name
-        # Convert back to JSON string
         order.products = json.dumps(products)
     return orders
 
@@ -38,6 +34,7 @@ def read_order_by_id(order_id : int, user = Depends(oauth2.get_current_user), db
 @router.post("/order", status_code=200, response_model=Order)
 def create_order(order: Order, db: Session = Depends(get_db)):
     db_order = models.Order(**order.dict())
+    db_order.created_at = int(time.time())
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
@@ -53,9 +50,13 @@ def update_order(order_id : int, order : Order, user = Depends(oauth2.get_curren
     db_order.products = order.products
     db_order.paid = order.paid
     db_order.status = order.status
+    db_order.name = order.name
+    db_order.email = order.email
     db_order.phone = order.phone
     db_order.address = order.address
     db_order.order_description = order.order_description
+    db_order.method = order.method
+    db_order.created_at = order.created_at
     db.commit()
     db.refresh(db_order)
     return db_order
@@ -75,6 +76,12 @@ def delete_order(order_id : int, user = Depends(oauth2.get_current_user), db : S
 def read_order_by_user_id(user_id : int, user = Depends(oauth2.get_current_user), db : Session = Depends(get_db)) :
     check_authorization(user)
     orders = db.query(models.Order).filter(models.Order.user_id == user_id).all()
+    for order in orders:
+        products = json.loads(order.products)
+        for product in products:
+            product_name = db.query(models.Product).filter(models.Product.id == product["product"]).first().name
+            product["product_name"] = product_name
+        order.products = json.dumps(products)
     return orders
 
 # get order by paid
@@ -138,6 +145,13 @@ def update_order_status(order_id : int, status : str, user = Depends(oauth2.get_
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if db_order is None :
         raise HTTPException(status_code = 404, detail = "Order not found")
+    if status == "delivered" :
+        products = json.loads(db_order.products)
+        for product in products :
+            db_product = db.query(models.Product).filter(models.Product.id == product["product"]).first()
+            db_product.stock -= product["quantity"]
+        db.commit()
+    
     db_order.status = status
     db.commit()
     db.refresh(db_order)

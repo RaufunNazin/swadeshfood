@@ -98,7 +98,7 @@ const Sidebar = () => {
           Connect
         </div>
         {isLoggedIn ? (
-          <div onClick={() => to("profile")} className="menu-item">
+          <div onClick={() => to(`profile/${user.id}`)} className="menu-item">
             Profile
           </div>
         ) : (

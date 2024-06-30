@@ -3,7 +3,7 @@ from fastapi.exceptions import HTTPException
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..schemas import Product
+from ..schemas import Product, ProductUpdate
 from .. import models, oauth2
 from ..oauth2 import check_authorization
 import os
@@ -104,17 +104,17 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     return product
 
 # update product by id
-@router.put("/products/{product_id}", status_code=200, response_model=Product, tags=['product'])
-def update_product(product_id: int, product: Product, user = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+@router.put("/products/{product_id}", status_code=200, tags=['product'])
+def update_product(product_id: int, product: ProductUpdate, user = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
     check_authorization(user)
-    product_to_update = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if product_to_update is None:
+    db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     for key, value in product.dict().items():
-        setattr(product_to_update, key, value)
+        setattr(db_product, key, value)
     db.commit()
-    db.refresh(product_to_update)
-    return product_to_update
+    db.refresh(db_product)
+    return db_product
 
 # filter products by any of the category with pagination with offset and limit
 @router.get("/filter/category/{category}/{offset}/{limit}", status_code=200, tags=['product'])

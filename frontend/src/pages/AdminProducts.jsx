@@ -3,7 +3,7 @@ import SidePanel from "../components/SidePanel";
 import api from "../api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Select, Table } from "antd";
+import { Modal, Select, Table } from "antd";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -16,11 +16,23 @@ const AdminProducts = () => {
   const [size, setSize] = useState("");
   const [isnew, setNew] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openUpdateConfirm, setOpenUpdateConfirm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState({});
+  const [updateName, setUpdateName] = useState("");
+  const [updateDescription, setUpdateDescription] = useState("");
+  const [updatePrice, setUpdatePrice] = useState("");
+  const [updateCategory, setUpdateCategory] = useState("");
+  const [updateStock, setUpdateStock] = useState("");
+  const [updateSize, setUpdateSize] = useState("");
+  const [updateNew, setUpdateNew] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 20,
     total: 0,
   });
+
   const getCategories = () => {
     api
       .get("/categories", {
@@ -30,6 +42,38 @@ const AdminProducts = () => {
       })
       .then((res) => {
         setCategories(res.data);
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+      });
+  };
+
+  const updateProduct = (id) => {
+    api
+      .put(
+        `/products/${id}`,
+        {
+          name: updateName,
+          description: updateDescription,
+          price: parseFloat(updatePrice),
+          category: updateCategory,
+          stock: parseInt(updateStock),
+          size: updateSize,
+          new: updateNew ? 1 : 0,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((res) => {
+        if (res.status === 200) {
+          toast.success("Product updated successfully");
+          setOpenUpdate(false);
+          setOpenUpdateConfirm(false);
+          getProducts();
+        }
       })
       .catch((err) => {
         toast.error(err.response.data.message);
@@ -118,6 +162,7 @@ const AdminProducts = () => {
       })
       .then((res) => {
         if (res.status === 204) toast.success("Product deleted successfully");
+        setOpenDelete(false);
         getProducts();
       })
       .catch((err) => {
@@ -316,7 +361,25 @@ const AdminProducts = () => {
                   render: (action, record) => (
                     <div className="flex gap-x-2">
                       <button
-                        onClick={() => deleteProduct(record.id)}
+                        onClick={() => {
+                          setSelectedProduct(record);
+                          setUpdateName(record.name);
+                          setUpdateDescription(record.description);
+                          setUpdatePrice(record.price);
+                          setUpdateCategory(record.category);
+                          setUpdateStock(record.stock);
+                          setUpdateSize(record.size);
+                          setUpdateNew(record.new);
+                          setOpenUpdate(true);
+                        }}
+                        className="bg-brand text-white p-2 rounded-lg"
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() =>
+                          setOpenDelete(true) && setSelectedProduct(record)
+                        }
                         className="bg-red-500 text-white p-2 rounded-lg"
                       >
                         Delete
@@ -329,6 +392,136 @@ const AdminProducts = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title="Delete Product"
+        open={openDelete}
+        onOk={() => {
+          deleteProduct(selectedProduct.id);
+        }}
+        okText="Delete"
+        onCancel={() => setOpenDelete(false)}
+        centered
+      >
+        <div className="mx-2 my-4">
+          Are you sure you want to delete this product ?
+        </div>
+      </Modal>
+      <Modal
+        title="Update Product"
+        open={openUpdateConfirm}
+        onOk={() => {
+          updateProduct(selectedProduct.id);
+        }}
+        okText="Update"
+        onCancel={() => setOpenUpdateConfirm(false)}
+        centered
+      >
+        <div className="mx-2 my-4">
+          Are you sure you want to update this product ?
+        </div>
+      </Modal>
+      <Modal
+        title="Update Product"
+        open={openUpdate}
+        width={1000}
+        okText="Update"
+        onOk={() => {
+          setOpenDelete(false);
+          setOpenUpdateConfirm(true);
+        }}
+        onCancel={() => setOpenUpdate(false)}
+      >
+        <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="flex flex-col gap-1">
+            <div>
+              <strong>Product Name</strong>
+            </div>
+            <input
+              type="text"
+              value={updateName}
+              onChange={(e) => setUpdateName(e.target.value)}
+              placeholder="Product name"
+              className="border border-gray-300 p-2 rounded-lg w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <div>
+              <strong>Price</strong>
+            </div>
+            <input
+              type="text"
+              value={updatePrice}
+              onChange={(e) => setUpdatePrice(e.target.value)}
+              placeholder="Price"
+              className="border border-gray-300 p-2 rounded-lg w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <div>
+              <strong>Category</strong>
+            </div>
+            <Select
+              options={categories.map((category) => ({
+                value: category.name,
+                label: category.name,
+              }))}
+              value={updateCategory}
+              size="large"
+              onChange={(e) => setUpdateCategory(e)}
+              placeholder="Select category"
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <div>
+              <strong>Stock</strong>
+            </div>
+            <input
+              type="text"
+              value={updateStock}
+              onChange={(e) => setUpdateStock(e.target.value)}
+              placeholder="Stock"
+              className="border border-gray-300 p-2 rounded-lg w-full"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <div>
+              <strong>Size</strong>
+            </div>
+            <input
+              type="text"
+              value={updateSize}
+              onChange={(e) => setUpdateSize(e.target.value)}
+              placeholder="Size"
+              className="border border-gray-300 p-2 rounded-lg w-full"
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-x-2">
+              <input
+                id="new"
+                type="checkbox"
+                checked={updateNew}
+                onChange={(e) => setUpdateNew(e.target.checked)}
+                className=""
+              />
+              <label htmlFor="new">New Arrival</label>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 col-span-3">
+            <div>
+              <strong>Description</strong>
+            </div>
+            <textarea
+              type="text"
+              value={updateDescription}
+              onChange={(e) => setUpdateDescription(e.target.value)}
+              placeholder="Description"
+              className="border md:col-span-2 border-gray-300 px-2 rounded-lg w-full"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

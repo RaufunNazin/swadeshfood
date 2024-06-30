@@ -20,6 +20,15 @@ class Product(BaseModel):
     size: str
     new: int
     
+class ProductUpdate(BaseModel):
+    name: str
+    description: str
+    price: float
+    category: str
+    stock: int
+    size: str
+    new: int
+    
 class ProductsOrdered(BaseModel):
     product: int
     quantity: int
@@ -36,6 +45,8 @@ class Order(BaseModel):
     phone: str
     address: str
     order_description: Optional[str]
+    method: int
+    created_at: Optional[int] = None
 
 class Category(BaseModel):
     name: str

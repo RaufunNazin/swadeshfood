@@ -32,8 +32,7 @@ const Register = () => {
       })
       .then((res) => {
         if (res.status === 201) {
-          if (state && state === "checkout") navigate(`/${state}`);
-          else navigate("/", { state: "register" });
+          navigate("/", { state: "register" });
           localStorage.setItem("token", res.data.access_token);
         }
       })
@@ -107,7 +106,7 @@ const Register = () => {
           <button
             type="button"
             onClick={register}
-            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-red-500 transition-all duration-200"
+            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-green-700 transition-all duration-200"
           >
             Register
           </button>

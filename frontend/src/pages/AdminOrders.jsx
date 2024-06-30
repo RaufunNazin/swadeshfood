@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SidePanel from "../components/SidePanel";
 import api from "../api";
-import { Modal, Select, Table } from "antd";
+import { Col, Modal, Select, Table } from "antd";
 import Column from "antd/es/table/Column";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,14 +21,14 @@ const AdminOrders = () => {
   const statuses = {
     new: "New",
     processing: "Processing",
-    shipping: "Shipping",
+    transit: "In Transit",
     delivered: "Delivered",
   };
 
   const statusColor = {
     new: "text-blue-500",
     processing: "text-yellow-500",
-    shipping: "text-orange-500",
+    transit: "text-orange-500",
     delivered: "text-green-500",
   };
 
@@ -68,7 +68,7 @@ const AdminOrders = () => {
         }
       )
       .then((res) => {
-        setOrders(res.data);
+        setOrders(res.data?.reverse());
       })
       .catch((err) => {
         console.log(err);
@@ -86,7 +86,7 @@ const AdminOrders = () => {
         },
       })
       .then((res) => {
-        setUsers(res.data);
+        setUsers(res.data?.reverse());
       })
       .catch((err) => {
         console.log(err);
@@ -104,7 +104,7 @@ const AdminOrders = () => {
         },
       })
       .then((res) => {
-        setOrders(res.data);
+        setOrders(res.data?.reverse());
       })
       .catch((err) => {
         console.log(err);
@@ -142,6 +142,7 @@ const AdminOrders = () => {
                 <Select
                   defaultValue="All Users"
                   onChange={setUserId}
+                  value={userId}
                   className="w-full md:w-[150px]"
                   options={
                     users.length > 0
@@ -180,6 +181,7 @@ const AdminOrders = () => {
                 />
                 <Select
                   defaultValue="All Statuses"
+                  value={status}
                   onChange={setStatus}
                   className="w-full md:w-[150px]"
                   options={[
@@ -196,8 +198,8 @@ const AdminOrders = () => {
                       value: "processing",
                     },
                     {
-                      label: "Shipping",
-                      value: "shipping",
+                      label: "In Transit",
+                      value: "transit",
                     },
                     {
                       label: "Delivered",
@@ -244,21 +246,6 @@ const AdminOrders = () => {
               <Column title="ID" dataIndex="id" key="id" />
               <Column title="Ordered By" dataIndex="user_id" key="user_id" />
               <Column
-                title="Products (ID, Name, Quantity)"
-                dataIndex="products"
-                key="products"
-                render={(products) => (
-                  <ul>
-                    {JSON.parse(products).map((product) => (
-                      <li key={product.id}>
-                        {product.product}, {product.product_name},{" "}
-                        {product.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              />
-              <Column
                 title="Customer Details"
                 dataIndex="details"
                 key="details"
@@ -280,6 +267,21 @@ const AdminOrders = () => {
                       {record.name || "View Details"}
                     </button>
                   </div>
+                )}
+              />
+              <Column
+                title="Products (ID, Name, Quantity)"
+                dataIndex="products"
+                key="products"
+                render={(products) => (
+                  <ul>
+                    {JSON.parse(products).map((product) => (
+                      <li key={product.id}>
+                        {product.product}, {product.product_name},{" "}
+                        {product.quantity}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               />
               <Column
@@ -344,6 +346,24 @@ const AdminOrders = () => {
                   >
                     {paid ? "Yes" : "No"}
                   </div>
+                )}
+              />
+              <Column
+                title="Method"
+                dataIndex="method"
+                key="method"
+                render={(method) => (
+                  <div>
+                    {method === 1 ? "Cash on Delivery" : "Digital Payment"}
+                  </div>
+                )}
+              />
+              <Column
+                title="Created At"
+                dataIndex="created_at"
+                key="created_at"
+                render={(created_at) => (
+                  <div>{new Date(created_at * 1000).toLocaleString()}</div>
                 )}
               />
               <Column
@@ -439,14 +459,19 @@ const AdminOrders = () => {
         okButtonProps={{ style: { display: "none" } }}
         centered
       >
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-3 gap-5">
           {Object.keys(Customer).map((key) => (
-            <p
+            <div
               key={key}
-              className={`${key === "description" && "grid-cols-2"}`}
+              className={`${
+                key === "description" && "col-span-2"
+              } flex flex-col gap-1`}
             >
-              <strong>{key}</strong>: {Customer[key] || "N/A"}
-            </p>
+              <div>
+                <strong>{key}</strong>
+              </div>
+              <div>{Customer[key] || "N/A"}</div>
+            </div>
           ))}
         </div>
       </Modal>

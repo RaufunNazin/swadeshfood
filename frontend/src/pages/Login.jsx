@@ -24,8 +24,7 @@ const Login = () => {
       })
       .then((res) => {
         if (res.status === 200) {
-          if (state && state === "checkout") navigate(`/${state}`);
-          else navigate("/", { state: "login" });
+          navigate("/", { state: "login" });
           localStorage.setItem("token", res.data.access_token);
         }
       })
@@ -89,7 +88,7 @@ const Login = () => {
           <button
             type="button"
             onClick={login}
-            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-red-500 transition-all duration-200"
+            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-green-700 transition-all duration-200"
           >
             Login
           </button>
