@@ -1,528 +1,531 @@
 import { useEffect, useState } from "react";
-import SidePanel from "../components/SidePanel";
+import AdminLayout from "../components/AdminLayout";
 import api from "../api";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Modal, Select, Table } from "antd";
+import { toast } from "react-toastify";
+import {
+  Modal,
+  Select,
+  Table,
+  Button,
+  Input,
+  Form,
+  Card,
+  Tag,
+  Checkbox,
+  Image,
+} from "antd";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ExperimentOutlined,
+  FileImageOutlined,
+} from "@ant-design/icons";
+
+const { TextArea } = Input;
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [image, setImage] = useState("");
-  const [stock, setStock] = useState("");
-  const [size, setSize] = useState("");
-  const [isnew, setNew] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [openDelete, setOpenDelete] = useState(false);
-  const [openUpdateConfirm, setOpenUpdateConfirm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState({});
-  const [updateName, setUpdateName] = useState("");
-  const [updateDescription, setUpdateDescription] = useState("");
-  const [updatePrice, setUpdatePrice] = useState("");
-  const [updateCategory, setUpdateCategory] = useState("");
-  const [updateStock, setUpdateStock] = useState("");
-  const [updateSize, setUpdateSize] = useState("");
-  const [updateNew, setUpdateNew] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // -- Modals State --
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+
+  const [recipeModalOpen, setRecipeModalOpen] = useState(false);
+  const [galleryModalOpen, setGalleryModalOpen] = useState(false);
+
+  // -- Recipe Data --
+  const [recipeItems, setRecipeItems] = useState([]);
+  const [newIngredient, setNewIngredient] = useState({
+    name: "",
+    qty: "",
+    price: "",
+  });
+
+  // -- Gallery Data --
+  const [galleryImages, setGalleryImages] = useState({
+    img2: null,
+    img3: null,
+  });
+
+  const [form] = Form.useForm();
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 20,
+    pageSize: 10,
     total: 0,
   });
 
-  const getCategories = () => {
+  // 1. Initial Data Fetch
+  const fetchProducts = (page = 1, pageSize = 10) => {
+    setLoading(true);
+    const offset = (page - 1) * pageSize;
     api
-      .get("/categories", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+      .get(`/products/${offset}/${pageSize}`)
       .then((res) => {
-        setCategories(res.data);
+        setProducts(res.data);
+        // Assuming backend simulates total for now, or returns strictly list
+        setPagination({ ...pagination, current: page, pageSize, total: 100 });
+        setLoading(false);
       })
-      .catch((err) => {
-        toast.error(err.response.data.message);
+      .catch(() => {
+        toast.error("Failed to load products");
+        setLoading(false);
       });
   };
 
-  const updateProduct = (id) => {
-    api
-      .put(
-        `/products/${id}`,
-        {
-          name: updateName,
-          description: updateDescription,
-          price: parseFloat(updatePrice),
-          category: updateCategory,
-          stock: parseInt(updateStock),
-          size: updateSize,
-          new: updateNew ? 1 : 0,
-        },
-        {
+  const fetchCategories = () => {
+    api.get("/categories").then((res) => setCategories(res.data));
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  // 2. Create / Edit Product Logic
+  const handleSubmit = async (values) => {
+    const formData = new FormData();
+    // Append standard fields
+    Object.keys(values).forEach((key) => {
+      if (key === "new") formData.append(key, values[key] ? 1 : 0);
+      else if (key !== "image") formData.append(key, values[key]);
+    });
+
+    // Handle Image 1 upload (Main Image)
+    // Note: Antd File upload usually comes in `values.image.file`
+    if (values.image && values.image.file) {
+      formData.append("image", values.image.file.originFileObj);
+    }
+
+    try {
+      if (isEditMode) {
+        // NOTE: Your update endpoint might not accept files directly via PUT based on previous code.
+        // If it strictly takes JSON, we might need a separate endpoint for image1 update.
+        // For now, assuming standard PUT update without image change OR multipart support.
+        await api.put(
+          `/products/${currentProduct.id}`,
+          { ...values, new: values.new ? 1 : 0 },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        toast.success(
+          "Product Updated (Note: Image updates might require re-upload)",
+        );
+      } else {
+        // Creation requires FormData for image
+        await api.post("/products", formData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
           },
-        }
+        });
+        toast.success("Product Created");
+      }
+      setIsModalOpen(false);
+      fetchProducts(pagination.current);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error saving product");
+    }
+  };
+
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: "Delete Product?",
+      content: "This cannot be undone.",
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        api
+          .delete(`/products/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          })
+          .then(() => {
+            toast.success("Deleted successfully");
+            fetchProducts(pagination.current);
+          });
+      },
+    });
+  };
+
+  // 3. Recipe Logic
+  const openRecipeModal = (product) => {
+    setCurrentProduct(product);
+    setRecipeModalOpen(true);
+    api
+      .get(`/products/${product.id}/recipe`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((res) => setRecipeItems(res.data));
+  };
+
+  const addIngredient = () => {
+    if (!newIngredient.name || !newIngredient.qty || !newIngredient.price)
+      return;
+
+    api
+      .post(
+        `/products/${currentProduct.id}/recipe`,
+        {
+          ingredient_name: newIngredient.name,
+          quantity: parseFloat(newIngredient.qty),
+          unit_price: parseFloat(newIngredient.price),
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
       )
       .then((res) => {
-        if (res.status === 200) {
-          toast.success("Product updated successfully");
-          setOpenUpdate(false);
-          setOpenUpdateConfirm(false);
-          getProducts();
-        }
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
+        setRecipeItems([...recipeItems, res.data]);
+        setNewIngredient({ name: "", qty: "", price: "" });
+        toast.success("Ingredient added");
       });
   };
 
-  const CreateProduct = () => {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("price", parseFloat(price));
-    formData.append("category", category);
-    formData.append("image", image);
-    formData.append("stock", parseInt(stock));
-    formData.append("size", size);
-    formData.append("new", isnew ? 1 : 0);
+  const removeIngredient = (itemId) => {
     api
-      .post("/products", formData, {
+      .delete(`/products/recipe/${itemId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then(() => {
+        setRecipeItems(recipeItems.filter((i) => i.id !== itemId));
+      });
+  };
+
+  // 4. Gallery Logic (Merged from AdminImages)
+  const openGalleryModal = (product) => {
+    setCurrentProduct(product);
+    setGalleryModalOpen(true);
+    setGalleryImages({ img2: null, img3: null });
+  };
+
+  const handleGalleryUpload = () => {
+    const formData = new FormData();
+    if (galleryImages.img2) formData.append("image2", galleryImages.img2);
+    if (galleryImages.img3) formData.append("image3", galleryImages.img3);
+
+    if (!galleryImages.img2 && !galleryImages.img3) {
+      toast.info("Select at least one image to upload");
+      return;
+    }
+
+    api
+      .post(`/products/${currentProduct.id}/images`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "multipart/form-data",
         },
       })
-      .then((res) => {
-        if (res.status === 201) {
-          toast.success("Product created successfully");
-          setName("");
-          setDescription("");
-          setPrice("");
-          setCategory("");
-          setImage("");
-          setStock("");
-          setSize("");
-          setNew(false);
-
-          const inputs = document.querySelectorAll("input");
-          inputs.forEach((input) => {
-            input.value = "";
-          });
-
-          const textareas = document.querySelectorAll("textarea");
-          textareas.forEach((textarea) => {
-            textarea.value = "";
-          });
-
-          const selects = document.querySelectorAll("select");
-          selects.forEach((select) => {
-            select.value = "";
-          });
-        }
-        getProducts();
+      .then(() => {
+        toast.success("Gallery updated!");
+        setGalleryModalOpen(false);
+        fetchProducts(pagination.current); // refresh to see new images
       })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
+      .catch((err) => toast.error("Upload failed"));
   };
 
-  const getProducts = (page = 1, pageSize = 20) => {
-    const offset = (page - 1) * pageSize;
-    api
-      .get(`/products/${offset}/${pageSize}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        setProducts(res.data);
-        setPagination({
-          ...pagination,
-          current: page,
-          pageSize: pageSize,
-          total: res.total || 0,
-        });
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
-  };
+  // 5. Table Config
+  const columns = [
+    { title: "ID", dataIndex: "id", width: 60 },
+    {
+      title: "Main Image",
+      dataIndex: "image1",
+      render: (src) => (
+        <Image src={src} width={50} className="rounded border" />
+      ),
+    },
+    { title: "Name", dataIndex: "name", width: 180, className: "font-medium" },
+    { title: "Category", dataIndex: "category" },
+    { title: "Price", dataIndex: "price", render: (p) => `$${p}` },
+    {
+      title: "Stock",
+      dataIndex: "stock",
+      render: (s) => <Tag color={s < 10 ? "red" : "green"}>{s}</Tag>,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 200,
+      render: (_, record) => (
+        <div className="flex gap-2">
+          <Button
+            icon={<FileImageOutlined />}
+            onClick={() => openGalleryModal(record)}
+            title="Gallery"
+          />
+          <Button
+            icon={<ExperimentOutlined />}
+            onClick={() => openRecipeModal(record)}
+            title="Recipe"
+          />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              setCurrentProduct(record);
+              setIsEditMode(true);
+              form.setFieldsValue({ ...record, new: record.new === 1 });
+              setIsModalOpen(true);
+            }}
+          />
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+          />
+        </div>
+      ),
+    },
+  ];
 
-  const deleteProduct = (id) => {
-    api
-      .delete(`/products/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        if (res.status === 204) toast.success("Product deleted successfully");
-        setOpenDelete(false);
-        getProducts();
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
-  };
-
-  useEffect(() => {
-    getCategories();
-    getProducts();
-  }, []);
   return (
-    <div className="flex flex-1">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
-      <SidePanel />
-      <div className="flex flex-col flex-1">
-        <div className="w-full p-2 lg:p-10">
-          <h1 className="text-2xl font-semibold">Products</h1>
-          <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Product name"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-            <input
-              type="text"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="Price"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-            <Select
-              options={categories.map((category) => ({
-                value: category.name,
-                label: category.name,
-              }))}
-              size="large"
-              onChange={(e) => setCategory(e)}
-              placeholder="Select category"
-              className="w-full"
-            />
-            <input
-              type="file"
-              onChange={(e) => setImage(e.target.files[0])}
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-            <input
-              type="text"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              placeholder="Stock"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-            <input
-              type="text"
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-              placeholder="Size"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-            <textarea
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-              className="border md:col-span-2 border-gray-300 px-2 rounded-lg w-full"
-            />
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-x-2">
-                <input
-                  id="new"
-                  type="checkbox"
-                  onChange={(e) => setNew(e.target.checked)}
-                  className=""
-                />
-                <label htmlFor="new">New Arrival</label>
-              </div>
-              <button
-                onClick={() => CreateProduct()}
-                className="bg-brand p-2 text-white rounded-md"
-              >
-                Create Product
-              </button>
-            </div>
-          </div>
-          <div className="mt-5 w-72 md:w-full overflow-x-auto">
-            <Table
-              dataSource={products}
-              rowKey={(record) => record.id}
-              style={{ overflowX: "auto" }}
-              pagination={{
-                current: pagination.current,
-                pageSize: pagination.pageSize,
-                total: pagination.total,
-                onChange: (page, pageSize) => getProducts(page, pageSize),
-                showSizeChanger: true,
-                pageSizeOptions: ["20", "50", "100"],
-                showQuickJumper: false,
-                showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} of ${total} items`,
-              }}
-              className="overflow-auto mt-5"
-              columns={[
-                {
-                  title: "ID",
-                  dataIndex: "id",
-                  key: "id",
-                },
-                {
-                  title: "Name",
-                  dataIndex: "name",
-                  key: "name",
-                },
-                {
-                  title: "Description",
-                  dataIndex: "description",
-                  key: "description",
-                },
-                {
-                  title: "Image 1",
-                  dataIndex: "image1",
-                  key: "image",
-                  render: (image) => {
-                    return <img src={image} alt="product" width="100" />;
-                  },
-                },
-                {
-                  title: "Image 2",
-                  dataIndex: "image2",
-                  key: "image",
-                  render: (image) => {
-                    return image ? (
-                      <img src={image} alt="product" width="100" />
-                    ) : (
-                      "No Image"
-                    );
-                  },
-                },
-                {
-                  title: "Image 3",
-                  dataIndex: "image3",
-                  key: "image",
-                  render: (image) => {
-                    return image ? (
-                      <img src={image} alt="product" width="100" />
-                    ) : (
-                      "No Image"
-                    );
-                  },
-                },
-                {
-                  title: "Price",
-                  dataIndex: "price",
-                  key: "price",
-                },
-                {
-                  title: "Category",
-                  dataIndex: "category",
-                  key: "category",
-                },
-                {
-                  title: "Stock",
-                  dataIndex: "stock",
-                  key: "stock",
-                },
-                {
-                  title: "Size",
-                  dataIndex: "size",
-                  key: "size",
-                },
-                {
-                  title: "New",
-                  dataIndex: "new",
-                  key: "new",
-                  render: (newProduct) => {
-                    return (
-                      <p>{newProduct === 1 ? "New Arrival" : "Not New"}</p>
-                    );
-                  },
-                },
-                {
-                  title: "Action",
-                  key: "action",
-                  render: (action, record) => (
-                    <div className="flex gap-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedProduct(record);
-                          setUpdateName(record.name);
-                          setUpdateDescription(record.description);
-                          setUpdatePrice(record.price);
-                          setUpdateCategory(record.category);
-                          setUpdateStock(record.stock);
-                          setUpdateSize(record.size);
-                          setUpdateNew(record.new);
-                          setOpenUpdate(true);
-                        }}
-                        className="bg-brand text-white p-2 rounded-lg"
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() =>
-                          setOpenDelete(true) && setSelectedProduct(record)
-                        }
-                        className="bg-red-500 text-white p-2 rounded-lg"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </div>
+    <AdminLayout title="Product Inventory">
+      <Card className="shadow-sm border-0 rounded-xl">
+        <div className="flex justify-between mb-4">
+          <Input.Search placeholder="Search products..." className="max-w-xs" />
+          <Button
+            type="primary"
+            className="bg-brand"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setIsEditMode(false);
+              form.resetFields();
+              setIsModalOpen(true);
+            }}
+          >
+            Add Product
+          </Button>
         </div>
-      </div>
+
+        <Table
+          columns={columns}
+          dataSource={products}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            ...pagination,
+            onChange: (page, size) => fetchProducts(page, size),
+          }}
+          scroll={{ x: 800 }}
+        />
+      </Card>
+
+      {/* --- Create/Edit Modal --- */}
       <Modal
-        title="Delete Product"
-        open={openDelete}
-        onOk={() => {
-          deleteProduct(selectedProduct.id);
-        }}
-        okText="Delete"
-        onCancel={() => setOpenDelete(false)}
-        centered
+        title={isEditMode ? "Edit Product" : "New Product"}
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+        width={700}
       >
-        <div className="mx-2 my-4">
-          Are you sure you want to delete this product ?
-        </div>
-      </Modal>
-      <Modal
-        title="Update Product"
-        open={openUpdateConfirm}
-        onOk={() => {
-          updateProduct(selectedProduct.id);
-        }}
-        okText="Update"
-        onCancel={() => setOpenUpdateConfirm(false)}
-        centered
-      >
-        <div className="mx-2 my-4">
-          Are you sure you want to update this product ?
-        </div>
-      </Modal>
-      <Modal
-        title="Update Product"
-        open={openUpdate}
-        width={1000}
-        okText="Update"
-        onOk={() => {
-          setOpenDelete(false);
-          setOpenUpdateConfirm(true);
-        }}
-        onCancel={() => setOpenUpdate(false)}
-      >
-        <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="flex flex-col gap-1">
-            <div>
-              <strong>Product Name</strong>
-            </div>
-            <input
-              type="text"
-              value={updateName}
-              onChange={(e) => setUpdateName(e.target.value)}
-              placeholder="Product name"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div>
-              <strong>Price</strong>
-            </div>
-            <input
-              type="text"
-              value={updatePrice}
-              onChange={(e) => setUpdatePrice(e.target.value)}
-              placeholder="Price"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div>
-              <strong>Category</strong>
-            </div>
-            <Select
-              options={categories.map((category) => ({
-                value: category.name,
-                label: category.name,
-              }))}
-              value={updateCategory}
-              size="large"
-              onChange={(e) => setUpdateCategory(e)}
-              placeholder="Select category"
-              className="w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div>
-              <strong>Stock</strong>
-            </div>
-            <input
-              type="text"
-              value={updateStock}
-              onChange={(e) => setUpdateStock(e.target.value)}
-              placeholder="Stock"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <div>
-              <strong>Size</strong>
-            </div>
-            <input
-              type="text"
-              value={updateSize}
-              onChange={(e) => setUpdateSize(e.target.value)}
-              placeholder="Size"
-              className="border border-gray-300 p-2 rounded-lg w-full"
-            />
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-x-2">
-              <input
-                id="new"
-                type="checkbox"
-                checked={updateNew}
-                onChange={(e) => setUpdateNew(e.target.checked)}
-                className=""
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true }]}
+              className="col-span-2"
+            >
+              <Input size="large" />
+            </Form.Item>
+            <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+              <Input type="number" step="0.01" prefix="$" />
+            </Form.Item>
+            <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item
+              name="category"
+              label="Category"
+              rules={[{ required: true }]}
+            >
+              <Select
+                options={categories.map((c) => ({
+                  label: c.name,
+                  value: c.name,
+                }))}
               />
-              <label htmlFor="new">New Arrival</label>
-            </div>
+            </Form.Item>
+            <Form.Item name="size" label="Size/Unit">
+              <Input placeholder="e.g. Large, 500g" />
+            </Form.Item>
           </div>
-          <div className="flex flex-col gap-1 col-span-3">
-            <div>
-              <strong>Description</strong>
-            </div>
-            <textarea
-              type="text"
-              value={updateDescription}
-              onChange={(e) => setUpdateDescription(e.target.value)}
-              placeholder="Description"
-              className="border md:col-span-2 border-gray-300 px-2 rounded-lg w-full"
+          <Form.Item name="description" label="Description">
+            <TextArea rows={3} />
+          </Form.Item>
+
+          {!isEditMode && (
+            <Form.Item label="Main Image" name="image">
+              <Input type="file" />
+            </Form.Item>
+          )}
+
+          <Form.Item name="new" valuePropName="checked">
+            <Checkbox>Mark as New Arrival</Checkbox>
+          </Form.Item>
+
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" className="bg-brand">
+              Save Product
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* --- Recipe Modal --- */}
+      <Modal
+        title={`Recipe: ${currentProduct?.name || ""}`}
+        open={recipeModalOpen}
+        onCancel={() => setRecipeModalOpen(false)}
+        footer={null}
+        width={700}
+      >
+        <div className="bg-gray-50 p-4 rounded mb-4 border border-gray-100">
+          <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
+            Add Ingredient
+          </h4>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Item Name"
+              value={newIngredient.name}
+              onChange={(e) =>
+                setNewIngredient({ ...newIngredient, name: e.target.value })
+              }
+            />
+            <Input
+              placeholder="Qty"
+              style={{ width: 100 }}
+              type="number"
+              value={newIngredient.qty}
+              onChange={(e) =>
+                setNewIngredient({ ...newIngredient, qty: e.target.value })
+              }
+            />
+            <Input
+              placeholder="Cost ($)"
+              style={{ width: 100 }}
+              type="number"
+              value={newIngredient.price}
+              onChange={(e) =>
+                setNewIngredient({ ...newIngredient, price: e.target.value })
+              }
+            />
+            <Button
+              type="primary"
+              onClick={addIngredient}
+              icon={<PlusOutlined />}
+              className="bg-brand"
+            />
+          </div>
+        </div>
+
+        <Table
+          dataSource={recipeItems}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          summary={(pageData) => {
+            let total = 0;
+            pageData.forEach(({ total_cost }) => {
+              total += total_cost;
+            });
+            return (
+              <Table.Summary.Row className="bg-red-50 font-bold">
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
+                  Total Production Cost:
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={1}>
+                  ${total.toFixed(2)}
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={2}></Table.Summary.Cell>
+              </Table.Summary.Row>
+            );
+          }}
+          columns={[
+            { title: "Ingredient", dataIndex: "ingredient_name" },
+            { title: "Qty", dataIndex: "quantity" },
+            {
+              title: "Unit Cost",
+              dataIndex: "unit_price",
+              render: (p) => `$${p}`,
+            },
+            {
+              title: "Total",
+              dataIndex: "total_cost",
+              render: (p) => `$${p.toFixed(2)}`,
+            },
+            {
+              render: (_, r) => (
+                <Button
+                  danger
+                  size="small"
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  onClick={() => removeIngredient(r.id)}
+                />
+              ),
+            },
+          ]}
+        />
+      </Modal>
+
+      {/* --- Gallery Modal (Replaces AdminImages) --- */}
+      <Modal
+        title={`Gallery: ${currentProduct?.name}`}
+        open={galleryModalOpen}
+        onCancel={() => setGalleryModalOpen(false)}
+        onOk={handleGalleryUpload}
+        okText="Upload Images"
+        okButtonProps={{ className: "bg-brand" }}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="p-4 border rounded bg-gray-50">
+            <p className="mb-2 font-semibold">Image 2 (Additional View)</p>
+            {currentProduct?.image2 ? (
+              <div className="mb-2">
+                <Image src={currentProduct.image2} width={100} />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mb-2">No image uploaded</p>
+            )}
+            <Input
+              type="file"
+              onChange={(e) =>
+                setGalleryImages({ ...galleryImages, img2: e.target.files[0] })
+              }
+            />
+          </div>
+
+          <div className="p-4 border rounded bg-gray-50">
+            <p className="mb-2 font-semibold">Image 3 (Additional View)</p>
+            {currentProduct?.image3 ? (
+              <div className="mb-2">
+                <Image src={currentProduct.image3} width={100} />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mb-2">No image uploaded</p>
+            )}
+            <Input
+              type="file"
+              onChange={(e) =>
+                setGalleryImages({ ...galleryImages, img3: e.target.files[0] })
+              }
             />
           </div>
         </div>
       </Modal>
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -1,85 +1,41 @@
-import { useEffect, useRef, useState } from "react";
-import SidePanel from "../components/SidePanel";
+import { useEffect, useState } from "react";
+import AdminLayout from "../components/AdminLayout";
 import api from "../api";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Table } from "antd";
+import { toast } from "react-toastify";
+import { Table, Button, Card, Modal, Input, Form, Space, Tooltip } from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 
 const AdminCategories = () => {
-  const ref = useRef(null);
   const [categories, setCategories] = useState([]);
-  const [name, setName] = useState("");
-  const [edit, setEdit] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState({});
-  const [updateName, setUpdateName] = useState("");
+  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [form] = Form.useForm();
+
+  // Fetch Categories
   const getCategories = () => {
+    setLoading(true);
     api
       .get("/categories", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then((res) => {
         setCategories(res.data);
+        setFilteredCategories(res.data);
+        setLoading(false);
       })
       .catch((err) => {
-        toast.error(err.response.data.message);
-      });
-  };
-
-  const createCategory = () => {
-    const formData = new FormData();
-    formData.append("name", name);
-    api
-      .post("/categories", formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((res) => {
-        if (res.status === 201) toast.success("Category created successfully");
-        getCategories();
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
-  };
-
-  const updateCategory = (id, name) => {
-    const formData = new FormData();
-    formData.append("name", name);
-    api
-      .put(`/categories/${id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((res) => {
-        if (res.status === 200) toast.success("Category updated successfully");
-        getCategories();
-        setEdit(false);
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
-      });
-  };
-
-  const deleteCategory = (id) => {
-    api
-      .delete(`/categories/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        if (res.status === 200) toast.success("Category deleted successfully");
-        getCategories();
-      })
-      .catch((err) => {
-        toast.error(err.response.data.message);
+        toast.error("Failed to load categories");
+        setLoading(false);
       });
   };
 
@@ -87,100 +43,216 @@ const AdminCategories = () => {
     getCategories();
   }, []);
 
+  // Filter Logic
+  useEffect(() => {
+    if (!searchText) {
+      setFilteredCategories(categories);
+    } else {
+      const lower = searchText.toLowerCase();
+      const filtered = categories.filter((c) =>
+        c.name.toLowerCase().includes(lower),
+      );
+      setFilteredCategories(filtered);
+    }
+  }, [searchText, categories]);
+
+  // Handle Submit (Create & Update)
+  const handleSubmit = (values) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "multipart/form-data",
+      },
+    };
+
+    if (editingCategory) {
+      api
+        .put(`/categories/${editingCategory.id}`, formData, config)
+        .then(() => {
+          toast.success("Category updated successfully");
+          setIsModalOpen(false);
+          getCategories();
+        })
+        .catch((err) =>
+          toast.error(err.response?.data?.message || "Update failed"),
+        );
+    } else {
+      api
+        .post("/categories", formData, config)
+        .then(() => {
+          toast.success("Category created successfully");
+          setIsModalOpen(false);
+          getCategories();
+        })
+        .catch((err) =>
+          toast.error(err.response?.data?.message || "Creation failed"),
+        );
+    }
+  };
+
+  // Handle Delete
+  const deleteCategory = (id) => {
+    Modal.confirm({
+      title: "Delete Category?",
+      content:
+        "This action cannot be undone. Products in this category might be affected.",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: () => {
+        api
+          .delete(`/categories/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          })
+          .then(() => {
+            toast.success("Category deleted");
+            getCategories();
+          })
+          .catch((err) =>
+            toast.error(err.response?.data?.message || "Delete failed"),
+          );
+      },
+    });
+  };
+
+  // Open Modal Helper
+  const openModal = (category = null) => {
+    setEditingCategory(category);
+    if (category) {
+      form.setFieldsValue({ name: category.name });
+    } else {
+      form.resetFields();
+    }
+    setIsModalOpen(true);
+  };
+
+  const columns = [
+    {
+      title: "ID",
+      dataIndex: "id",
+      width: 80,
+      sorter: (a, b) => a.id - b.id,
+    },
+    {
+      title: "Category Name",
+      dataIndex: "name",
+      className: "font-medium text-gray-700",
+      sorter: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+      title: "Actions",
+      width: 150,
+      align: "right",
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Edit">
+            <Button icon={<EditOutlined />} onClick={() => openModal(record)} />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => deleteCategory(record.id)}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="flex flex-1">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
-      <SidePanel />
-      <div className="flex flex-col flex-1">
-        <div className="w-full p-2 lg:p-10">
-          <h1 className="text-2xl font-semibold">Categories</h1>
-          <div className="grid grid-cols-1 md:flex md:items-center gap-x-2 md:gap-x-5">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Category name"
-              className="border border-gray-300 p-2 rounded-lg w-full mt-5"
-            />
-            <button
-              onClick={createCategory}
-              className="bg-brand text-white p-2 rounded-lg mt-3"
-            >
-              Create New Category
-            </button>
-          </div>
-          <div className="mt-5">
-            <Table
-              dataSource={categories}
-              style={{ overflowX: "auto" }}
-              className="overflow-auto"
-              columns={[
-                {
-                  title: "ID",
-                  dataIndex: "id",
-                  key: "id",
-                },
-                {
-                  title: "Name",
-                  dataIndex: "name",
-                  key: "name",
-                  render: (name) =>
-                    edit ? (
-                      <input
-                        type="text"
-                        value={updateName}
-                        onChange={(e) => setUpdateName(e.target.value)}
-                        onBlur={() =>
-                          updateCategory(selectedCategory.id, updateName)
-                        }
-                        ref={ref}
-                        className="border border-gray-300 p-2 rounded-lg w-fit"
-                      />
-                    ) : (
-                      <p>{name}</p>
-                    ),
-                },
-                {
-                  title: "Action",
-                  key: "action",
-                  render: (action, record) => (
-                    <div className="flex gap-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedCategory(record);
-                          setEdit(true);
-                          setUpdateName(record.name);
-                          ref?.current?.focus();
-                        }}
-                        className="text-blue-500"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteCategory(record.id)}
-                        className="text-red-500"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          </div>
+    <AdminLayout title="Category Management">
+      <Card className="shadow-sm border-0 rounded-xl">
+        {/* Header Actions */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <Input
+            placeholder="Search categories..."
+            prefix={<SearchOutlined className="text-gray-400" />}
+            className="max-w-xs rounded-md"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+          />
+          <Button
+            type="primary"
+            className="bg-brand hover:bg-red-600 border-none rounded-md shadow-sm h-10 px-6 font-medium"
+            icon={<PlusOutlined />}
+            onClick={() => openModal()}
+          >
+            Add New Category
+          </Button>
         </div>
-      </div>
-    </div>
+
+        {/* Table */}
+        <Table
+          dataSource={filteredCategories}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            pageSize: 10,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} items`,
+          }}
+          className="border border-gray-100 rounded-lg overflow-hidden"
+        />
+      </Card>
+
+      {/* Create/Edit Modal */}
+      <Modal
+        title={
+          <div className="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">
+            {editingCategory ? "Edit Category" : "Create New Category"}
+          </div>
+        }
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+        width={500}
+        centered
+      >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            name="name"
+            label={
+              <span className="font-medium text-gray-600">Category Name</span>
+            }
+            rules={[
+              { required: true, message: "Please enter a category name" },
+            ]}
+          >
+            <Input
+              placeholder="e.g. Rice, Spices, Beverages"
+              size="large"
+              className="rounded-md"
+            />
+          </Form.Item>
+
+          <div className="flex justify-end gap-3 mt-6 pt-2 border-t border-gray-50">
+            <Button
+              size="large"
+              onClick={() => setIsModalOpen(false)}
+              className="rounded-md"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              className="bg-brand hover:bg-red-600 border-none rounded-md px-6"
+            >
+              {editingCategory ? "Update Category" : "Create Category"}
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+    </AdminLayout>
   );
 };
 

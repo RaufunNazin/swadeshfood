@@ -3,11 +3,11 @@ from fastapi.exceptions import HTTPException
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..schemas import Product, ProductUpdate
+from ..schemas import Product, ProductUpdate, RecipeItemCreate, RecipeItem
 from .. import models, oauth2
 from ..oauth2 import check_authorization
 import os
-from typing import Optional
+from typing import Optional, List
 from ..utils import random_string
 
 router = APIRouter()
@@ -231,3 +231,50 @@ def get_new_products_price_range(offset: int = 0, limit: int = 10, db: Session =
 def search_product(name: str, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     products = db.query(models.Product).filter(models.Product.name.ilike(f"%{name}%")).offset(offset).limit(limit)
     return products.all()
+
+@router.post("/products/{product_id}/recipe", response_model=RecipeItem, tags=['recipe'])
+def add_recipe_item(product_id: int, item: RecipeItemCreate, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    check_authorization(user) # Admin check
+    
+    # Check if product exists
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    new_item = models.RecipeItem(
+        product_id=product_id,
+        ingredient_name=item.ingredient_name,
+        quantity=item.quantity,
+        unit_price=item.unit_price
+    )
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    
+    # Calculate total for response
+    new_item.total_cost = new_item.quantity * new_item.unit_price
+    return new_item
+
+@router.get("/products/{product_id}/recipe", response_model=List[RecipeItem], tags=['recipe'])
+def get_product_recipe(product_id: int, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    check_authorization(user) # Admin check
+    
+    items = db.query(models.RecipeItem).filter(models.RecipeItem.product_id == product_id).all()
+    
+    # Inject calculated total
+    for item in items:
+        item.total_cost = item.quantity * item.unit_price
+        
+    return items
+
+@router.delete("/products/recipe/{item_id}", status_code=204, tags=['recipe'])
+def delete_recipe_item(item_id: int, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    check_authorization(user) # Admin check
+    
+    item = db.query(models.RecipeItem).filter(models.RecipeItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Recipe item not found")
+        
+    db.delete(item)
+    db.commit()
+    return None

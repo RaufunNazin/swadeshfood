@@ -5,21 +5,36 @@ from sqlalchemy.orm import Session
 from ..schemas import Order
 from .. import models, oauth2
 from ..oauth2 import check_authorization
-from typing import List
+from typing import List, Optional
 import json
 import time
 
 router = APIRouter()
 
-@router.get("/order", response_model = List[Order])
-def read_order_with_products(user=Depends(oauth2.get_current_user), db: Session=Depends(get_db)):
+@router.get("/order", response_model=List[Order])
+def read_order_with_products(
+    start_date: Optional[int] = None, 
+    end_date: Optional[int] = None,
+    user=Depends(oauth2.get_current_user), 
+    db: Session = Depends(get_db)
+):
     check_authorization(user)
-    orders = db.query(models.Order).all()
+    
+    query = db.query(models.Order)
+    
+    if start_date:
+        query = query.filter(models.Order.created_at >= start_date)
+    if end_date:
+        query = query.filter(models.Order.created_at <= end_date)
+        
+    orders = query.all()
+    
     for order in orders:
         products = json.loads(order.products)
         for product in products:
-            product_name = db.query(models.Product).filter(models.Product.id == product["product"]).first().name
-            product["product_name"] = product_name
+            product_obj = db.query(models.Product).filter(models.Product.id == product["product"]).first()
+            if product_obj:
+                product["product_name"] = product_obj.name
         order.products = json.dumps(products)
     return orders
 

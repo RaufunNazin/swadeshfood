@@ -5,7 +5,6 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Sidebar from "./components/Sidebar";
 import AdminProducts from "./pages/AdminProducts";
-import AdminImages from "./pages/AdminImages";
 import AdminOrders from "./pages/AdminOrders";
 import AdminCategories from "./pages/AdminCategories";
 import SingleProduct from "./pages/SingleProduct";
@@ -16,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import Search from "./pages/Search";
 import Connect from "./pages/Connect";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -37,9 +37,9 @@ function App() {
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/product/:productId" element={<SingleProduct />} />
             <Route path="/admin/products" element={<AdminProducts />} />
-            <Route path="/admin/images" element={<AdminImages />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </BrowserRouter>
       </div>

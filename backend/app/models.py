@@ -43,3 +43,13 @@ class Category(Base) :
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
+
+class RecipeItem(Base):
+    __tablename__ = "recipe_items"
+    id = Column(Integer, primary_key=True, nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    ingredient_name = Column(String(100), nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit_price = Column(Float, nullable=False)
+    # relationship to access product if needed
+    product = relationship("Product")

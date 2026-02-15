@@ -79,3 +79,30 @@ class TokenResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class RecipeItemBase(BaseModel):
+    ingredient_name: str
+    quantity: float
+    unit_price: float
+
+class RecipeItemCreate(RecipeItemBase):
+    pass
+
+class RecipeItem(RecipeItemBase):
+    id: int
+    product_id: int
+    total_cost: float  # calculated field
+
+    class Config:
+        orm_mode = True
+
+class SalesReport(BaseModel):
+    date: str
+    total_orders: int
+    total_revenue: float
+
+class DashboardStats(BaseModel):
+    total_revenue: float
+    total_orders: int
+    sold_products_count: int
+    sales_graph: List[SalesReport]

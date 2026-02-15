@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export default axios.create({
-  baseURL: `https://swadeshfood.com/api`,
+  baseURL: `http://localhost:8000`,
   timeout: 30000,
   withCredentials: true,
   headers: {
