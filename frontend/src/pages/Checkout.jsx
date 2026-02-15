@@ -4,322 +4,352 @@ import Navbar from "../components/Navbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
-import { RxCross2 } from "react-icons/rx";
-import { IoAdd, IoRemove } from "react-icons/io5";
 import Notification from "../components/Notification";
 import api from "../api";
 import { Modal, Radio } from "antd";
+import {
+  RiMapPinLine,
+  RiPhoneLine,
+  RiMailLine,
+  RiUserLine,
+} from "react-icons/ri";
+
+// --- FIX: Moved Component Outside ---
+const InputField = ({
+  icon: Icon,
+  placeholder,
+  value,
+  onChange,
+  type = "text",
+  required,
+}) => (
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+      <Icon />
+    </div>
+    <input
+      type={type}
+      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-gray-50 focus:bg-white"
+      placeholder={placeholder + (required ? "*" : "")}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </div>
+);
 
 const Checkout = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [cart, setCart] = useState([]);
+
+  // Form States
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
-  const [products, setProducts] = useState([]);
-  const [cod, setCod] = useState(true);
+
+  // Login Modal
   const [openLogin, setOpenLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
   const getProfile = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
     api
-      .get("/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        setUser(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      .get("/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setUser(res.data))
+      .catch((err) => console.log(err));
   };
+
+  useEffect(() => {
+    // Check if redirect from login
+    if (state && state.from === "/login") {
+      setName(state.name || "");
+      setEmail(state.email || "");
+      setPhone(state.phone || "");
+      setAddress(state.address || "");
+      setDescription(state.description || "");
+    }
+
+    getProfile();
+
+    if (!localStorage.getItem("cart")) {
+      localStorage.setItem("cart", JSON.stringify([]));
+    }
+    setCart(JSON.parse(localStorage.getItem("cart")));
+  }, [state]);
 
   const PlaceOrder = () => {
     if (!name || !phone || !address) {
-      toast.error("Please fill all the required fields");
+      toast.error("Please fill all required fields");
       return;
     }
     if (!user.id) {
       setOpenLogin(true);
       return;
     }
+
+    const productsData = cart.map((item) => ({
+      product: item.id,
+      quantity: item.quantity,
+    }));
+
     const data = {
       user_id: user.id,
-      name: name,
-      email: email,
-      phone: phone,
-      address: address,
+      name,
+      email,
+      phone,
+      address,
       order_description: description,
-      products: JSON.stringify(products),
+      products: JSON.stringify(productsData),
       paid: 0,
       status: "new",
-      method: cod ? 1 : 0,
+      method: 1, // Hardcoded Cash on Delivery for now
     };
 
     api
       .post("/order", data)
       .then((res) => {
         if (res.status === 200) {
-          toast.success("Order placed successfully");
+          toast.success("Order placed successfully!");
           localStorage.setItem("cart", JSON.stringify([]));
           setCart([]);
-          navigate("/");
+          navigate("/"); // Or navigate to a success page
         }
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Failed to place order");
       });
   };
 
-  useEffect(() => {
-    if (state && state.from === "/login") {
-      setName(state.name);
-      setEmail(state.email);
-      setPhone(state.phone);
-      setAddress(state.address);
-      setDescription(state.description);
-    }
-
-    getProfile();
-
-    const cartItems = JSON.parse(localStorage.getItem("cart")).map((item) => {
-      return { product: item.id, quantity: item.quantity };
-    });
-    setProducts(cartItems);
-
-    if (!localStorage.getItem("cart")) {
-      localStorage.setItem("cart", JSON.stringify([]));
-    }
-    setCart(JSON.parse(localStorage.getItem("cart")));
-  }, []);
-
-  const removeFromCart = (productId) => {
-    const updatedCartItems = cart.filter((item) => item.id !== productId);
-    localStorage.setItem("cart", JSON.stringify(updatedCartItems));
-    setCart(updatedCartItems);
+  const handleLogin = () => {
+    api
+      .post("/login", { username: loginEmail, password: loginPassword })
+      .then((res) => {
+        if (res.status === 200) {
+          localStorage.setItem("token", res.data.access_token);
+          getProfile();
+          setOpenLogin(false);
+          toast.success("Logged in!");
+        }
+      })
+      .catch(() => toast.error("Invalid credentials"));
   };
 
+  // Calculations
+  const subtotal = cart.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
+  const shipping = 50;
+  const total = subtotal + shipping;
+
   return (
-    <div className="relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
+    <div className="bg-gray-50 min-h-screen font-sans text-gray-800 flex flex-col">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
-      <div className="lg:sticky top-0 z-50 bg-accent">
-        <Navbar active="home" />
-      </div>
-      <div
-        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
-        style={{
-          backgroundImage: "url('/Navigation.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">
-          Checkout
+
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <p className="text-gray-500">Complete your purchase details below.</p>
         </div>
-        <div className="">Home / Cart / Checkout</div>
-      </div>
-      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
-        <div className="grid md:grid-cols-2 md:gap-5">
-          <div>
-            <div className="text-center font-medium text-brand uppercase mb-2">
-              Shipping Details
+
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* --- Left Column: Form --- */}
+          <div className="space-y-8">
+            {/* Shipping Form */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
+                  1
+                </span>
+                Shipping Information
+              </h2>
+
+              <div className="space-y-4">
+                <InputField
+                  icon={RiUserLine}
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={setName}
+                  required
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    icon={RiMailLine}
+                    placeholder="Email (Optional)"
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                  />
+                  <InputField
+                    icon={RiPhoneLine}
+                    placeholder="Phone Number"
+                    value={phone}
+                    onChange={setPhone}
+                    required
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute top-3 left-3 pointer-events-none text-gray-400">
+                    <RiMapPinLine />
+                  </div>
+                  <textarea
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-gray-50 focus:bg-white h-24 resize-none"
+                    placeholder="Full Address (House, Street, Area, City)*"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                </div>
+                <textarea
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-gray-50 focus:bg-white h-20 resize-none"
+                  placeholder="Order notes (Optional)"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
             </div>
-            <div>
-              <input
-                type="text"
-                placeholder="Full Name"
-                className="border w-full p-2 my-2 outline-none rounded-md"
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <input
-                type="email"
-                placeholder="Email Address (Optional)"
-                className="border w-full p-2 my-2 outline-none rounded-md"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <input
-                type="text"
-                placeholder="Phone Number"
-                className="border w-full p-2 my-2 outline-none rounded-md"
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            <div>
-              <textarea
-                type="text"
-                placeholder="Full Shipping Address (House, Street, Area, City, Zip)"
-                className="border w-full p-2 my-2 outline-none rounded-md"
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-            <div>
-              <textarea
-                type="text"
-                placeholder="Anything you want to say about the order? (Optional)"
-                className="border w-full p-2 my-2 outline-none rounded-md"
-                onChange={(e) => setDescription(e.target.value)}
-              />
+
+            {/* Payment Method */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
+                  2
+                </span>
+                Payment Method
+              </h2>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 p-4 border border-green-500 bg-green-50/50 rounded-xl cursor-pointer">
+                  <Radio checked={true} className="text-green-600" />
+                  <span className="font-semibold text-gray-800">
+                    Cash on Delivery
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl opacity-50 cursor-not-allowed">
+                  <Radio checked={false} disabled />
+                  <span className="font-medium text-gray-500">
+                    Digital Payment (Coming Soon)
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
-          <div className="">
-            <div className="text-center font-medium text-brand uppercase mb-2">
-              Order Details
-            </div>
-            <div className="flex justify-between mb-2">
-              <div className="text-xlightgray">Products</div>
-              <div className="text-xlightgray">Total</div>
-            </div>
-            <div>
-              {cart.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white relative flex gap-y-2 md:flex-row justify-evenly gap-x-2 md:gap-x-8 w-full items-center cursor-pointer"
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFromCart(product.id);
-                    }}
-                    className=""
+
+          {/* --- Right Column: Summary --- */}
+          <div className="lg:pl-8">
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Your Order
+              </h2>
+
+              {/* Item List */}
+              <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between"
                   >
-                    <RxCross2 />
-                  </button>
-                  <img
-                    src={product.image1}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover"
-                  />
-                  <div className="flex md:flex-row w-full justify-between items-center cursor-pointer">
-                    <h1 className="text-sm md:text-md text-xdark text-center">
-                      {product.name} x {product.quantity}
-                    </h1>
-                    <p className="text-sm md:text-md text-center">
-                      ৳{" "}
-                      {parseFloat(product.price * product.quantity).toFixed(2)}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-50 rounded-lg overflow-hidden">
+                        <img
+                          src={item.image1}
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm line-clamp-1">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-sm">
+                      ৳ {(item.price * item.quantity).toFixed(2)}
+                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="">
-              <div className="flex justify-between items-center my-5">
-                <div>Subtotal</div>
-                <div>
-                  ৳{" "}
-                  {cart
-                    .reduce((acc, item) => acc + item.price * item.quantity, 0)
-                    .toFixed(2)}
-                </div>
+                ))}
               </div>
-              <hr />
-              <div className="flex justify-between items-center my-5">
-                <div>Shipping</div>
-                <div>৳ 50</div>
-              </div>
-              <hr />
-              <div className="flex justify-between items-center my-5">
-                <div>Total</div>
-                <div className="text-brand font-bold">
-                  ৳{" "}
-                  {(
-                    cart.reduce(
-                      (acc, item) => acc + item.price * item.quantity,
-                      0
-                    ) + 50
-                  ).toFixed(2)}
+
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <div className="flex justify-between text-gray-500">
+                  <span>Subtotal</span>
+                  <span>৳ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Shipping</span>
+                  <span>৳ {shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-100 mt-2">
+                  <span>Total</span>
+                  <span className="text-green-600">৳ {total.toFixed(2)}</span>
                 </div>
               </div>
-              <div className="flex justify-between items-center my-5">
-                <div>Payment Method</div>
-                <div>
-                  <Radio
-                    defaultChecked
-                    onChange={() => {
-                      setCod(true);
-                    }}
-                  >
-                    Cash on Delivery
-                  </Radio>
-                  <Radio defaultChecked={false} disabled>
-                    Digital Payment
-                  </Radio>
-                </div>
-              </div>
+
               <button
                 onClick={PlaceOrder}
-                className="bg-brand text-white px-5 py-2 rounded-md w-full"
+                className="w-full mt-8 bg-green-600 text-white py-4 rounded-full font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-200 active:scale-95"
               >
-                Place Order
+                Confirm Order
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </main>
+
       <Footer />
+
+      {/* Login Modal */}
       <Modal
-        title="Please Login to continue"
+        title={
+          <div className="text-center font-bold text-xl mb-4">
+            Login Required
+          </div>
+        }
         open={openLogin}
-        onOk={() => {
-          api
-            .post("/login", {
-              username: loginEmail,
-              password: loginPassword,
-            })
-            .then((res) => {
-              if (res.status === 200) {
-                localStorage.setItem("token", res.data.access_token);
-                getProfile();
-                setOpenLogin(false);
-              }
-            })
-            .catch((err) => {
-              console.log(err);
-            });
-        }}
+        onOk={handleLogin}
+        okText="Login & Continue"
         onCancel={() => setOpenLogin(false)}
+        okButtonProps={{ className: "bg-green-600 hover:bg-green-700" }}
+        centered
       >
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand mt-2"
-          onChange={(e) => setLoginEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand mt-2"
-          onChange={(e) => setLoginPassword(e.target.value)}
-        />
-        <div className="flex justify-between items-center mt-2">
-          <div className="text-xlightgray font-light">Need an account?</div>
+        <p className="text-gray-500 text-center mb-6">
+          You need to log in to place an order.
+        </p>
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email Address"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+          />
+        </div>
+        <div className="mt-4 text-center text-sm">
+          Don't have an account?
           <button
-            onClick={() => navigate("/register")}
-            className="text-brand hover:underline"
+            onClick={() => {
+              setOpenLogin(false);
+              navigate("/register");
+            }}
+            className="text-green-600 font-bold ml-1 hover:underline"
           >
-            Create One!
+            Register Here
           </button>
         </div>
       </Modal>

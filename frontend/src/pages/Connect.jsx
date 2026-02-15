@@ -1,6 +1,6 @@
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Notification from "../components/Notification";
 import {
@@ -11,84 +11,101 @@ import {
 
 const Connect = () => {
   return (
-    <div className="relative">
+    <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
       <ToastContainer
         position="top-right"
         autoClose={2000}
         hideProgressBar={false}
         newestOnTop={true}
         closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
         theme="colored"
       />
       <Notification />
-      <div className="lg:sticky top-0 z-50 bg-accent">
-        <Navbar active="home" />
+
+      {/* Header Section */}
+      <div className="bg-white py-12 md:py-20 text-center px-4">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+          Let&apos;s <span className="text-brand">Connect</span>
+        </h1>
+        <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto">
+          We are here to help and answer any questions you might have. We look
+          forward to hearing from you.
+        </p>
       </div>
-      <div
-        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
-        style={{
-          backgroundImage: "url('/Navigation.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">Connect</div>
-        <div className="">Home / Connect</div>
-      </div>
-      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10 grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div className="flex flex-col gap-10">
-          <div className="flex flex-col gap-3">
-            <div className="font-bold text-xl md:text-2xl uppercase text-xdark">
-              About us
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          {/* Info Cards */}
+          <div className="flex flex-col gap-8">
+            {/* About Card */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                About Us
+                <div className="h-1 w-12 bg-brand rounded-full ml-2"></div>
+              </h2>
+              <p className="text-gray-600 leading-relaxed text-justify">
+                Swadesh Food collects pure and organic food products from
+                different parts of Bangladesh and delivers them to your
+                doorstep. We are committed to providing you with the best
+                quality products at the best prices. Our products are sourced
+                directly from farmers and are free from chemicals and
+                pesticides.
+              </p>
             </div>
-            <hr />
-            <div className="text-xlightgray text-justify">
-              Swadesh Food collects pure and organic food products from
-              different parts of Bangladsesh and delivers them to your doorstep. We
-              are committed to providing you with the best quality products at
-              the best prices. Our products are sourced directly from farmers
-              and are free from chemicals and pesticides.
+
+            {/* Contact Card */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 transition-all hover:shadow-md">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                Get in Touch
+                <div className="h-1 w-12 bg-brand rounded-full ml-2"></div>
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-brand/10 p-3 rounded-lg text-brand">
+                    <MdOutlinePhoneInTalk className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Phone</h3>
+                    <p className="text-gray-600">+880 1XXX-XXXXXX</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-brand/10 p-3 rounded-lg text-brand">
+                    <MdOutlineMailOutline className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Email</h3>
+                    <p className="text-gray-600">support@swadeshfood.com</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-brand/10 p-3 rounded-lg text-brand">
+                    <MdLocationPin className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Headquarters</h3>
+                    <p className="text-gray-600">
+                      Level 4, Example Tower, Dhaka, Bangladesh
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <div className="font-bold text-xl md:text-2xl uppercase text-xdark">
-              Contact us
-            </div>
-            <hr />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="flex items-center gap-3">
-                <div>
-                  <MdOutlinePhoneInTalk className="text-xl md:text-3xl text-brand" />
-                </div>
-                <div>
-                  <strong>Phone: </strong>Mobile number
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div>
-                  <MdOutlineMailOutline className="text-xl md:text-3xl text-brand" />
-                </div>
-                <div>
-                  <strong>Email: </strong>Email address
-                </div>
-              </div>
-              <div className="flex items-center gap-3 md:col-span-2">
-                <div>
-                  <MdLocationPin className="text-xl md:text-3xl text-brand" />
-                </div>
-                <div>
-                  <strong>Location: </strong>Address
-                </div>
-              </div>
-            </div>
+
+          {/* Map Section */}
+          <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 h-[500px] overflow-hidden">
+            <iframe
+              title="Map"
+              className="w-full h-full rounded-xl grayscale hover:grayscale-0 transition-all duration-500"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d233667.8223908687!2d90.27923710646989!3d23.780887456211758!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sus!4v1644723456789!5m2!1sen!2sus"
+              allowFullScreen=""
+              loading="lazy"
+            ></iframe>
           </div>
-        </div>
-        <div>
-          <iframe className="w-full h-full" src="https://maps.google.com/maps?q=keari%20plaza&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed"></iframe>
         </div>
       </div>
       <Footer />

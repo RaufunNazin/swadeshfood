@@ -3,12 +3,18 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  RiMailLine,
+  RiLockPasswordLine,
+  RiArrowLeftLine,
+} from "react-icons/ri";
 
 const Login = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -17,6 +23,12 @@ const Login = () => {
   };
 
   const login = () => {
+    if (!email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
     api
       .post("/login", {
         username: email,
@@ -24,13 +36,19 @@ const Login = () => {
       })
       .then((res) => {
         if (res.status === 200) {
-          navigate("/", { state: "login" });
           localStorage.setItem("token", res.data.access_token);
+          navigate("/", { state: "login" });
         }
       })
       .catch((err) => {
         console.log(err);
-        toast.error(err.response.data?.detail || err.message);
+        toast.error(
+          err.response?.data?.detail ||
+            "Login failed. Please check your credentials.",
+        );
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -39,67 +57,91 @@ const Login = () => {
   }, [state]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-y-8">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
+
+      {/* Background Decoration */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-green-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-blue-200/20 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Back Button */}
       <button
         onClick={() => navigate("/")}
-        className="fixed top-8 flex items-center gap-x-4 lg:top-16"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-green-600 transition-colors font-medium z-10"
       >
-        <img src="/logo.png" alt="logo" className="h-12" />
+        <RiArrowLeftLine className="text-xl" />
+        <span className="hidden sm:inline">Back to Home</span>
       </button>
-      <div className="flex flex-col items-center gap-y-2">
-        <p className="text-3xl font-black text-xgray lg:text-4xl">
-          Login to Swadesh Food
-        </p>
-        <p className="lg:text-md text-sm text-xgray">
-          Serving authentic and healthy food for you
-        </p>
-      </div>
-      <div className="flex w-[360px] flex-col gap-y-8 lg:w-[400px]">
-        <div className="flex flex-col gap-y-6">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand"
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={handleKeyPress}
+
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-xl shadow-gray-200/50 p-8 md:p-12 relative z-10 border border-white">
+        {/* Header */}
+        <div className="flex flex-col items-center mb-10">
+          <img
+            src="/logo.png"
+            alt="Swadesh Food"
+            className="h-16 mb-6 object-contain"
           />
-          <div className="flex flex-col gap-y-2">
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full rounded-md border border-[#DED2D9] px-2 py-3 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-brand"
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={handleKeyPress}
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-500 text-center">
+            Login to access your account and order history
+          </p>
         </div>
-        <div>
+
+        {/* Form */}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            {/* Email Input */}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-green-600 transition-colors">
+                <RiMailLine className="text-xl" />
+              </div>
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-gray-800 placeholder-gray-400"
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+            </div>
+
+            {/* Password Input */}
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-green-600 transition-colors">
+                <RiLockPasswordLine className="text-xl" />
+              </div>
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-gray-800 placeholder-gray-400"
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={login}
-            className="w-full rounded-md bg-brand p-3 text-lg font-medium text-white hover:bg-green-700 transition-all duration-200"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-green-200 hover:shadow-xl hover:shadow-green-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? "Signing in..." : "Sign In"}
           </button>
-          <div className="flex justify-between items-center mt-2">
-            <div className="text-xlightgray font-light">Need an account?</div>
-            <button
-              onClick={() => navigate("/register")}
-              className="text-brand hover:underline"
-            >
-              Create One!
-            </button>
+
+          <div className="flex flex-col items-center gap-4 mt-6 pt-6 border-t border-gray-100">
+            <p className="text-gray-500">
+              Don't have an account?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-green-600 font-bold hover:underline underline-offset-2"
+              >
+                Create Account
+              </button>
+            </p>
           </div>
         </div>
       </div>

@@ -1,147 +1,177 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MdFavoriteBorder } from "react-icons/md";
-import { RiShoppingCartLine } from "react-icons/ri";
+import { useNavigate, useLocation } from "react-router-dom";
+import { RiShoppingCartLine, RiSearchLine, RiMenu4Line } from "react-icons/ri"; // Added Menu Icon
 import { FiUser, FiLogIn } from "react-icons/fi";
 import api from "../api";
-import { Tooltip } from "antd";
+import { Tooltip, Select } from "antd";
 
-const Navbar = ({ active }) => {
+const Navbar = ({ onMenuClick }) => {
+  // Accept prop here
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState({});
-  const [searchText, setSearchText] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [searchValue, setSearchValue] = useState(null);
+
+  const isActive = (path) => {
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
+  };
+
   const getProfile = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsLoggedIn(false);
+      return;
+    }
     api
-      .get("/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+      .get("/me", { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
         if (res.status === 200) {
           setUser(res.data);
           setIsLoggedIn(true);
         }
       })
-      .catch(() => {
-        setIsLoggedIn(false);
-      });
+      .catch(() => setIsLoggedIn(false));
   };
+
   useEffect(() => {
     getProfile();
   }, []);
 
+  const handleSearch = (value) => {
+    if (value) navigate(`/search/${value}`);
+  };
+
+  const navLinkClass = (path) => `
+    text-sm font-semibold uppercase tracking-wider transition-all duration-300 relative group cursor-pointer
+    ${isActive(path) ? "text-green-700" : "text-gray-500 hover:text-green-700"}
+  `;
+
+  const Underline = ({ path }) => (
+    <span
+      className={`absolute -bottom-1 left-0 h-0.5 bg-green-600 transition-all duration-300 ${isActive(path) ? "w-full" : "w-0 group-hover:w-full"}`}
+    ></span>
+  );
+
   return (
-    <div className="bg-accent py-2 lg:py-0">
-      <div className="flex justify-between items-center px-3 lg:px-32 lg:py-3">
-        <div className="flex md:hidden flex-1 justify-start gap-x-5"></div>
-        <div className="hidden md:flex flex-1 justify-start gap-x-5">
+    <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm sticky top-0 z-50 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative flex items-center h-20">
+          {/* --- Mobile: Hamburger (Left) --- */}
           <button
+            className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={onMenuClick} // Trigger open
+          >
+            <RiMenu4Line className="text-2xl" />
+          </button>
+
+          {/* --- Mobile: Centered Logo --- */}
+          <div
+            className="md:hidden absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10"
             onClick={() => navigate("/")}
-            className={`${
-              active === "home"
-                ? "text-brand underline underline-offset-2"
-                : "text-xdark"
-            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
           >
-            home
-          </button>
-          <button
-            onClick={() => navigate("/store")}
-            className={`${
-              active === "store"
-                ? "text-brand underline underline-offset-2"
-                : "text-xdark"
-            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
-          >
-            store
-          </button>
-          <button
-            onClick={() => navigate("/new")}
-            className={`${
-              active === "new"
-                ? "text-brand underline underline-offset-2"
-                : "text-xdark"
-            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
-          >
-            new arrivals
-          </button>
-          <button
-            onClick={() => navigate("/connect")}
-            className={`${
-              active === "connect"
-                ? "text-brand underline underline-offset-2"
-                : "text-xdark"
-            } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
-          >
-            connect
-          </button>
-          {user.role === 1 && (
-            <button
-              onClick={() => navigate("/admin/products")}
-              className={`${
-                active === "admin"
-                  ? "text-brand underline underline-offset-2"
-                  : "text-xdark"
-              } text-sm hover:text-brand transition-all duration-200 hover:underline hover:underline-offset-2 font-semibold uppercase`}
-            >
-              Admin Panel
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => navigate("/")}
-          className="flex-1 flex justify-center"
-        >
-          <img src="/logo.png" alt="logo" className="h-12" />
-        </button>
-        <div className="flex flex-1 justify-end items-center gap-x-5">
-          <div className="hidden md:block relative overflow-visible">
-            <input
-              type="text"
-              placeholder="Search Products"
-              onChange={(e) => setSearchText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  navigate(`/search/${searchText}`);
-                }
-              }}
-              className="w-52 rounded-md border border-[#DED2D9] px-2 py-0.5 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand"
-            />
+            <img src="/logo.png" alt="Swadesh Food" className="h-8 w-auto" />
           </div>
-          {user && (
-            <button
-              onClick={() => {
-                if (isLoggedIn) {
-                  navigate(`/profile/${user.id}`);
-                } else {
-                  navigate("/login");
-                }
-              }}
+
+          {/* --- Desktop: Navigation (Left/Center) --- */}
+          <div className="hidden md:flex space-x-10 items-center mr-auto">
+            <div
+              className="flex-shrink-0 flex items-center cursor-pointer mr-8"
+              onClick={() => navigate("/")}
             >
-              {isLoggedIn ? (
-                <Tooltip title="Profile" color={"#026839"} key={"profile"}>
-                  <FiUser className="text-brand text-2xl" />
-                </Tooltip>
-              ) : (
-                <Tooltip title="Login" color={"#026839"} key={"login"}>
-                  <FiLogIn className="text-brand text-2xl" />
-                </Tooltip>
-              )}
-            </button>
-          )}
-          <button onClick={() => navigate("/cart")} className="relative">
-            <Tooltip title="Cart" color={"#026839"} key={"cart"}>
-              <div className="absolute -top-1 -right-2 bg-brand text-white rounded-full text-[10px] h-4 w-4">
-                {JSON.parse(localStorage.getItem("cart"))?.length}
+              <img
+                src="/logo.png"
+                alt="Swadesh Food"
+                className="h-10 w-auto object-contain hover:opacity-90 transition-opacity"
+              />
+            </div>
+            <div onClick={() => navigate("/")} className={navLinkClass("/")}>
+              Home <Underline path="/" />
+            </div>
+            <div
+              onClick={() => navigate("/store")}
+              className={navLinkClass("/store")}
+            >
+              Store <Underline path="/store" />
+            </div>
+            <div
+              onClick={() => navigate("/new")}
+              className={navLinkClass("/new")}
+            >
+              New <Underline path="/new" />
+            </div>
+            <div
+              onClick={() => navigate("/connect")}
+              className={navLinkClass("/connect")}
+            >
+              Connect <Underline path="/connect" />
+            </div>
+            {user.role === 1 && (
+              <div
+                onClick={() => navigate("/admin/dashboard")}
+                className={navLinkClass("/admin")}
+              >
+                Admin <Underline path="/admin" />
               </div>
-              <RiShoppingCartLine className="text-brand text-2xl" />
-            </Tooltip>
-          </button>
+            )}
+          </div>
+
+          {/* --- Right Actions --- */}
+          <div className="flex items-center space-x-5 ml-auto">
+            <div className="hidden lg:block w-64 relative">
+              <Select
+                showSearch
+                placeholder="Search essentials..."
+                defaultActiveFirstOption={false}
+                suffixIcon={<RiSearchLine className="text-gray-400 text-lg" />}
+                filterOption={false}
+                onSearch={(val) => setSearchValue(val)}
+                onSelect={handleSearch}
+                onInputKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch(searchValue);
+                }}
+                notFoundContent={null}
+                className="w-full"
+                size="large"
+                variant="filled"
+                style={{ borderRadius: "99px" }}
+              />
+            </div>
+            <div className="flex items-center space-x-3 md:space-x-4 md:border-l md:pl-5 border-gray-200 h-8">
+              <button
+                onClick={() =>
+                  navigate(isLoggedIn ? `/profile/${user.id}` : "/login")
+                }
+                className="text-gray-500 hover:text-green-700 transition-colors p-1 rounded-full hover:bg-gray-50 hidden md:block"
+              >
+                {isLoggedIn ? (
+                  <Tooltip title="Profile">
+                    <FiUser className="text-2xl" />
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="Login">
+                    <FiLogIn className="text-2xl" />
+                  </Tooltip>
+                )}
+              </button>
+              <button
+                onClick={() => navigate("/cart")}
+                className="relative text-gray-600 hover:text-green-700 transition-colors p-1 rounded-full hover:bg-gray-50"
+              >
+                <Tooltip title="Cart">
+                  <RiShoppingCartLine className="text-2xl" />
+                  {JSON.parse(localStorage.getItem("cart"))?.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white">
+                      {JSON.parse(localStorage.getItem("cart")).length}
+                    </span>
+                  )}
+                </Tooltip>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <hr className="bg-xlightgray h-0.5 hidden md:block" />
     </div>
   );
 };

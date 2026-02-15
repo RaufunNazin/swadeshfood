@@ -1,138 +1,218 @@
-/* eslint-disable no-unused-vars */
-import React from "react";
+/* eslint-disable react/prop-types */
+import React, { useState, useEffect } from "react";
 import { slide as Menu } from "react-burger-menu";
-import "../index.css";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Modal } from "antd";
 import api from "../api";
+import {
+  RiHomeLine,
+  RiStoreLine,
+  RiFlashlightLine,
+  RiContactsLine,
+  RiDashboardLine,
+  RiUserLine,
+  RiLogoutBoxLine,
+  RiSearchLine,
+  RiLoginCircleLine,
+  RiArrowRightSLine,
+  RiCloseLine, // Import the close icon
+} from "react-icons/ri";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState({});
-  const nav = useNavigate();
-  let location = useLocation();
-  const [modal2Open, setModal2Open] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [isOpen, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const to = (address) => {
-    setOpen(false);
-    nav(`/${address}`);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      api
+        .get("/me", { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => setUser(res.data))
+        .catch(() => setIsLoggedIn(false));
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    if (onClose && typeof onClose === "function") {
+      onClose();
+    }
   };
 
-  const getProfile = () => {
-    api
-      .get("/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((res) => {
-        setUser(res.data);
-      });
+  const handleNavigation = (path) => {
+    handleClose();
+    navigate(path);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    nav("/login");
-    setModal2Open(false);
+    navigate("/login");
+    setModalOpen(false);
+    handleClose();
+    setIsLoggedIn(false);
   };
 
-  useEffect(() => {
-    if (localStorage.getItem("token")) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-    getProfile();
-  }, []);
-
   return (
-    <div
-      className={`${
-        location.pathname === "/register" ||
-        location.pathname === "/login" ||
-        location.pathname === "/admin/categories" ||
-        location.pathname === "/admin/images" ||
-        location.pathname === "/admin/products" ||
-        location.pathname === "/admin/orders" ||
-        location.pathname === "*"
-          ? "hideButton"
-          : ""
-      }`}
-    >
+    <>
       <Menu
         left
         isOpen={isOpen}
-        onOpen={() => setOpen(!isOpen)}
-        onClose={() => setOpen(!isOpen)}
+        onStateChange={(state) => !state.isOpen && handleClose()}
+        customBurgerIcon={false}
+        // FIX: Added the actual Icon inside the div
+        customCrossIcon={
+          <div className="bg-gray-100 p-1 rounded-full text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all">
+            <RiCloseLine size={24} />
+          </div>
+        }
+        width={"85%"}
+        className="md:hidden"
+        noOverlay={false}
       >
-        <div className="block md:hidden">
-          <input
-            type="text"
-            placeholder="Search Products"
-            onChange={(e) => setSearchText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                navigate(`/search/${searchText}`);
-              }
-            }}
-            className="w-full rounded-md border border-[#DED2D9] px-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-        </div>
-        {user?.role === 1 && (
-          <div onClick={() => to("admin/products")} className="menu-item">
-            Admin Panel
-          </div>
-        )}
-        <div onClick={() => to("store")} className="menu-item">
-          Store
-        </div>
-        <div onClick={() => to("new")} className="menu-item">
-          New Arrivals
-        </div>
-        <div onClick={() => to("connect")} className="menu-item">
-          Connect
-        </div>
-        {isLoggedIn ? (
-          <div onClick={() => to(`profile/${user.id}`)} className="menu-item">
-            Profile
-          </div>
-        ) : (
-          <div onClick={() => to("login")} className="menu-item">
-            Login
-          </div>
-        )}
-
-        {isLoggedIn && (
-          <li>
+        {/* --- Header Profile Section --- */}
+        <div className="px-6 pt-10 pb-6 border-b border-gray-100 bg-white">
+          {isLoggedIn ? (
             <div
-              onClick={() => {
-                setModal2Open(true);
-                setOpen(false);
-              }}
-              className="menu-item"
+              className="flex items-center gap-4"
+              onClick={() => handleNavigation(`/profile/${user.id}`)}
             >
-              Logout
+              <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-700 text-xl font-bold border border-green-200">
+                {user.username?.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-lg truncate">
+                  {user.username}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+              <RiArrowRightSLine className="text-gray-400" />
             </div>
-          </li>
-        )}
-        <Modal
-          title="Confirmation"
-          centered
-          open={modal2Open}
-          okText={"Log out"}
-          onOk={logout}
-          onCancel={() => setModal2Open(false)}
-        >
-          <div>Are you sure you want to log out?</div>
-        </Modal>
+          ) : (
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="logo" className="h-10 w-auto" />
+              <span className="font-bold text-gray-800 text-lg">
+                Swadesh Food
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* --- Search Bar --- */}
+        <div className="px-6 py-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search Products..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleNavigation(`/search/${searchText}`);
+                  setSearchText("");
+                }
+              }}
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 text-gray-800 placeholder-gray-400 border-none focus:ring-2 focus:ring-green-100 outline-none text-sm transition-all"
+            />
+            <RiSearchLine className="absolute left-3 top-3.5 text-gray-400 text-lg" />
+          </div>
+        </div>
+
+        {/* --- Menu Links --- */}
+        <div className="flex flex-col px-4 gap-1 pb-10">
+          {user?.role === 1 && (
+            <NavItem
+              icon={RiDashboardLine}
+              label="Admin Panel"
+              onClick={() => handleNavigation("/admin/dashboard")}
+            />
+          )}
+
+          <NavItem
+            icon={RiHomeLine}
+            label="Home"
+            onClick={() => handleNavigation("/")}
+          />
+          <NavItem
+            icon={RiStoreLine}
+            label="Store"
+            onClick={() => handleNavigation("/store")}
+          />
+          <NavItem
+            icon={RiFlashlightLine}
+            label="New Arrivals"
+            onClick={() => handleNavigation("/new")}
+          />
+          <NavItem
+            icon={RiContactsLine}
+            label="Connect"
+            onClick={() => handleNavigation("/connect")}
+          />
+
+          <div className="my-4 border-t border-gray-100 mx-2"></div>
+
+          {isLoggedIn ? (
+            <>
+              <NavItem
+                icon={RiUserLine}
+                label="My Profile"
+                onClick={() => handleNavigation(`/profile/${user.id}`)}
+              />
+              <button
+                onClick={() => setModalOpen(true)}
+                className="flex items-center gap-4 w-full p-4 rounded-xl text-red-500 hover:bg-red-50 transition-all font-medium"
+              >
+                <RiLogoutBoxLine className="text-xl" />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <NavItem
+              icon={RiLoginCircleLine}
+              label="Login / Register"
+              onClick={() => handleNavigation("/login")}
+              highlight
+            />
+          )}
+        </div>
       </Menu>
-    </div>
+
+      <Modal
+        title="Sign Out"
+        centered
+        open={modalOpen}
+        onOk={logout}
+        okText="Log Out"
+        okButtonProps={{ danger: true }}
+        onCancel={() => setModalOpen(false)}
+        zIndex={10001}
+      >
+        <p>Are you sure you want to sign out of your account?</p>
+      </Modal>
+    </>
   );
 };
+
+const NavItem = ({ icon: Icon, label, onClick, highlight = false }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-4 w-full p-3.5 rounded-xl transition-all font-medium text-base
+        ${
+          highlight
+            ? "bg-green-600 text-white shadow-lg hover:bg-green-700"
+            : "text-gray-600 hover:bg-green-50 hover:text-green-700"
+        }`}
+  >
+    <Icon
+      className={`text-xl ${highlight ? "text-white" : "text-gray-400 group-hover:text-green-600"}`}
+    />
+    <span>{label}</span>
+  </button>
+);
 
 export default Sidebar;

@@ -243,7 +243,7 @@ const AdminProducts = () => {
     },
     { title: "Name", dataIndex: "name", width: 180, className: "font-medium" },
     { title: "Category", dataIndex: "category" },
-    { title: "Price", dataIndex: "price", render: (p) => `$${p}` },
+    { title: "Price", dataIndex: "price", render: (p) => `৳${p}` },
     {
       title: "Stock",
       dataIndex: "stock",
@@ -335,7 +335,7 @@ const AdminProducts = () => {
               <Input size="large" />
             </Form.Item>
             <Form.Item name="price" label="Price" rules={[{ required: true }]}>
-              <Input type="number" step="0.01" prefix="$" />
+              <Input type="number" step="0.01" prefix="৳" />
             </Form.Item>
             <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
               <Input type="number" />
@@ -458,12 +458,12 @@ const AdminProducts = () => {
             {
               title: "Unit Cost",
               dataIndex: "unit_price",
-              render: (p) => `$${p}`,
+              render: (p) => `৳${p}`,
             },
             {
               title: "Total",
               dataIndex: "total_cost",
-              render: (p) => `$${p.toFixed(2)}`,
+              render: (p) => `৳${p.toFixed(2)}`,
             },
             {
               render: (_, r) => (

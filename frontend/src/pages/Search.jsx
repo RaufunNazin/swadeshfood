@@ -1,11 +1,11 @@
 import { useNavigate, useParams } from "react-router-dom";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 import api from "../api";
-import { AiOutlineLoading } from "react-icons/ai";
+import { AiOutlineLoading, AiOutlineSearch } from "react-icons/ai";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
 
@@ -13,84 +13,88 @@ const Search = () => {
   const { searchText } = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(10);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Pagination states (kept for future implementation, simplified for now)
+  const offset = 0;
+  const limit = 20;
 
   useEffect(() => {
-    const getProducts = () => {
+    const getProducts = async () => {
       setLoading(true);
-      api
-        .get(`/search/${searchText}/${offset}/${limit}`)
-        .then((res) => {
-          if (res.status === 200) {
-            setProducts(res.data);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      setProducts([]); // Clear previous results immediately
+
+      try {
+        // Ensure searchText is encoded (e.g., "rice oil" -> "rice%20oil")
+        const encodedText = encodeURIComponent(searchText);
+        const res = await api.get(`/search/${encodedText}/${offset}/${limit}`);
+
+        if (res.status === 200 && Array.isArray(res.data)) {
+          setProducts(res.data);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    getProducts();
-  }, [searchText, limit, offset]);
+
+    if (searchText) {
+      getProducts();
+    }
+  }, [searchText]);
 
   return (
-    <div className="relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
+    <div className="bg-gray-50 min-h-screen font-sans">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
-      <div className="lg:sticky top-0 z-50 bg-accent">
-        <Navbar active="home" />
-      </div>
-      <div
-        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
-        style={{
-          backgroundImage: "url('/Navigation.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">
-          Search/{searchText}
+
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+          <p className="text-gray-500 text-sm mb-2 uppercase tracking-wide">
+            Search Results
+          </p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
+            <span className="text-brand">&quot;{searchText}&quot;</span>
+          </h1>
         </div>
-        <div className="">Search results for &apos;{searchText}&apos;</div>
       </div>
-      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[50vh]">
         {loading ? (
-          <div className="w-full flex items-center justify-center">
-            <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <AiOutlineLoading className="text-brand text-6xl animate-spin mb-4" />
+            <p className="text-gray-500">Searching our inventory...</p>
           </div>
         ) : products.length === 0 ? (
-          <div className="flex flex-col items-center gap-5 md:gap-10 my-10">
-            <div className="text-center text-xl md:text-3xl">
-              Oops! No Products Found for &apos;{searchText}&apos;
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-gray-100 p-6 rounded-full mb-6">
+              <AiOutlineSearch className="text-4xl text-gray-400" />
             </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              No products found
+            </h2>
+            <p className="text-gray-500 mb-8 max-w-md">
+              We couldn&apos;t find anything matching &quot;{searchText}&quot;.
+              Try checking for typos or use a more general term.
+            </p>
             <button
               onClick={() => navigate("/store")}
-              className="text-[12px] lg:text-[16px] text-start font-light bg-brand text-white transition-all duration-150 px-3 py-2 rounded-md hover:scale-105"
+              className="bg-brand text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors shadow-sm font-medium"
             >
-              Go back to store
+              Browse All Products
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
-            {products.map((product) => (
-              <ItemCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <p className="text-gray-500 mb-6">Found {products.length} items</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ItemCard key={product.id} product={product} />
+              ))}
+            </div>
+          </>
         )}
       </div>
       <Footer />

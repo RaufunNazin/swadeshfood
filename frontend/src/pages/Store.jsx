@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../api";
-import { AiOutlineLoading } from "react-icons/ai";
+import { AiOutlineLoading, AiOutlineFilter } from "react-icons/ai";
 import { useNavigate, useParams } from "react-router-dom";
-import { CiFilter } from "react-icons/ci";
 import { Select } from "antd";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
@@ -18,260 +17,171 @@ const Store = () => {
   const [limit, setLimit] = useState(12);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFilter, setShowFilter] = useState(false);
   const [categories, setCategories] = useState([]);
   const [sizes, setSizes] = useState([]);
 
+  // Fetch Logic
   useEffect(() => {
-    if (searchCategory !== undefined) {
-      api
-        .get(`/filter/category/${searchCategory}/${offset}/${limit}`)
-        .then((res) => {
-          setProducts(res.data);
-          console.log("products fetched by category", searchCategory);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      api
-        .get(`/products/price-range/${offset}/${limit}`)
-        .then((res) => {
-          setProducts(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    setLoading(true);
+    let endpoint = `/products/price-range/${offset}/${limit}`;
+
+    if (searchCategory) {
+      endpoint = `/filter/category/${searchCategory}/${offset}/${limit}`;
     }
+
+    api
+      .get(endpoint)
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }, [searchCategory, limit, offset]);
 
+  // Fetch Filters
   useEffect(() => {
-    const getCategories = () => {
-      api
-        .get("/categories")
-        .then((res) => {
-          setCategories(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    const fetchData = async () => {
+      try {
+        const [catRes, sizeRes] = await Promise.all([
+          api.get("/categories"),
+          api.get("/sizes"),
+        ]);
+        setCategories(catRes.data);
+        setSizes(sizeRes.data);
+      } catch (e) {
+        console.error(e);
+      }
     };
-    const getSizes = () => {
-      api
-        .get("/sizes")
-        .then((res) => {
-          setSizes(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    };
-    getSizes();
-    getCategories();
+    fetchData();
   }, []);
 
-  return (
-    <div className="relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
-      <Notification />
-      <div className="lg:sticky top-0 z-50 bg-accent">
-        <Navbar active="store" />
-      </div>
-      <div
-        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
-        style={{
-          backgroundImage: "url('/Navigation.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">Store</div>
-        <div className="">Home / Store</div>
-      </div>
-      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
-        <div className="lg:flex items-center mb-5">
-          <div className="mb-2 w-full flex flex-1 justify-start items-center">
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex gap-x-2 items-center border py-1.5 px-2.5 rounded-md w-fit"
-            >
-              <CiFilter />
-              <div className="text-xgray">
-                {showFilter ? "Hide Filters" : "Show Filters"}
-              </div>
-            </button>
-            <div>
-              <Select
-                defaultValue="Sort by Price"
-                onChange={(value) => {
-                  api.get(`/sort/${value}/${offset}/${limit}`).then((res) => {
-                    setProducts(res.data);
-                  });
-                }}
-                size="large"
-                style={{ width: 150 }}
-                className="ml-2"
-                options={[
-                  {
-                    label: "Low to High",
-                    value: "asc",
-                  },
-                  {
-                    label: "High to Low",
-                    value: "desc",
-                  },
-                ]}
-              />
-            </div>
-          </div>
-          <div></div>
+  // Filter Handlers
+  const handleFilter = (type, value) => {
+    setLoading(true);
+    let endpoint = `/products/${offset}/${limit}`; // default reset
 
-          {showFilter && (
-            <div>
-              <div className="flex gap-2 justify-end">
-                {!searchCategory && (
-                  <Select
-                    defaultValue="Category"
-                    size="large"
-                    onChange={(value) => {
-                      api
-                        .get(`/filter/category/${value}/${offset}/${limit}`)
-                        .then((res) => {
-                          setProducts(res.data);
-                        });
-                    }}
-                    style={{ width: 150 }}
-                    options={categories.map((category) => ({
-                      label: category.name,
-                      value: category.name,
-                    }))}
-                  />
-                )}
-                <Select
-                  defaultValue="Size"
-                  size="large"
-                  onChange={(value) => {
-                    api
-                      .get(`/filter/size/${value}/${offset}/${limit}`)
-                      .then((res) => {
-                        setProducts(res.data);
-                      });
-                  }}
-                  style={{ width: 150 }}
-                  options={sizes.map((size) => ({
-                    label: size,
-                    value: size,
-                  }))}
-                />
-                <Select
-                  defaultValue="New"
-                  size="large"
-                  onChange={(value) => {
-                    api
-                      .get(`/filter/new/${value}/${offset}/${limit}`)
-                      .then((res) => {
-                        setProducts(res.data);
-                      });
-                  }}
-                  style={{ width: 150 }}
-                  options={[
-                    {
-                      label: "New",
-                      value: 1,
-                    },
-                    {
-                      label: "Old",
-                      value: 0,
-                    },
-                  ]}
-                />
-                <button
-                  onClick={() => {
-                    api
-                      .get(`/products/${offset}/${limit}`)
-                      .then((res) => {
-                        setProducts(res.data);
-                        setShowFilter(false);
-                      })
-                      .catch((err) => {
-                        console.log(err);
-                      })
-                      .finally(() => {
-                        setLoading(false);
-                      });
-                  }}
-                  className="bg-brand text-white py-2 px-5 rounded-md"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          )}
+    if (type === "sort") endpoint = `/sort/${value}/${offset}/${limit}`;
+    if (type === "category")
+      endpoint = `/filter/category/${value}/${offset}/${limit}`;
+    if (type === "size") endpoint = `/filter/size/${value}/${offset}/${limit}`;
+    if (type === "new") endpoint = `/filter/new/${value}/${offset}/${limit}`;
+
+    api
+      .get(endpoint)
+      .then((res) => setProducts(res.data))
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <div className="bg-white min-h-screen font-sans text-gray-800">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
+      <Notification />
+
+      {/* --- Header Section --- */}
+      <div className="bg-gray-50 py-16 text-center border-b border-gray-100">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+          {searchCategory ? `${searchCategory} Collection` : "The Store"}
+        </h1>
+        <p className="text-gray-500 max-w-xl mx-auto text-lg">
+          Browse our full range of organic, farm-fresh products delivered
+          straight to your door.
+        </p>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* --- Toolbar / Filters --- */}
+        <div className="flex flex-col lg:flex-row justify-between items-center mb-10 gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-24 z-30">
+          <div className="flex items-center gap-2 text-gray-500 font-medium">
+            <AiOutlineFilter className="text-xl" />
+            <span>Filter By:</span>
+          </div>
+
+          <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+            <Select
+              placeholder="Category"
+              size="large"
+              style={{ width: 140 }}
+              onChange={(val) => handleFilter("category", val)}
+              options={categories.map((c) => ({
+                label: c.name,
+                value: c.name,
+              }))}
+              allowClear
+            />
+            <Select
+              placeholder="Size"
+              size="large"
+              style={{ width: 100 }}
+              onChange={(val) => handleFilter("size", val)}
+              options={sizes.map((s) => ({ label: s, value: s }))}
+              allowClear
+            />
+            <Select
+              placeholder="Sort Price"
+              size="large"
+              style={{ width: 140 }}
+              onChange={(val) => handleFilter("sort", val)}
+              options={[
+                { label: "Low to High", value: "asc" },
+                { label: "High to Low", value: "desc" },
+              ]}
+            />
+            <button
+              onClick={() => {
+                navigate("/store");
+                window.location.reload();
+              }}
+              className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors font-semibold"
+            >
+              Reset
+            </button>
+          </div>
         </div>
+
+        {/* --- Product Grid --- */}
         {loading ? (
-          <div className="w-full flex items-center justify-center">
-            <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
+          <div className="flex justify-center py-20">
+            <AiOutlineLoading className="text-green-600 text-5xl animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center font-bold text-3xl">
-            Oops! No Products Found
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
-            {products.map((product) => (
-              <ItemCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-        {products.length === 0 ? (
-          <div className="flex justify-center w-full">
+          <div className="text-center py-20">
+            <div className="inline-block p-6 rounded-full bg-gray-50 mb-4">
+              <AiOutlineFilter className="text-4xl text-gray-300" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              No Products Found
+            </h2>
+            <p className="text-gray-500 mb-6">
+              Try adjusting your filters or search criteria.
+            </p>
             <button
               onClick={() => {
-                api
-                  .get(`/products/${offset}/${limit}`)
-                  .then((res) => {
-                    setProducts(res.data);
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                  })
-                  .finally(() => {
-                    setLoading(false);
-                  });
+                navigate("/store");
+                window.location.reload();
               }}
-              className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
-              Reset Filters
+              Clear All Filters
             </button>
           </div>
         ) : (
-          <div className="flex justify-center w-full">
-            <button
-              onClick={() => {
-                setLimit(limit + 12);
-              }}
-              className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200"
-            >
-              View More
-            </button>
-          </div>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {products.map((product) => (
+                <div key={product.id} className="h-full">
+                  <ItemCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            {/* Load More */}
+            <div className="mt-16 text-center">
+              <button
+                onClick={() => setLimit(limit + 12)}
+                className="px-8 py-3 bg-gray-900 text-white rounded-full font-semibold hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+              >
+                Load More Products
+              </button>
+            </div>
+          </>
         )}
       </div>
       <Footer />

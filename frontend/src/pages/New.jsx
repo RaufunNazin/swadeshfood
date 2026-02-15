@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../api";
-import { AiOutlineLoading } from "react-icons/ai";
+import { AiOutlineLoading, AiOutlineShopping } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
-import { CiFilter } from "react-icons/ci";
-import { Select } from "antd";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
 
@@ -17,128 +15,83 @@ const New = () => {
   const [limit, setLimit] = useState(12);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFilter, setShowFilter] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [sizes, setSizes] = useState([]);
 
   useEffect(() => {
-    const getProducts = () => {
-      api
-        .get(`/products/new/price-range/${offset}/${limit}`)
-        .then((res) => {
-          setProducts(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-    getProducts();
+    setLoading(true);
+    api
+      .get(`/products/new/price-range/${offset}/${limit}`)
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }, [limit, offset]);
 
-  useEffect(() => {
-    const getCategories = () => {
-      api
-        .get("/categories")
-        .then((res) => {
-          setCategories(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    };
-    const getSizes = () => {
-      api
-        .get("/sizes")
-        .then((res) => {
-          setSizes(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    };
-    getSizes();
-    getCategories();
-  }, []);
-
   return (
-    <div className="relative">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
+    <div className="bg-white min-h-screen font-sans text-gray-800">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
-      <div className="lg:sticky top-0 z-50 bg-accent">
-        <Navbar active="new" />
-      </div>
-      <div
-        className="h-40 md:h-72 text-center flex flex-col gap-y-1 md:gap-y-3 items-center justify-start pt-3 md:pt-10"
-        style={{
-          backgroundImage: "url('Navigation.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="text-xdark text-4xl md:text-7xl font-bold">
-          New Arrivals
+
+      {/* --- Modern Header --- */}
+      <div className="relative bg-green-50 py-20 overflow-hidden">
+        {/* Decorative Background */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-green-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+        <div className="relative z-10 text-center px-4">
+          <span className="text-green-600 font-bold tracking-widest uppercase text-sm mb-3 block">
+            Fresh In
+          </span>
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
+            New Arrivals
+          </h1>
+          <p className="text-gray-600 max-w-lg mx-auto text-lg">
+            Be the first to explore our latest organic additions. Handpicked for
+            quality and freshness.
+          </p>
         </div>
-        <div className="">Home / New Arrivals</div>
       </div>
-      <div className="px-3 md:w-4/5 lg:w-4/5 xl:w-3/5 mx-auto py-5 my-5 lg:my-10">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (
-          <div className="w-full flex items-center justify-center">
-            <AiOutlineLoading className="text-brand text-7xl text-center animate-spin" />
+          <div className="flex justify-center py-20">
+            <AiOutlineLoading className="text-green-600 text-5xl animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="my-10 flex flex-col gap-10">
-            <img
-              src="/emptynew.png"
-              alt="No new products"
-              className="w-1/4 mx-auto"
-            />
-            <div className="text-center text-2xl font-semibold">
-              New products coming soon!
+          <div className="text-center py-24 bg-gray-50 rounded-3xl">
+            <div className="inline-block p-6 bg-white rounded-full shadow-sm mb-6">
+              <AiOutlineShopping className="text-4xl text-gray-400" />
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-7 lg:gap-10">
-            {products.map((product) => (
-              <ItemCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-        {products.length === 0 ? (
-          <div className="flex justify-center w-full">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              New products coming soon!
+            </h2>
+            <p className="text-gray-500 mb-8">
+              We are restocking our shelves with fresh goods. Check back later.
+            </p>
             <button
-              onClick={() => {
-                navigate("/store");
-              }}
-              className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200"
+              onClick={() => navigate("/store")}
+              className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors font-semibold"
             >
-              View Store
+              Browse Main Store
             </button>
           </div>
         ) : (
-          <div className="flex justify-center w-full">
-            <button
-              onClick={() => {
-                setLimit(limit + 12);
-              }}
-              className="bg-brand text-white py-2 px-5 rounded-md mt-5 hover:scale-105 transition-all duration-200"
-            >
-              View More
-            </button>
-          </div>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {products.map((product) => (
+                <div key={product.id} className="h-full">
+                  <ItemCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-16 text-center">
+              <button
+                onClick={() => setLimit(limit + 12)}
+                className="px-8 py-3 border-2 border-gray-900 text-gray-900 rounded-full font-bold hover:bg-gray-900 hover:text-white transition-all"
+              >
+                View More Arrivals
+              </button>
+            </div>
+          </>
         )}
       </div>
       <Footer />
