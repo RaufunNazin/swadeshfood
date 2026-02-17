@@ -67,7 +67,7 @@ const Connect = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Phone</h3>
-                    <p className="text-gray-600">+880 1XXX-XXXXXX</p>
+                    <p className="text-gray-600">+880 1700-663922</p>
                   </div>
                 </div>
 
@@ -77,7 +77,7 @@ const Connect = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Email</h3>
-                    <p className="text-gray-600">support@swadeshfood.com</p>
+                    <p className="text-gray-600">swadeshagrofoodslimited@gmail.com</p>
                   </div>
                 </div>
 
@@ -88,7 +88,7 @@ const Connect = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">Headquarters</h3>
                     <p className="text-gray-600">
-                      Level 4, Example Tower, Dhaka, Bangladesh
+                      Pa-67/1, Alatunnesa School Road, Middle Badda, Dhaka-1212, Bangladesh
                     </p>
                   </div>
                 </div>
@@ -101,7 +101,7 @@ const Connect = () => {
             <iframe
               title="Map"
               className="w-full h-full rounded-xl grayscale hover:grayscale-0 transition-all duration-500"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d233667.8223908687!2d90.27923710646989!3d23.780887456211758!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sus!4v1644723456789!5m2!1sen!2sus"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d228.19660592098845!2d90.4240329484263!3d23.777825645342457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7bd8b3af203%3A0x5efacd42f1267e1f!2sNabil%20Food%20Middle%20Badda!5e0!3m2!1sen!2sbd!4v1771310167130!5m2!1sen!2sbd"
               allowFullScreen=""
               loading="lazy"
             ></iframe>

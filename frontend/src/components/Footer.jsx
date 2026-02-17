@@ -109,10 +109,10 @@ const Footer = () => {
                 <RiPhoneLine className="text-green-600 text-xl flex-shrink-0 mt-0.5" />
                 <Tooltip title="Click to copy">
                   <button
-                    onClick={() => copy("+880 1XXX-XXXXXX")}
+                    onClick={() => copy("+880 1700-663922")}
                     className="text-gray-600 hover:text-green-700 transition-colors text-sm text-left"
                   >
-                    +880 1XXX-XXXXXX
+                    +880 1700-663922
                   </button>
                 </Tooltip>
               </li>
@@ -120,10 +120,10 @@ const Footer = () => {
                 <RiMailLine className="text-green-600 text-xl flex-shrink-0 mt-0.5" />
                 <Tooltip title="Click to copy">
                   <button
-                    onClick={() => copy("support@swadeshfood.com")}
+                    onClick={() => copy("swadeshagrofoodslimited@gmail.com")}
                     className="text-gray-600 hover:text-green-700 transition-colors text-sm text-left"
                   >
-                    support@swadeshfood.com
+                    swadeshagrofoodslimited@gmail.com
                   </button>
                 </Tooltip>
               </li>
@@ -138,14 +138,14 @@ const Footer = () => {
             <div className="flex items-start gap-3">
               <RiMapPinLine className="text-green-600 text-xl flex-shrink-0 mt-0.5" />
               <a
-                href="https://www.google.com/maps/search/Road+4,+Block+J,+Banasree,+Dhaka,+Bangladesh/@23.7747992,90.353354,13z/data=!3m1!4b1?entry=ttu"
+                href="https://www.google.com/maps/place/Nabil+Food+Middle+Badda/@23.7778256,90.4240329,21z/data=!4m6!3m5!1s0x3755c7bd8b3af203:0x5efacd42f1267e1f!8m2!3d23.7778459!4d90.4241912!16s%2Fg%2F11h1rm0blz!5m1!1e1?entry=ttu&g_ep=EgoyMDI2MDIxMS4wIKXMDSoASAFQAw%3D%3D"
                 target="_blank"
                 rel="noreferrer"
                 className="text-gray-600 hover:text-green-700 transition-colors text-sm leading-relaxed"
               >
-                Level 4, Example Tower,
+                Pa-67/1, Alatunnesa School Road,
                 <br />
-                Dhaka, Bangladesh
+                Middle Badda, Dhaka-1212, Bangladesh
               </a>
             </div>
           </div>
