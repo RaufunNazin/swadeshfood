@@ -7,6 +7,7 @@ from .database import engine, get_db
 from .routers import user, auth, product, order, categories, admin
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+import os
 
 load_dotenv()
 
@@ -14,7 +15,15 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app/main.py
+current_directory = os.path.dirname(os.path.realpath(__file__))
+static_folder_path = os.path.join(current_directory, "static")
+
+# Safety: Ensure the path is absolute and exists
+if not os.path.exists(static_folder_path):
+    os.makedirs(static_folder_path)
+
+app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
 
 # In your main FastAPI file
 origins = [
@@ -31,22 +40,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/api/health")
 def health_check(db: Session = Depends(get_db)):
     try:
         # Perform a tiny query to verify the DB connection
         db.execute(text("SELECT 1"))
-        return {
-            "status": "healthy",
-            "database": "connected",
-            "version": "1.0.0"
-        }
+        return {"status": "healthy", "database": "connected", "version": "1.0.0"}
     except Exception as e:
         # If DB is down, return a 503 Service Unavailable
         raise HTTPException(
-            status_code=503, 
-            detail=f"Database connection failed: {str(e)}"
+            status_code=503, detail=f"Database connection failed: {str(e)}"
         )
+
 
 # Change where you include your routers
 app.include_router(user.router, prefix="/api")
