@@ -37,7 +37,7 @@ jobs:
             npm run build
             
             # Deploy files using the specific sudo commands we allowed
-            sudo /usr/bin/cp -r dist/* /var/www/swadeshfood/
-            sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
+            sudo -n /usr/bin/cp -r /root/swadeshfood/frontend/dist /var/www/swadeshfood/
+            sudo -n /usr/sbin/restorecon -Rv /var/www/swadeshfood
             
             echo "Secure deployment successful!"
