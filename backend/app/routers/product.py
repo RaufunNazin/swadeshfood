@@ -12,93 +12,12 @@ from ..utils import random_string
 
 router = APIRouter()
 
-
-# get all products
-@router.get("/products/all", status_code=200, tags=["product"])
-def get_all_products(db: Session = Depends(get_db)):
-    products = db.query(models.Product).all()
-    return products
+# =========================================================
+# 1. SPECIFIC ROUTES (Must be defined FIRST)
+# =========================================================
 
 
-# get request with pagination
-@router.get("/products/{offset}/{limit}", status_code=200, tags=["product"])
-def get_products(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    products = db.query(models.Product).offset(offset).limit(limit).all()
-    return products
-
-
-# get new products with pagination
-@router.get("/products/new/{offset}/{limit}", status_code=200, tags=["product"])
-def get_new_products(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    products = (
-        db.query(models.Product)
-        .filter(models.Product.new == 1)
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-    return products
-
-
-# get products by name
-@router.get("/name/products/{name}", status_code=200, tags=["product"])
-def get_product_by_name(name: str, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(models.Product.name == name).all()
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
-
-
-@router.post("/products", status_code=201, response_model=Product, tags=["product"])
-def create_product(
-    request: Request,
-    image: UploadFile = File(...),
-    name: str = Form(...),
-    description: str = Form(...),
-    price: float = Form(...),
-    category: str = Form(...),
-    stock: int = Form(...),
-    size: str = Form(...),
-    new: int = Form(...),
-    user=Depends(oauth2.get_current_user),
-    db: Session = Depends(get_db),  # Use the injected session
-):
-    check_authorization(user)
-    base_url = str(request.base_url)
-
-    # Image handling
-    photo_name = random_string()
-    current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "..", "..", "static")
-    os.makedirs(folder_path, exist_ok=True)
-
-    file_extension = image.filename.split(".")[-1]
-    file_name = f"{photo_name}.{file_extension}"
-    file_location = os.path.join(folder_path, file_name)
-
-    # Save the file
-    with open(file_location, "wb") as file_object:
-        file_object.write(image.file.read())
-
-    image_url = f"{base_url}static/{file_name}"
-
-    # --- FIX: Use the db session provided by FastAPI Depends ---
-    db_product = models.Product(
-        image1=image_url,
-        name=name,
-        description=description,
-        price=price,
-        category=category,
-        stock=stock,
-        size=size,
-        new=new,
-    )
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-
+# --- Recipe Routes ---
 @router.post(
     "/products/{product_id}/recipe", response_model=RecipeItem, tags=["recipe"]
 )
@@ -108,9 +27,8 @@ def add_recipe_item(
     user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
-    check_authorization(user)  # Admin check
+    check_authorization(user)
 
-    # Check if product exists
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -125,7 +43,6 @@ def add_recipe_item(
     db.commit()
     db.refresh(new_item)
 
-    # Calculate total for response
     new_item.total_cost = new_item.quantity * new_item.unit_price
     return new_item
 
@@ -138,7 +55,7 @@ def get_product_recipe(
     user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
-    check_authorization(user)  # Admin check
+    check_authorization(user)
 
     items = (
         db.query(models.RecipeItem)
@@ -146,7 +63,6 @@ def get_product_recipe(
         .all()
     )
 
-    # Inject calculated total
     for item in items:
         item.total_cost = item.quantity * item.unit_price
 
@@ -157,7 +73,7 @@ def get_product_recipe(
 def delete_recipe_item(
     item_id: int, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)
 ):
-    check_authorization(user)  # Admin check
+    check_authorization(user)
 
     item = db.query(models.RecipeItem).filter(models.RecipeItem.id == item_id).first()
     if not item:
@@ -168,7 +84,7 @@ def delete_recipe_item(
     return None
 
 
-# add image2 and image3 to the product by id
+# --- Image Upload Route ---
 @router.post("/products/{product_id}/images", status_code=200, tags=["product"])
 def add_images(
     request: Request,
@@ -179,7 +95,7 @@ def add_images(
     db: Session = Depends(get_db),
 ):
     check_authorization(user)
-    base_url = request.base_url
+    base_url = str(request.base_url)
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -215,7 +131,90 @@ def add_images(
     return product
 
 
-# get product by id
+# =========================================================
+# 2. GENERIC ROUTES (Must be defined LAST)
+# =========================================================
+
+
+@router.get("/products/all", status_code=200, tags=["product"])
+def get_all_products(db: Session = Depends(get_db)):
+    products = db.query(models.Product).all()
+    return products
+
+
+@router.get("/products/{offset}/{limit}", status_code=200, tags=["product"])
+def get_products(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    products = db.query(models.Product).offset(offset).limit(limit).all()
+    return products
+
+
+@router.get("/products/new/{offset}/{limit}", status_code=200, tags=["product"])
+def get_new_products(offset: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    products = (
+        db.query(models.Product)
+        .filter(models.Product.new == 1)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return products
+
+
+@router.get("/name/products/{name}", status_code=200, tags=["product"])
+def get_product_by_name(name: str, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.name == name).all()
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+
+@router.post("/products", status_code=201, response_model=Product, tags=["product"])
+def create_product(
+    request: Request,
+    image: UploadFile = File(...),
+    name: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    category: str = Form(...),
+    stock: int = Form(...),
+    size: str = Form(...),
+    new: int = Form(...),
+    user=Depends(oauth2.get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_authorization(user)
+    base_url = str(request.base_url)
+
+    photo_name = random_string()
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    folder_path = os.path.join(current_directory, "..", "..", "static")
+    os.makedirs(folder_path, exist_ok=True)
+
+    file_extension = image.filename.split(".")[-1]
+    file_name = f"{photo_name}.{file_extension}"
+    file_location = os.path.join(folder_path, file_name)
+
+    with open(file_location, "wb") as file_object:
+        file_object.write(image.file.read())
+
+    image_url = f"{base_url}static/{file_name}"
+
+    db_product = models.Product(
+        image1=image_url,
+        name=name,
+        description=description,
+        price=price,
+        category=category,
+        stock=stock,
+        size=size,
+        new=new,
+    )
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+
 @router.get("/products/{product_id}", status_code=200, tags=["product"])
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
@@ -224,7 +223,6 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     return product
 
 
-# update product by id
 @router.put("/products/{product_id}", status_code=200, tags=["product"])
 def update_product(
     product_id: int,
@@ -245,7 +243,6 @@ def update_product(
     return db_product
 
 
-# filter products by any of the category with pagination with offset and limit
 @router.get(
     "/filter/category/{category}/{offset}/{limit}", status_code=200, tags=["product"]
 )
@@ -261,16 +258,13 @@ def filter_by_category(
     return products.all()
 
 
-# get all sizes of products
 @router.get("/sizes", status_code=200, tags=["product"])
 def get_sizes(db: Session = Depends(get_db)):
     sizes = db.query(models.Product.size).distinct().all()
-    # Extract sizes from the list of tuples
     sizes_list = [size[0] for size in sizes]
     return sizes_list
 
 
-# filter products by size with pagination with offset and limit
 @router.get("/filter/size/{size}/{offset}/{limit}", status_code=200, tags=["product"])
 def filter_by_size(
     size: str, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)
@@ -284,7 +278,6 @@ def filter_by_size(
     return products.all()
 
 
-# filter products by new with pagination with offset and limit
 @router.get("/filter/new/{new}/{offset}/{limit}", status_code=200, tags=["product"])
 def filter_by_new(
     new: int, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)
@@ -298,7 +291,6 @@ def filter_by_new(
     return products.all()
 
 
-# sort by price ascending or descending with pagination with offset and limit
 @router.get("/sort/{sort_by}/{offset}/{limit}", status_code=200, tags=["product"])
 def sort_products(
     sort_by: str, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)
@@ -320,7 +312,6 @@ def sort_products(
     return products.all()
 
 
-# delete product by id
 @router.delete("/products/{product_id}", status_code=204, tags=["product"])
 def delete_product(
     product_id: int,
@@ -415,7 +406,6 @@ def get_new_products_price_range(
     return products
 
 
-# search by name with pagination with offset and limit
 @router.get("/search/{name}/{offset}/{limit}", status_code=200, tags=["product"])
 def search_product(
     name: str, offset: int = 0, limit: int = 10, db: Session = Depends(get_db)
