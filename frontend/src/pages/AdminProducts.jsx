@@ -231,19 +231,34 @@ const AdminProducts = () => {
   // 1. Updated Gallery Upload Logic
   const handleGalleryUpload = async () => {
     const formData = new FormData();
+    let hasFile = false;
 
-    // Check if img2 exists and extract the raw file
-    if (galleryImages.img2?.file?.originFileObj) {
-      formData.append("image2", galleryImages.img2.file.originFileObj);
+    // Helper to safely extract file
+    const getFile = (uploadState) => {
+      // Case 1: Direct file object (sometimes happens on single select)
+      if (uploadState?.file?.originFileObj)
+        return uploadState.file.originFileObj;
+      // Case 2: File inside fileList array (standard for Upload component)
+      if (uploadState?.fileList?.[0]?.originFileObj)
+        return uploadState.fileList[0].originFileObj;
+      return null;
+    };
+
+    const img2File = getFile(galleryImages.img2);
+    const img3File = getFile(galleryImages.img3);
+
+    if (img2File) {
+      formData.append("image2", img2File);
+      hasFile = true;
     }
 
-    // Check if img3 exists and extract the raw file
-    if (galleryImages.img3?.file?.originFileObj) {
-      formData.append("image3", galleryImages.img3.file.originFileObj);
+    if (img3File) {
+      formData.append("image3", img3File);
+      hasFile = true;
     }
 
     // If no new files selected, stop
-    if (!formData.has("image2") && !formData.has("image3")) {
+    if (!hasFile) {
       toast.info("Please select at least one new image to upload");
       return;
     }
@@ -260,6 +275,7 @@ const AdminProducts = () => {
       setGalleryImages({ img2: null, img3: null }); // Reset state
       fetchProducts(pagination.current); // Refresh grid
     } catch (err) {
+      console.error(err);
       toast.error("Upload failed");
     }
   };
