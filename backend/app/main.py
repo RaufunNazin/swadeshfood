@@ -14,7 +14,12 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-origins = ["http://localhost:5173"]
+# In your main FastAPI file
+origins = [
+    "http://localhost:5173",
+    "https://swadeshfood.app",
+    "https://www.swadeshfood.app",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,9 +29,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(user.router)
-app.include_router(auth.router)
-app.include_router(product.router)
-app.include_router(order.router)
-app.include_router(categories.router)
-app.include_router(admin.router)
+# Change where you include your routers
+app.include_router(user.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
+app.include_router(product.router, prefix="/api")
+app.include_router(order.router, prefix="/api")
+app.include_router(categories.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")

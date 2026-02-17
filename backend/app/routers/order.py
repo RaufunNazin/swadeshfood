@@ -1,5 +1,7 @@
 from fastapi import Depends, APIRouter, HTTPException
 from fastapi.exceptions import HTTPException
+
+from backend.app.routers import product
 from ..database import get_db
 from sqlalchemy.orm import Session
 from ..schemas import Order
@@ -94,8 +96,8 @@ def read_order_by_user_id(user_id : int, user = Depends(oauth2.get_current_user)
     for order in orders:
         products = json.loads(order.products)
         for product in products:
-            product_name = db.query(models.Product).filter(models.Product.id == product["product"]).first().name
-            product["product_name"] = product_name
+            product_obj = db.query(models.Product).filter(models.Product.id == product["product"]).first()
+            product["product_name"] = product_obj.name if product_obj else "Unknown Product"
         order.products = json.dumps(products)
     return orders
 
