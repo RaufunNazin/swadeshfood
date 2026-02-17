@@ -18,24 +18,27 @@ jobs:
           port: 22
           script: |
             export PATH=$PATH:/usr/local/bin:/usr/bin
+            # Tell npm to use the deployer's home for temporary files
+            export npm_config_cache=/home/deployer/.npm
+            
             cd /root/swadeshfood || exit 1
-
-            # 1. Force Sync (Prevents the merge error you saw)
+            
+            # 1. Force Sync
             git fetch origin
             git reset --hard origin/main
-
+            
             # 2. Backend Update
             cd backend
             /root/swadeshfood/backend/venv/bin/pip install -r requirements.txt
             sudo /usr/bin/systemctl restart swadesh.service
-
+            
             # 3. Frontend Update
             cd ../frontend
             npm install
             npm run build
-
-            # 4. Deploy files (Must match sudoers exactly)
+            
+            # 4. Deploy files (Paths must match sudoers exactly)
             sudo /usr/bin/cp -r /root/swadeshfood/frontend/dist /var/www/swadeshfood/
             sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
-
+            
             echo "Secure deployment truly successful!"
