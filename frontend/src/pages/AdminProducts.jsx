@@ -102,13 +102,20 @@ const AdminProducts = () => {
 
     // 2. Safely handle the image file
     if (!isEditMode) {
-      // Check if values.image exists AND has the file property from Ant Design
-      const fileObj = values.image?.file?.originFileObj;
+      let fileObj = null;
+
+      // Check location A: Standard Event .file
+      if (values.image?.file?.originFileObj) {
+        fileObj = values.image.file.originFileObj;
+      }
+      // Check location B: Inside the fileList array (Safest backup)
+      else if (values.image?.fileList?.[0]?.originFileObj) {
+        fileObj = values.image.fileList[0].originFileObj;
+      }
 
       if (fileObj) {
         formData.append("image", fileObj);
       } else {
-        // Prevent the request if the file is missing to avoid the 422 error
         toast.error("Please select a valid image file");
         return;
       }
@@ -143,7 +150,6 @@ const AdminProducts = () => {
       setIsModalOpen(false);
       fetchProducts(pagination.current);
     } catch (err) {
-      // Correctly display the backend error detail
       const errorMsg =
         err.response?.data?.detail?.[0]?.msg || "Error saving product";
       toast.error(errorMsg);
@@ -222,29 +228,40 @@ const AdminProducts = () => {
     setGalleryImages({ img2: null, img3: null });
   };
 
-  const handleGalleryUpload = () => {
+  // 1. Updated Gallery Upload Logic
+  const handleGalleryUpload = async () => {
     const formData = new FormData();
-    if (galleryImages.img2) formData.append("image2", galleryImages.img2);
-    if (galleryImages.img3) formData.append("image3", galleryImages.img3);
 
-    if (!galleryImages.img2 && !galleryImages.img3) {
-      toast.info("Select at least one image to upload");
+    // Check if img2 exists and extract the raw file
+    if (galleryImages.img2?.file?.originFileObj) {
+      formData.append("image2", galleryImages.img2.file.originFileObj);
+    }
+
+    // Check if img3 exists and extract the raw file
+    if (galleryImages.img3?.file?.originFileObj) {
+      formData.append("image3", galleryImages.img3.file.originFileObj);
+    }
+
+    // If no new files selected, stop
+    if (!formData.has("image2") && !formData.has("image3")) {
+      toast.info("Please select at least one new image to upload");
       return;
     }
 
-    api
-      .post(`/products/${currentProduct.id}/images`, formData, {
+    try {
+      await api.post(`/products/${currentProduct.id}/images`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "multipart/form-data",
         },
-      })
-      .then(() => {
-        toast.success("Gallery updated!");
-        setGalleryModalOpen(false);
-        fetchProducts(pagination.current); // refresh to see new images
-      })
-      .catch((err) => toast.error("Upload failed"));
+      });
+      toast.success("Gallery updated successfully!");
+      setGalleryModalOpen(false);
+      setGalleryImages({ img2: null, img3: null }); // Reset state
+      fetchProducts(pagination.current); // Refresh grid
+    } catch (err) {
+      toast.error("Upload failed");
+    }
   };
 
   // 5. Table Config
@@ -522,40 +539,75 @@ const AdminProducts = () => {
         onOk={handleGalleryUpload}
         okText="Upload Images"
         okButtonProps={{ className: "bg-brand" }}
+        width={600}
       >
-        <div className="flex flex-col gap-4">
-          <div className="p-4 border rounded bg-gray-50">
-            <p className="mb-2 font-semibold">Image 2 (Additional View)</p>
-            {currentProduct?.image2 ? (
-              <div className="mb-2">
-                <Image src={currentProduct.image2} width={100} />
+        <div className="grid grid-cols-2 gap-6">
+          {/* Image 2 Section */}
+          <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
+            <p className="mb-3 font-semibold text-gray-600">
+              Side View (Image 2)
+            </p>
+
+            {/* Show existing image if available */}
+            {currentProduct?.image2 && (
+              <div className="mb-3">
+                <Image
+                  src={currentProduct.image2}
+                  height={80}
+                  className="rounded border border-gray-200"
+                />
+                <p className="text-xs text-green-600 mt-1">Current Image</p>
               </div>
-            ) : (
-              <p className="text-xs text-gray-400 mb-2">No image uploaded</p>
             )}
-            <Input
-              type="file"
-              onChange={(e) =>
-                setGalleryImages({ ...galleryImages, img2: e.target.files[0] })
+
+            {/* Ant Design Upload Component */}
+            <Upload
+              maxCount={1}
+              listType="picture-card"
+              beforeUpload={() => false} // Stop auto-upload
+              showUploadList={{ showPreviewIcon: false }}
+              onChange={(info) =>
+                setGalleryImages((prev) => ({ ...prev, img2: info }))
               }
-            />
+            >
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+              </div>
+            </Upload>
           </div>
 
-          <div className="p-4 border rounded bg-gray-50">
-            <p className="mb-2 font-semibold">Image 3 (Additional View)</p>
-            {currentProduct?.image3 ? (
-              <div className="mb-2">
-                <Image src={currentProduct.image3} width={100} />
+          {/* Image 3 Section */}
+          <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
+            <p className="mb-3 font-semibold text-gray-600">
+              Detail View (Image 3)
+            </p>
+
+            {currentProduct?.image3 && (
+              <div className="mb-3">
+                <Image
+                  src={currentProduct.image3}
+                  height={80}
+                  className="rounded border border-gray-200"
+                />
+                <p className="text-xs text-green-600 mt-1">Current Image</p>
               </div>
-            ) : (
-              <p className="text-xs text-gray-400 mb-2">No image uploaded</p>
             )}
-            <Input
-              type="file"
-              onChange={(e) =>
-                setGalleryImages({ ...galleryImages, img3: e.target.files[0] })
+
+            <Upload
+              maxCount={1}
+              listType="picture-card"
+              beforeUpload={() => false}
+              showUploadList={{ showPreviewIcon: false }}
+              onChange={(info) =>
+                setGalleryImages((prev) => ({ ...prev, img3: info }))
               }
-            />
+            >
+              <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+              </div>
+            </Upload>
           </div>
         </div>
       </Modal>
