@@ -2,7 +2,7 @@ import os
 import jwt  # This is PyJWT
 from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .database import get_db
