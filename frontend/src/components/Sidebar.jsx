@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { slide as Menu } from "react-burger-menu";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "antd";

@@ -1,6 +1,4 @@
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Notification from "../components/Notification";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +6,12 @@ import { useEffect, useState } from "react";
 import api from "../api";
 import { Modal, Table, Tag, Descriptions, Button, Input } from "antd";
 import {
-  UserOutlined,
   MailOutlined,
   LockOutlined,
   PoweroffOutlined,
   ShoppingOutlined,
 } from "@ant-design/icons";
+import { toast } from "react-toastify";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -189,7 +187,6 @@ const Profile = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       {/* --- Header --- */}

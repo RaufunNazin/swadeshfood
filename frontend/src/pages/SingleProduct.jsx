@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../api";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
@@ -16,7 +15,7 @@ const SingleProduct = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [sizes, setSizes] = useState([]); // Renamed from 'products' to 'sizes' for clarity
   const [quantity, setQuantity] = useState(1);
-  const [offset, setOffset] = useState(0);
+  const [offset] = useState(0);
   const [limit, setLimit] = useState(4);
 
   // Fetch related products (e.g. random or same category)
@@ -59,7 +58,6 @@ const SingleProduct = () => {
 
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">

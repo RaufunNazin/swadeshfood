@@ -5,7 +5,7 @@ import {
   IoChevronForwardOutline,
   IoBagHandleOutline,
   IoGridOutline,
-  IoImagesOutline,
+  IoHomeOutline, // Added Home Icon
 } from "react-icons/io5";
 import { MdLogout, MdDashboard, MdShoppingCart } from "react-icons/md";
 import api from "../api";
@@ -38,7 +38,7 @@ const SidePanel = () => {
   const menuItemStyles = {
     button: ({ active }) => ({
       backgroundColor: active ? "#fff0f0" : undefined,
-      color: active ? "#e11d48" : "#4b5563", // Assuming brand color is roughly rose-600
+      color: active ? "#e11d48" : "#4b5563",
       borderRight: active ? "3px solid #e11d48" : "none",
       "&:hover": {
         backgroundColor: "#fff0f0",
@@ -57,7 +57,7 @@ const SidePanel = () => {
         <div className="p-5 flex items-center justify-between">
           {!collapsed && (
             <span className="font-bold text-xl text-brand">
-              Swadesh<span className="text-gray-800">Admin</span>
+              {user.username || "Admin"}
             </span>
           )}
           <button
@@ -65,7 +65,9 @@ const SidePanel = () => {
             className="p-1 rounded hover:bg-gray-100"
           >
             <IoChevronForwardOutline
-              className={`transition-transform duration-300 ${collapsed ? "rotate-0" : "rotate-180"}`}
+              className={`transition-transform duration-300 ${
+                collapsed ? "rotate-0" : "rotate-180"
+              }`}
             />
           </button>
         </div>
@@ -108,6 +110,14 @@ const SidePanel = () => {
 
         <div className="absolute bottom-5 w-full">
           <Menu menuItemStyles={menuItemStyles}>
+            {/* --- New Back to Home Button --- */}
+            <MenuItem
+              icon={<IoHomeOutline size={20} />}
+              onClick={() => navigate("/")}
+            >
+              Back to Home
+            </MenuItem>
+
             <MenuItem icon={<MdLogout size={20} />} onClick={logout}>
               Logout
             </MenuItem>

@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useState } from "react";
+import PropTypes from "prop-types";
 
 // Public Pages
 import Login from "./pages/Login";
@@ -24,6 +25,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 // Components
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,6 +37,18 @@ function App() {
 
   return (
     <div className="App font-body" id="outer-container">
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <BrowserRouter>
         {/* Sidebar at Root Level */}
         <Sidebar
@@ -149,6 +163,11 @@ const Layout = ({ children, onMenuClick }) => {
       {children}
     </>
   );
+};
+
+Layout.propTypes = {
+  children: PropTypes.node,
+  onMenuClick: PropTypes.func,
 };
 
 export default App;

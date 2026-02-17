@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import api from "../api";
 import {
@@ -11,7 +12,6 @@ import {
   Table,
   Tag,
   List,
-  Avatar,
   Progress,
   Button,
 } from "antd";

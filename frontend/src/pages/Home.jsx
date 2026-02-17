@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import api from "../api";
 import "../App.css";
 import { AiOutlineLoading, AiOutlineArrowRight } from "react-icons/ai";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
@@ -39,7 +37,6 @@ const Home = () => {
 
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       {/* --- HERO SECTION --- */}
@@ -65,7 +62,7 @@ const Home = () => {
               </h1>
               <p className="text-xl text-gray-200 leading-relaxed font-light">
                 Nourish your family with the purest ingredients. No chemicals,
-                just nature's love.
+                just nature&apos;s love.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -178,7 +175,7 @@ const Home = () => {
               Fresh Arrivals
             </h2>
             <p className="text-xl text-gray-600 font-light">
-              Be the first to taste the season's newest bounty.
+              Be the first to taste the season&apos;s newest bounty.
             </p>
           </div>
 
@@ -214,12 +211,12 @@ const Home = () => {
           <div className="space-y-8">
             <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
             <h2 className="text-4xl md:text-6xl font-serif text-gray-800 leading-tight">
-              <span className="italic text-emerald-700">"From our soil</span> to
-              your soul."
+              <span className="italic text-emerald-700">&quot;From our soil</span> to
+              your soul.&quot;
             </h2>
             <p className="text-gray-500 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
               We partner directly with sustainable farmers to bring you produce
-              that is 100% Organic, 100% Swadesh. It's not just food, it's a
+              that is 100% Organic, 100% Swadesh. It&apos;s not just food, it&apos;s a
               promise of purity.
             </p>
             <div className="pt-4">

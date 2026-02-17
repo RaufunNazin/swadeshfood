@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   RiUserLine,
@@ -9,6 +9,7 @@ import {
   RiLockPasswordLine,
   RiArrowLeftLine,
 } from "react-icons/ri";
+import { toast } from "react-toastify";
 
 // --- FIX: Component moved OUTSIDE ---
 // We pass 'onKeyDown' as a prop now since it was using a function inside Register
@@ -35,9 +36,17 @@ const InputField = ({
   </div>
 );
 
+InputField.propTypes = {
+  icon: PropTypes.elementType.isRequired,
+  type: PropTypes.string,
+  placeholder: PropTypes.string,
+  value: PropTypes.any,
+  onChange: PropTypes.func,
+  onKeyDown: PropTypes.func,
+};
+
 const Register = () => {
   const navigate = useNavigate();
-  const { state } = useLocation();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -88,8 +97,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
-
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-green-200/20 rounded-full blur-3xl"></div>

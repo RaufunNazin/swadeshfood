@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   RiMailLine,
   RiLockPasswordLine,
   RiArrowLeftLine,
 } from "react-icons/ri";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -58,8 +58,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
-
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-green-200/20 rounded-full blur-3xl"></div>
@@ -134,7 +132,7 @@ const Login = () => {
 
           <div className="flex flex-col items-center gap-4 mt-6 pt-6 border-t border-gray-100">
             <p className="text-gray-500">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <button
                 onClick={() => navigate("/register")}
                 className="text-green-600 font-bold hover:underline underline-offset-2"

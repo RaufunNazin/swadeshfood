@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import Notification from "../components/Notification";
 import { RxCross2 } from "react-icons/rx";
@@ -70,7 +69,7 @@ const Cart = () => {
               Your cart is empty
             </h2>
             <p className="text-gray-500 mb-8">
-              Looks like you haven't added anything to your cart yet.
+              Looks like you haven&apos;t added anything to your cart yet.
             </p>
             <button
               onClick={() => navigate("/store")}

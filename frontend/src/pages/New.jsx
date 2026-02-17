@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../api";
 import { AiOutlineLoading, AiOutlineShopping } from "react-icons/ai";
@@ -11,7 +9,7 @@ import Notification from "../components/Notification";
 
 const New = () => {
   const navigate = useNavigate();
-  const [offset, setOffset] = useState(0);
+  const [offset] = useState(0);
   const [limit, setLimit] = useState(12);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +25,6 @@ const New = () => {
 
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       {/* --- Modern Header --- */}

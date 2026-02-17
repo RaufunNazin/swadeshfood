@@ -1,7 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 import api from "../api";
@@ -46,7 +44,6 @@ const Search = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       {/* Simple Header */}

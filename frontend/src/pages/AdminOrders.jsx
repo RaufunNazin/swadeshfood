@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import api from "../api";
 import {
@@ -35,15 +36,6 @@ const AdminOrders = () => {
 
   const fetchOrders = () => {
     setLoading(true);
-    let query = "/order?";
-
-    // Append filters
-    if (filters.userId) query = `/order/user/${filters.userId}`; // Adjust endpoint logic based on precedence in your backend
-    // Note: Your backend logic for filtering is split into many endpoints.
-    // Ideally, one endpoint accepting query params is better.
-    // For now, let's use the Date range + generic get logic.
-
-    // If using the Date Range endpoint we created:
     let params = {};
     if (dateRange) {
       params.start_date = dateRange[0].unix();

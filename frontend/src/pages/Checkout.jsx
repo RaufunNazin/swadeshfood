@@ -1,7 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useState } from "react";
 import Notification from "../components/Notification";
@@ -13,6 +11,8 @@ import {
   RiMailLine,
   RiUserLine,
 } from "react-icons/ri";
+import { toast } from "react-toastify";
+import PropTypes from "prop-types";
 
 // --- FIX: Moved Component Outside ---
 const InputField = ({
@@ -36,6 +36,23 @@ const InputField = ({
     />
   </div>
 );
+
+InputField.propTypes = {
+  icon: PropTypes.elementType,
+  placeholder: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.func,
+  type: PropTypes.string,
+  required: PropTypes.bool,
+};
+
+InputField.defaultProps = {
+  placeholder: "",
+  value: "",
+  onChange: () => {},
+  type: "text",
+  required: false,
+};
 
 const Checkout = () => {
   const { state } = useLocation();
@@ -78,22 +95,24 @@ const Checkout = () => {
     getProfile();
 
     const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-    
+
     // FETCH fresh data for these IDs to ensure the price hasn't been tampered with locally
     const validatePrices = async () => {
-        try {
-            const updatedItems = await Promise.all(localCart.map(async (item) => {
-                const res = await api.get(`/products/${item.id}`);
-                return { ...res.data, quantity: item.quantity };
-            }));
-            setCart(updatedItems);
-        } catch (err) {
-            console.error("Price validation failed", err);
-        }
+      try {
+        const updatedItems = await Promise.all(
+          localCart.map(async (item) => {
+            const res = await api.get(`/products/${item.id}`);
+            return { ...res.data, quantity: item.quantity };
+          }),
+        );
+        setCart(updatedItems);
+      } catch (err) {
+        console.error("Price validation failed", err);
+      }
     };
 
     if (localCart.length > 0) {
-        validatePrices();
+      validatePrices();
     }
   }, [state]);
 
@@ -165,7 +184,6 @@ const Checkout = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800 flex flex-col">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       <Notification />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
@@ -355,7 +373,7 @@ const Checkout = () => {
           />
         </div>
         <div className="mt-4 text-center text-sm">
-          Don't have an account?
+          Don&apos;t have an account?
           <button
             onClick={() => {
               setOpenLogin(false);

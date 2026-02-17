@@ -1,6 +1,4 @@
 import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Notification from "../components/Notification";
 import {
@@ -12,14 +10,6 @@ import {
 const Connect = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        theme="colored"
-      />
       <Notification />
 
       {/* Header Section */}
@@ -59,7 +49,7 @@ const Connect = () => {
                 Get in Touch
                 <div className="h-1 w-12 bg-brand rounded-full ml-2"></div>
               </h2>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-brand/10 p-3 rounded-lg text-brand">
@@ -77,7 +67,9 @@ const Connect = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Email</h3>
-                    <p className="text-gray-600">swadeshagrofoodslimited@gmail.com</p>
+                    <p className="text-gray-600">
+                      swadeshagrofoodslimited@gmail.com
+                    </p>
                   </div>
                 </div>
 
@@ -86,9 +78,12 @@ const Connect = () => {
                     <MdLocationPin className="text-2xl" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Headquarters</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Headquarters
+                    </h3>
                     <p className="text-gray-600">
-                      Pa-67/1, Alatunnesa School Road, Middle Badda, Dhaka-1212, Bangladesh
+                      Pa-67/1, Alatunnesa School Road, Middle Badda, Dhaka-1212,
+                      Bangladesh
                     </p>
                   </div>
                 </div>

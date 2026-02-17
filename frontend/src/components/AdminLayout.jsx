@@ -1,22 +1,10 @@
-import React from "react";
 import SidePanel from "./SidePanel";
-import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PropTypes from "prop-types";
 
 const AdminLayout = ({ children, title }) => {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        draggable={true}
-        pauseOnHover={false}
-        theme="colored"
-      />
       <SidePanel />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Header Area */}
@@ -37,6 +25,11 @@ const AdminLayout = ({ children, title }) => {
       </div>
     </div>
   );
+};
+
+AdminLayout.propTypes = {
+  children: PropTypes.node,
+  title: PropTypes.string,
 };
 
 export default AdminLayout;

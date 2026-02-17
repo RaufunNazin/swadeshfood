@@ -4,6 +4,7 @@ import { RiShoppingCartLine, RiSearchLine, RiMenu4Line } from "react-icons/ri"; 
 import { FiUser, FiLogIn } from "react-icons/fi";
 import api from "../api";
 import { Tooltip, Select } from "antd";
+import PropTypes from "prop-types";
 
 const Navbar = ({ onMenuClick }) => {
   // Accept prop here
@@ -53,6 +54,10 @@ const Navbar = ({ onMenuClick }) => {
       className={`absolute -bottom-1 left-0 h-0.5 bg-green-600 transition-all duration-300 ${isActive(path) ? "w-full" : "w-0 group-hover:w-full"}`}
     ></span>
   );
+
+  Underline.propTypes = {
+    path: PropTypes.string.isRequired,
+  };
 
   return (
     <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm sticky top-0 z-50 transition-all duration-300">
@@ -174,6 +179,10 @@ const Navbar = ({ onMenuClick }) => {
       </div>
     </div>
   );
+};
+
+Navbar.propTypes = {
+  onMenuClick: PropTypes.func,
 };
 
 export default Navbar;

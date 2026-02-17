@@ -14,7 +14,7 @@ class Product(Base) :
     __tablename__ = "products"
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
-    description = Column(String(300), nullable=False)
+    description = Column(String(2000), nullable=False)
     image1 = Column(String(300), nullable=False)
     image2 = Column(String(300), nullable=True)
     image3 = Column(String(300), nullable=True)

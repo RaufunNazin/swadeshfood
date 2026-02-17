@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { RiTruckLine } from "react-icons/ri";
 

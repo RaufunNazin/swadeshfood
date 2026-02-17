@@ -1,4 +1,4 @@
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -39,7 +39,6 @@ const Footer = () => {
 
   return (
     <footer className="bg-white border-t border-gray-100 font-sans mt-auto">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
@@ -54,7 +53,7 @@ const Footer = () => {
             </div>
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
               Bringing pure, organic goodness directly from the farm to your
-              family's table.
+              family&apos;s table.
             </p>
           </div>
 
