@@ -91,7 +91,7 @@ const AdminProducts = () => {
   const handleSubmit = async (values) => {
     const formData = new FormData();
 
-    // Append standard fields
+    // 1. Append standard fields
     formData.append("name", values.name);
     formData.append("price", values.price);
     formData.append("stock", values.stock);
@@ -100,19 +100,23 @@ const AdminProducts = () => {
     formData.append("description", values.description || "");
     formData.append("new", values.new ? 1 : 0);
 
-    // --- FIX: Correctly handle Ant Design File Object ---
+    // 2. Safely handle the image file
     if (!isEditMode) {
-      if (values.image && values.image.file) {
-        // Ant Design wraps the native file in originFileObj
-        formData.append("image", values.image.file.originFileObj);
+      // Check if values.image exists AND has the file property from Ant Design
+      const fileObj = values.image?.file?.originFileObj;
+
+      if (fileObj) {
+        formData.append("image", fileObj);
       } else {
-        toast.error("Main image is required");
+        // Prevent the request if the file is missing to avoid the 422 error
+        toast.error("Please select a valid image file");
         return;
       }
     }
 
     try {
       if (isEditMode) {
+        // standard PUT for edits
         await api.put(
           `/products/${currentProduct.id}`,
           {
@@ -127,6 +131,7 @@ const AdminProducts = () => {
         );
         toast.success("Product Updated");
       } else {
+        // POST with multipart/form-data
         await api.post("/products", formData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -138,7 +143,10 @@ const AdminProducts = () => {
       setIsModalOpen(false);
       fetchProducts(pagination.current);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Error saving product");
+      // Correctly display the backend error detail
+      const errorMsg =
+        err.response?.data?.detail?.[0]?.msg || "Error saving product";
+      toast.error(errorMsg);
     }
   };
 
@@ -373,15 +381,21 @@ const AdminProducts = () => {
               label="Main Image"
               name="image"
               rules={[
-                { required: !isEditMode, message: "Please upload an image" },
+                {
+                  required: true,
+                  message: "Please upload the main product image",
+                },
               ]}
             >
               <Upload
                 maxCount={1}
-                beforeUpload={() => false} // Prevents auto-upload to a URL
                 listType="picture"
+                // This stops the auto-upload to a URL and keeps the file in the form state
+                beforeUpload={() => false}
               >
-                <Button icon={<UploadOutlined />}>Select File</Button>
+                <Button icon={<UploadOutlined />} className="w-full">
+                  Select Image File
+                </Button>
               </Upload>
             </Form.Item>
           )}
