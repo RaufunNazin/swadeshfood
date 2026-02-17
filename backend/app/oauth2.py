@@ -1,51 +1,76 @@
-from jose import JWTError, jwt
-from datetime import datetime, timedelta
-from . import schemas
-from .database import get_db
+import os
+import jwt  # This is PyJWT
+from jwt.exceptions import InvalidTokenError
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from . import models
-from .database import SessionLocal
+from .database import get_db
+from . import models, schemas
+from dotenv import load_dotenv
 
-SECRET_KEY = "1234567890"
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-EXPIRATION_TIME = 60 * 60 * 24 * 7
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl = "login")
+# We keep this for Swagger UI compatibility, but we will override the logic later for cookies
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-def create_access_token(data : dict) :
+
+def create_access_token(data: dict):
     to_encode = data.copy()
-    expire_time = datetime.utcnow() + timedelta(minutes = EXPIRATION_TIME)
-    to_encode.update({ "exp" : expire_time })
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm = ALGORITHM)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+
+    # PyJWT syntax
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_access_token(token : str, credentials_exception) :
-    try :
+
+def verify_access_token(token: str, credentials_exception):
+    try:
+        # PyJWT syntax
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        id = payload.get("id")
-        email = payload.get("email")
-    
-        if not id :
+        id: str = payload.get("id")
+        if id is None:
             raise credentials_exception
-        token_data = schemas.TokenData(id = id, email = email)
-    except JWTError :
+        token_data = schemas.TokenData(id=id, email=payload.get("email"))
+    except InvalidTokenError:  # PyJWT specific exception
         raise credentials_exception
     return token_data
-    
-def get_current_user(token : str = Depends(oauth2_scheme), db : Session = Depends(get_db)) :
-    credentials_exception = HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, 
-                                          detail = "error",
-                                          headers = { "WWW-authenticate" : "Bearer"}
-                                          )
-    token_data = verify_access_token(token, credentials_exception)
-    return token_data
 
-def check_authorization(user) :
-    db = SessionLocal()
-    user_from_db = db.query(models.User).filter(models.User.id == user.id).first()
-    if user_from_db.role != 1 :
-        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "Unauthorized Access")
-    db.close()
-    return user_from_db
+
+# Replace the old get_current_user with this one:
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+    )
+
+    # 1. Try to get token from Cookie
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise credentials_exception
+
+    # Remove "Bearer " prefix if present
+    if token.startswith("Bearer "):
+        token = token.split(" ")[1]
+
+    # 2. Verify token
+    token_data = verify_access_token(token, credentials_exception)
+
+    user = db.query(models.User).filter(models.User.id == token_data.id).first()
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+
+def check_authorization(user: models.User):
+    if user.role != 1:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized action"
+        )

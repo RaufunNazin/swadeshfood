@@ -79,7 +79,6 @@ const Register = () => {
       })
       .then((res) => {
         if (res.status === 201) {
-          localStorage.setItem("token", res.data.access_token);
           navigate("/", { state: "register" });
         }
       })

@@ -133,20 +133,10 @@ const AdminProducts = () => {
         await api.put(
           `/products/${currentProduct.id}`,
           { ...values, new: values.new ? 1 : 0 },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          },
         );
         toast.success("Product Updated");
       } else {
-        await api.post("/products", formData, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await api.post("/products", formData);
         toast.success("Product Created");
       }
       setIsModalOpen(false);
@@ -166,11 +156,7 @@ const AdminProducts = () => {
       okType: "danger",
       onOk: () => {
         api
-          .delete(`/products/${id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
+          .delete(`/products/${id}`)
           .then(() => {
             toast.success("Deleted successfully");
             fetchProducts(pagination.current);
@@ -184,9 +170,7 @@ const AdminProducts = () => {
     setCurrentProduct(product);
     setRecipeModalOpen(true);
     api
-      .get(`/products/${product.id}/recipe`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .get(`/products/${product.id}/recipe`)
       .then((res) => setRecipeItems(res.data));
   };
 
@@ -202,9 +186,6 @@ const AdminProducts = () => {
           quantity: parseFloat(newIngredient.qty),
           unit_price: parseFloat(newIngredient.price),
         },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
       )
       .then((res) => {
         setRecipeItems([...recipeItems, res.data]);
@@ -215,9 +196,7 @@ const AdminProducts = () => {
 
   const removeIngredient = (itemId) => {
     api
-      .delete(`/products/recipe/${itemId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .delete(`/products/recipe/${itemId}`)
       .then(() => {
         setRecipeItems(recipeItems.filter((i) => i.id !== itemId));
       });
@@ -262,7 +241,6 @@ const AdminProducts = () => {
     try {
       await api.post(`/products/${currentProduct.id}/images`, formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "multipart/form-data",
         },
       });

@@ -26,16 +26,18 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      api
-        .get("/me", { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => setUser(res.data))
-        .catch(() => setIsLoggedIn(false));
-    } else {
-      setIsLoggedIn(false);
-    }
+    // REMOVE: const token = localStorage.getItem("token");
+
+    // Always try to fetch user. The cookie handles the auth.
+    api
+      .get("/me")
+      .then((res) => {
+        setUser(res.data);
+        setIsLoggedIn(true);
+      })
+      .catch(() => {
+        setIsLoggedIn(false);
+      });
   }, [isOpen]);
 
   const handleClose = () => {
@@ -50,12 +52,15 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-    setModalOpen(false);
-    handleClose();
-    setIsLoggedIn(false);
+    api
+      .post("/logout")
+      .then(() => {
+        navigate("/login");
+      })
+      .catch(() => {
+        // Even if it fails, force redirect
+        navigate("/login");
+      });
   };
 
   return (

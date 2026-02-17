@@ -31,16 +31,18 @@ const Profile = () => {
 
   // --- Auth & Data Fetching ---
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+    // Call the backend to delete the cookie
+    api.post("/logout").finally(() => {
+      // Clear local state
+      localStorage.removeItem("user");
+      // Do NOT remove "token" because it's not there anymore
+      navigate("/login");
+    });
   };
 
   const getOrders = (id) => {
     api
-      .get(`/order/user/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .get(`/order/user/${id}`)
       .then((res) => {
         setOrders(res.data.reverse());
         setLoading(false);
@@ -49,13 +51,11 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    // REMOVE: const token = localStorage.getItem("token");
+    // REMOVE: if (!token) navigate("/login");
 
     api
-      .get("/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get("/me")
       .then((res) => {
         setUser(res.data);
         getOrders(res.data.id);
@@ -66,9 +66,7 @@ const Profile = () => {
   // --- Actions ---
   const cancelOrder = () => {
     api
-      .delete(`/order/${selectedOrderId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .delete(`/order/${selectedOrderId}`)
       .then((res) => {
         if (res.status === 200) {
           toast.success("Order cancelled successfully");
@@ -91,13 +89,7 @@ const Profile = () => {
     }
 
     api
-      .put(
-        "/password",
-        { old_password: old, new_password: newPass },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
-      )
+      .put("/password", { old_password: old, new_password: newPass })
       .then(() => {
         toast.success("Password updated!");
         setPasswords({ old: "", new: "", confirm: "" });

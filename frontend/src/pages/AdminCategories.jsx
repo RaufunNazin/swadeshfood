@@ -25,9 +25,7 @@ const AdminCategories = () => {
   const getCategories = () => {
     setLoading(true);
     api
-      .get("/categories", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
+      .get("/categories")
       .then((res) => {
         setCategories(res.data);
         setFilteredCategories(res.data);
@@ -63,7 +61,6 @@ const AdminCategories = () => {
 
     const config = {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "multipart/form-data",
       },
     };
@@ -104,11 +101,7 @@ const AdminCategories = () => {
       cancelText: "Cancel",
       onOk: () => {
         api
-          .delete(`/categories/${id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
+          .delete(`/categories/${id}`)
           .then(() => {
             toast.success("Category deleted");
             getCategories();

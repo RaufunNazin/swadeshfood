@@ -1,27 +1,26 @@
-from fastapi import Depends, APIRouter, HTTPException
-from fastapi.exceptions import HTTPException
-
+from fastapi import Depends, APIRouter, HTTPException, status, Request
 from ..database import get_db
 from sqlalchemy.orm import Session
-from ..schemas import Order
-from .. import models, oauth2
+from .. import models, oauth2, schemas
 from ..oauth2 import check_authorization
-from typing import List, Optional
-import json
 import time
+from typing import List, Optional
+from ..schemas import Order
 
 router = APIRouter()
 
-
-@router.get("/order", response_model=List[Order])
+# --- 1. Read All Orders (Fixed) ---
+@router.get("/order", response_model=List[schemas.Order])
 def read_order_with_products(
     start_date: Optional[int] = None,
     end_date: Optional[int] = None,
     user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
-    check_authorization(user)
     query = db.query(models.Order)
+
+    if user.role != 1:
+        query = query.filter(models.Order.user_id == user.id)
 
     if start_date:
         query = query.filter(models.Order.created_at >= start_date)
@@ -29,114 +28,88 @@ def read_order_with_products(
         query = query.filter(models.Order.created_at <= end_date)
 
     orders = query.all()
-
-    for order in orders:
-        products = json.loads(order.products)
-        order_total = 0
-        for product in products:
-            product_obj = (
-                db.query(models.Product)
-                .filter(models.Product.id == product["product"])
-                .first()
-            )
-            if product_obj:
-                product["product_name"] = product_obj.name
-                product["unit_price"] = product_obj.price
-                # Calculate trusted subtotal for the response
-                order_total += product_obj.price * product["quantity"]
-
-        order.products = json.dumps(products)
-        # order.calculated_total = order_total # If using a virtual schema field
+    
+    # NOTE: No need to manual json.loads here. 
+    # Pydantic's 'response_model' will automatically convert the DB string to a JSON list.
+    
     return orders
 
-
-@router.get("/order/{order_id}", response_model=Order)
+# --- 2. Read Single Order (Fixed) ---
+@router.get("/order/{order_id}", response_model=schemas.Order)
 def read_order_by_id(
-    order_id: int, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)
+    order_id: int, 
+    user=Depends(oauth2.get_current_user), 
+    db: Session = Depends(get_db)
 ):
-    check_authorization(user)
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    if user.role != 1 and order.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
     return order
 
-
-@router.post("/order", status_code=200, response_model=Order)
-def create_order(order: Order, db: Session = Depends(get_db)):
-    # 1. Parse the incoming products JSON
-    try:
-        incoming_products = json.loads(order.products)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid products format")
-
+# --- 3. Create Order (Fixed) ---
+@router.post("/order", status_code=201, response_model=schemas.Order)
+def create_order(
+    order: schemas.OrderCreate, 
+    db: Session = Depends(get_db)
+):
+    # 'order.products' is already a Python List (Pydantic parsed it)
     validated_products = []
-    total_price = 0
+    
+    for item in order.products:
+        # Access properties directly (item.product, not item['product'])
+        db_prod = db.query(models.Product).filter(models.Product.id == item.product).first()
+        if not db_prod: continue
 
-    # 2. Look up each product in the database to get the real price
-    for item in incoming_products:
-        product_id = item.get("product")
-        quantity = item.get("quantity", 0)
+        validated_products.append({
+            "product": item.product, 
+            "quantity": item.quantity, 
+            "price": db_prod.price, 
+            "name": db_prod.name 
+        })
 
-        db_product = (
-            db.query(models.Product).filter(models.Product.id == product_id).first()
-        )
-        if not db_product:
-            raise HTTPException(
-                status_code=404, detail=f"Product {product_id} not found"
-            )
+    new_order = models.Order(
+        user_id=order.user_id,
+        name=order.name,
+        email=order.email,
+        phone=order.phone,
+        address=order.address,
+        order_description=order.order_description,
+        method=order.method,
+        # Convert List -> JSON String for DB Storage
+        products=schemas.Json(validated_products), 
+        paid=0,
+        status="new",
+        created_at=int(time.time())
+    )
 
-        # Calculate subtotal using DB price
-        item_total = db_product.price * quantity
-        total_price += item_total
-
-        # Store the DB price in the order record for historical reference
-        validated_products.append(
-            {
-                "product": product_id,
-                "quantity": quantity,
-                "price_at_purchase": db_product.price,
-                "product_name": db_product.name,
-            }
-        )
-
-    # 3. Create the order record with server-calculated data
-    db_order = models.Order(
-        **order.dict(exclude={"products"})
-    )  # Exclude original untrusted products
-    db_order.products = json.dumps(validated_products)
-    db_order.created_at = int(time.time())
-
-    # Optional: If your Order model has a 'total' column, set it here
-    # db_order.total = total_price
-
-    db.add(db_order)
+    db.add(new_order)
     db.commit()
-    db.refresh(db_order)
-    return db_order
+    db.refresh(new_order)
+    return new_order
 
-
-@router.put("/order/{order_id}", response_model=Order)
+# --- 4. Update Order (Fixed) ---
+@router.put("/order/{order_id}", response_model=schemas.Order)
 def update_order(
     order_id: int,
-    order: Order,
+    order_update: schemas.OrderUpdate, # Use the strict schema
     user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
     check_authorization(user)
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
-    if db_order is None:
+    if not db_order:
         raise HTTPException(status_code=404, detail="Order not found")
-    db_order.user_id = order.user_id
-    db_order.products = order.products
-    db_order.paid = order.paid
-    db_order.status = order.status
-    db_order.name = order.name
-    db_order.email = order.email
-    db_order.phone = order.phone
-    db_order.address = order.address
-    db_order.order_description = order.order_description
-    db_order.method = order.method
-    db_order.created_at = order.created_at
+
+    # Only update allowed fields
+    if order_update.status:
+        db_order.status = order_update.status
+    if order_update.paid is not None:
+        db_order.paid = order_update.paid
+
     db.commit()
     db.refresh(db_order)
     return db_order
@@ -160,7 +133,15 @@ def delete_order(
 def read_order_by_user_id(
     user_id: int, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)
 ):
-    check_authorization(user)
+    # REMOVED: check_authorization(user)
+
+    # ADDED: Security check to ensure user can only view THEIR OWN data
+    # (Unless they are an admin, role 1)
+    if user.id != user_id and user.role != 1:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to view these orders"
+        )
+
     orders = db.query(models.Order).filter(models.Order.user_id == user_id).all()
     for order in orders:
         products = json.loads(order.products)

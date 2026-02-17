@@ -20,13 +20,13 @@ const Navbar = ({ onMenuClick }) => {
   };
 
   const getProfile = () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setIsLoggedIn(false);
-      return;
-    }
+    // REMOVE THIS: const token = localStorage.getItem("token");
+    // REMOVE THIS: if (!token) ...
+
+    // JUST CALL THE API directly.
+    // If the cookie exists, it works. If not, it fails (401).
     api
-      .get("/me", { headers: { Authorization: `Bearer ${token}` } })
+      .get("/me")
       .then((res) => {
         if (res.status === 200) {
           setUser(res.data);

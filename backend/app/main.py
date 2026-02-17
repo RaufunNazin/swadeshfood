@@ -8,12 +8,21 @@ from .routers import user, auth, product, order, categories, admin
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 import os
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from .limiter import limiter
 
 load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# 1. Register the limiter state
+app.state.limiter = limiter
+
+# 2. Register the exception handler (so users get a 429 error instead of 500)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- UPDATE THIS BLOCK ---
 current_directory = os.path.dirname(os.path.realpath(__file__))
@@ -27,7 +36,6 @@ app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
 
 # In your main FastAPI file
 origins = [
-    "http://localhost:5173",
     "https://swadeshfood.app",
     "https://www.swadeshfood.app",
 ]

@@ -45,7 +45,6 @@ const AdminOrders = () => {
     api
       .get("/order", {
         params,
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then((res) => {
         let data = res.data;
@@ -64,43 +63,23 @@ const AdminOrders = () => {
   };
 
   useEffect(() => {
-    api
-      .get("/users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-      .then((res) => setUsers(res.data));
+    api.get("/users").then((res) => setUsers(res.data));
     fetchOrders();
   }, [dateRange, filters]); // Re-fetch on filter change
 
   const updateStatus = (id, status) => {
-    api
-      .patch(
-        `/order/${id}/status/${status}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
-      )
-      .then(() => {
-        toast.success("Status Updated");
-        fetchOrders();
-      });
+    api.patch(`/order/${id}/status/${status}`, {}).then(() => {
+      toast.success("Status Updated");
+      fetchOrders();
+    });
   };
 
   const togglePaid = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
-    api
-      .patch(
-        `/order/${id}/paid/${newStatus}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
-      )
-      .then(() => {
-        toast.success(`Marked as ${newStatus ? "Paid" : "Unpaid"}`);
-        fetchOrders();
-      });
+    api.patch(`/order/${id}/paid/${newStatus}`, {}).then(() => {
+      toast.success(`Marked as ${newStatus ? "Paid" : "Unpaid"}`);
+      fetchOrders();
+    });
   };
 
   const columns = [
@@ -196,11 +175,7 @@ const AdminOrders = () => {
                 title: "Delete Order?",
                 onOk: () => {
                   api
-                    .delete(`/order/${r.id}`, {
-                      headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                      },
-                    })
+                    .delete(`/order/${r.id}`)
                     .then(() => fetchOrders());
                 },
               });

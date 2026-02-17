@@ -9,8 +9,33 @@ from ..oauth2 import check_authorization
 import os
 from typing import Optional, List
 from ..utils import random_string
+import magic
 
 router = APIRouter()
+
+# --- SECURITY CONFIG ---
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+MAX_FILE_SIZE = 1 * 1024 * 1024  # 1 MB Limit
+
+
+async def validate_file(file: UploadFile):
+    # 1. Check Extension (Keep existing logic)
+    filename = file.filename
+    ext = filename.rsplit(".", 1)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Invalid extension")
+
+    # 2. Check Magic Numbers (Content Content)
+    # Read the first 1KB to check file signature
+    header = await file.read(1024)
+    await file.seek(0)  # Reset cursor!
+
+    mime = magic.from_buffer(header, mime=True)
+    if not mime.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File is not a valid image")
+
+    return ext
+
 
 # =========================================================
 # 1. SPECIFIC ROUTES (Must be defined FIRST)
@@ -86,7 +111,7 @@ def delete_recipe_item(
 
 # --- Image Upload Route ---
 @router.post("/products/{product_id}/images", status_code=200, tags=["product"])
-def add_images(
+async def add_images(  # <--- Changed to async
     request: Request,
     product_id: int,
     image2: Optional[UploadFile] = File(None),
@@ -95,36 +120,44 @@ def add_images(
     db: Session = Depends(get_db),
 ):
     check_authorization(user)
-    base_url = str(request.base_url)
+
+    # 1. Verify Product Exists
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    base_url = str(request.base_url)
     current_directory = os.path.dirname(os.path.realpath(__file__))
     folder_path = os.path.join(current_directory, "..", "..", "static")
     os.makedirs(folder_path, exist_ok=True)
 
+    # 2. Process Image 2 (Securely)
     if image2 is not None:
-        photo_name = random_string()
-        file_location2 = os.path.join(
-            folder_path, f"{photo_name}.{image2.filename.split('.')[-1]}"
-        )
-        with open(file_location2, "wb") as file_object:
-            file_object.write(image2.file.read())
-        product.image2 = (
-            f"{base_url}static/{photo_name}.{image2.filename.split('.')[-1]}"
-        )
+        file_ext = await validate_file(image2)  # Validate Type
+        content = await image2.read()  # Validate Size
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail="Image 2 too large")
 
-    if image3 is not None:
         photo_name = random_string()
-        file_location3 = os.path.join(
-            folder_path, f"{photo_name}.{image3.filename.split('.')[-1]}"
-        )
-        with open(file_location3, "wb") as file_object:
-            file_object.write(image3.file.read())
-        product.image3 = (
-            f"{base_url}static/{photo_name}.{image3.filename.split('.')[-1]}"
-        )
+        file_location = os.path.join(folder_path, f"{photo_name}.{file_ext}")
+
+        with open(file_location, "wb") as f:
+            f.write(content)
+        product.image2 = f"{base_url}static/{photo_name}.{file_ext}"
+
+    # 3. Process Image 3 (Securely)
+    if image3 is not None:
+        file_ext = await validate_file(image3)  # Validate Type
+        content = await image3.read()  # Validate Size
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail="Image 3 too large")
+
+        photo_name = random_string()
+        file_location = os.path.join(folder_path, f"{photo_name}.{file_ext}")
+
+        with open(file_location, "wb") as f:
+            f.write(content)
+        product.image3 = f"{base_url}static/{photo_name}.{file_ext}"
 
     db.commit()
     db.refresh(product)
@@ -169,7 +202,7 @@ def get_product_by_name(name: str, db: Session = Depends(get_db)):
 
 
 @router.post("/products", status_code=201, response_model=Product, tags=["product"])
-def create_product(
+async def create_product(
     request: Request,
     image: UploadFile = File(...),
     name: str = Form(...),
@@ -183,19 +216,32 @@ def create_product(
     db: Session = Depends(get_db),
 ):
     check_authorization(user)
-    base_url = str(request.base_url)
 
+    # --- FIX: Validate File ---
+    file_ext = await validate_file(image)
+
+    # Read file content to verify size
+    content = await image.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large (Max 1MB)")
+
+    # Reset file cursor after reading so we can save it
+    await image.seek(0)
+
+    base_url = str(request.base_url)
     photo_name = random_string()
+
+    # ... (Directory setup code remains the same) ...
     current_directory = os.path.dirname(os.path.realpath(__file__))
     folder_path = os.path.join(current_directory, "..", "..", "static")
     os.makedirs(folder_path, exist_ok=True)
 
-    file_extension = image.filename.split(".")[-1]
-    file_name = f"{photo_name}.{file_extension}"
+    file_name = f"{photo_name}.{file_ext}"
     file_location = os.path.join(folder_path, file_name)
 
+    # Write the content we already read
     with open(file_location, "wb") as file_object:
-        file_object.write(image.file.read())
+        file_object.write(content)
 
     image_url = f"{base_url}static/{file_name}"
 

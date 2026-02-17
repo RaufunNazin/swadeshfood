@@ -36,7 +36,6 @@ const Login = () => {
       })
       .then((res) => {
         if (res.status === 200) {
-          localStorage.setItem("token", res.data.access_token);
           navigate("/", { state: "login" });
         }
       })

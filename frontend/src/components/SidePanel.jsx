@@ -17,22 +17,32 @@ const SidePanel = () => {
   const [user, setUser] = useState({});
 
   const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    api
+      .post("/logout")
+      .then(() => {
+        navigate("/login");
+      })
+      .catch(() => {
+        // Even if it fails, force redirect
+        navigate("/login");
+      });
   };
 
   useEffect(() => {
-    // Quick role check
-    const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    // REMOVED: const token = localStorage.getItem("token");
+    // REMOVED: if (!token) navigate("/login");
 
+    // logic: We try to fetch the user. If it fails (401), the backend tells us we aren't logged in.
     api
-      .get("/me", { headers: { Authorization: `Bearer ${token}` } })
+      .get("/me") // No headers needed, cookie is sent automatically
       .then((res) => {
         if (res.data.role !== 1) navigate("/");
         setUser(res.data);
       })
-      .catch(() => navigate("/login"));
+      .catch(() => {
+        // If this fails, it means the cookie is missing or invalid
+        navigate("/login");
+      });
   }, [navigate]);
 
   const menuItemStyles = {

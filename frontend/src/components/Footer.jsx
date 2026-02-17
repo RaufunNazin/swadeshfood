@@ -20,13 +20,10 @@ const Footer = () => {
   };
 
   const getProfile = () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    // REMOVE: const token = localStorage.getItem("token");
 
     api
-      .get("/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get("/me")
       .then((res) => {
         if (res.status === 200) setIsLoggedIn(true);
       })
@@ -39,7 +36,6 @@ const Footer = () => {
 
   return (
     <footer className="bg-white border-t border-gray-100 font-sans mt-auto">
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand Column */}

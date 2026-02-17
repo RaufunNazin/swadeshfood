@@ -70,43 +70,14 @@ const AdminDashboard = () => {
       const [statsRes, topRes, catRes, pendRes, heatRes, profitRes, geoRes] =
         await Promise.all([
           api.get(
-            `/admin/dashboard-stats?start_date=${start}&end_date=${end}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            },
+            `/admin/dashboard-stats?start_date=${start}&end_date=${end}`
           ),
-          api.get(`/admin/top-selling`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          api.get(`/admin/category-sales`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          api.get(`/admin/pending-actions`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          api.get(`/admin/order-heatmap`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          api.get(`/admin/profit-stats?start_date=${start}&end_date=${end}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          api.get(`/admin/geo-distribution`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
+          api.get(`/admin/top-selling`),
+          api.get(`/admin/category-sales`),
+          api.get(`/admin/pending-actions`),
+          api.get(`/admin/order-heatmap`),
+          api.get(`/admin/profit-stats?start_date=${start}&end_date=${end}`),
+          api.get(`/admin/geo-distribution`),
         ]);
 
       setStats(statsRes.data);

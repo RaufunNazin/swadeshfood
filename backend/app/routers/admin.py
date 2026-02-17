@@ -25,7 +25,6 @@ def get_dashboard_stats(
 ):
     check_authorization(user)
 
-    # Pre-fetch products for price lookup
     all_products = db.query(models.Product).all()
     product_price_map = {p.id: p.price for p in all_products}
 
@@ -46,8 +45,15 @@ def get_dashboard_stats(
 
     for order in orders:
         order_revenue = 0.0
+
+        # --- STABILITY FIX: Wrap JSON parsing ---
         try:
-            cart_items = json.loads(order.products)
+            # Check if products is already a list (if Pydantic parsed it) or string
+            if isinstance(order.products, str):
+                cart_items = json.loads(order.products)
+            else:
+                cart_items = order.products
+
             for item in cart_items:
                 pid = item.get("product")
                 qty = item.get("quantity", 0)
@@ -55,8 +61,10 @@ def get_dashboard_stats(
                 line_total = price * qty
                 order_revenue += line_total
                 sold_products_count += qty
-        except:
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            # Skip corrupted orders instead of crashing
             continue
+        # ----------------------------------------
 
         total_revenue += order_revenue
 
