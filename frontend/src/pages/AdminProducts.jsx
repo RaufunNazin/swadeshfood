@@ -497,7 +497,7 @@ const AdminProducts = () => {
                   Total Production Cost:
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1}>
-                  ${total.toFixed(2)}
+                  ৳{total.toFixed(2)}
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={2}></Table.Summary.Cell>
               </Table.Summary.Row>
