@@ -15,13 +15,13 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# app/main.py
+# --- UPDATE THIS BLOCK ---
 current_directory = os.path.dirname(os.path.realpath(__file__))
-static_folder_path = os.path.join(current_directory, "static")
+# Use '..' to go up from 'app' to 'backend'
+static_folder_path = os.path.abspath(os.path.join(current_directory, "..", "static"))
 
-# Safety: Ensure the path is absolute and exists
-if not os.path.exists(static_folder_path):
-    os.makedirs(static_folder_path)
+# Safety Check: Log the path so you can see it in journalctl
+print(f"DEBUG: Static files being served from: {static_folder_path}")
 
 app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
 
