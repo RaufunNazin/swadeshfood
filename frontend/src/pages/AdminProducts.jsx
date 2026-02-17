@@ -13,6 +13,7 @@ import {
   Tag,
   Checkbox,
   Image,
+  Upload,
 } from "antd";
 import {
   PlusOutlined,
@@ -20,6 +21,7 @@ import {
   EditOutlined,
   ExperimentOutlined,
   FileImageOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 
 const { TextArea } = Input;
@@ -88,37 +90,43 @@ const AdminProducts = () => {
   // 2. Create / Edit Product Logic
   const handleSubmit = async (values) => {
     const formData = new FormData();
-    // Append standard fields
-    Object.keys(values).forEach((key) => {
-      if (key === "new") formData.append(key, values[key] ? 1 : 0);
-      else if (key !== "image") formData.append(key, values[key]);
-    });
 
-    // Handle Image 1 upload (Main Image)
-    // Note: Antd File upload usually comes in `values.image.file`
-    if (values.image && values.image.file) {
-      formData.append("image", values.image.file.originFileObj);
+    // Append standard fields
+    formData.append("name", values.name);
+    formData.append("price", values.price);
+    formData.append("stock", values.stock);
+    formData.append("category", values.category);
+    formData.append("size", values.size || "");
+    formData.append("description", values.description || "");
+    formData.append("new", values.new ? 1 : 0);
+
+    // --- FIX: Correctly handle Ant Design File Object ---
+    if (!isEditMode) {
+      if (values.image && values.image.file) {
+        // Ant Design wraps the native file in originFileObj
+        formData.append("image", values.image.file.originFileObj);
+      } else {
+        toast.error("Main image is required");
+        return;
+      }
     }
 
     try {
       if (isEditMode) {
-        // NOTE: Your update endpoint might not accept files directly via PUT based on previous code.
-        // If it strictly takes JSON, we might need a separate endpoint for image1 update.
-        // For now, assuming standard PUT update without image change OR multipart support.
         await api.put(
           `/products/${currentProduct.id}`,
-          { ...values, new: values.new ? 1 : 0 },
+          {
+            ...values,
+            new: values.new ? 1 : 0,
+          },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           },
         );
-        toast.success(
-          "Product Updated (Note: Image updates might require re-upload)",
-        );
+        toast.success("Product Updated");
       } else {
-        // Creation requires FormData for image
         await api.post("/products", formData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -130,7 +138,7 @@ const AdminProducts = () => {
       setIsModalOpen(false);
       fetchProducts(pagination.current);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Error saving product");
+      toast.error(err.response?.data?.detail || "Error saving product");
     }
   };
 
@@ -361,8 +369,20 @@ const AdminProducts = () => {
           </Form.Item>
 
           {!isEditMode && (
-            <Form.Item label="Main Image" name="image">
-              <Input type="file" />
+            <Form.Item
+              label="Main Image"
+              name="image"
+              rules={[
+                { required: !isEditMode, message: "Please upload an image" },
+              ]}
+            >
+              <Upload
+                maxCount={1}
+                beforeUpload={() => false} // Prevents auto-upload to a URL
+                listType="picture"
+              >
+                <Button icon={<UploadOutlined />}>Select File</Button>
+              </Upload>
             </Form.Item>
           )}
 

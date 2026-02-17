@@ -6,7 +6,6 @@ class User(BaseModel):
     username: str
     email: EmailStr
     password: str
-    role: int
 
 class Product(BaseModel):
     name: str

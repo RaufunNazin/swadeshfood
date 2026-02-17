@@ -39,19 +39,49 @@ def get_product_by_name(name: str, db: Session = Depends(get_db)):
     return product
 
 @router.post("/products", status_code=201, response_model=Product, tags=['product'])
-def create_product(request:Request, image: UploadFile = File(...), name: str = Form(...), description: str = Form(...), price: float = Form(...), category: str = Form(...), stock: int = Form(...), size: str = Form(...), new: int = Form(...), user = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+def create_product(
+    request: Request, 
+    image: UploadFile = File(...), 
+    name: str = Form(...), 
+    description: str = Form(...), 
+    price: float = Form(...), 
+    category: str = Form(...), 
+    stock: int = Form(...), 
+    size: str = Form(...), 
+    new: int = Form(...), 
+    user = Depends(oauth2.get_current_user), 
+    db: Session = Depends(get_db) # Use the injected session
+):
     check_authorization(user)
-    base_url = request.base_url
+    base_url = str(request.base_url)
+    
+    # Image handling
     photo_name = random_string()
     current_directory = os.path.dirname(os.path.realpath(__file__))
     folder_path = os.path.join(current_directory, "..", "..", "static")
     os.makedirs(folder_path, exist_ok=True)
-    file_location = os.path.join(folder_path, f"{photo_name}.{image.filename.split('.')[-1]}")
+    
+    file_extension = image.filename.split('.')[-1]
+    file_name = f"{photo_name}.{file_extension}"
+    file_location = os.path.join(folder_path, file_name)
+    
+    # Save the file
     with open(file_location, "wb") as file_object:
         file_object.write(image.file.read())
-    image_url = f"{base_url}static/{photo_name}.{image.filename.split('.')[-1]}"
-    db = SessionLocal()
-    db_product = models.Product(image1=image_url, name=name, description=description, price=price, category=category, stock=stock, size=size, new=new)
+    
+    image_url = f"{base_url}static/{file_name}"
+    
+    # --- FIX: Use the db session provided by FastAPI Depends ---
+    db_product = models.Product(
+        image1=image_url, 
+        name=name, 
+        description=description, 
+        price=price, 
+        category=category, 
+        stock=stock, 
+        size=size, 
+        new=new
+    )
     db.add(db_product)
     db.commit()
     db.refresh(db_product)

@@ -77,10 +77,24 @@ const Checkout = () => {
 
     getProfile();
 
-    if (!localStorage.getItem("cart")) {
-      localStorage.setItem("cart", JSON.stringify([]));
+    const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+    
+    // FETCH fresh data for these IDs to ensure the price hasn't been tampered with locally
+    const validatePrices = async () => {
+        try {
+            const updatedItems = await Promise.all(localCart.map(async (item) => {
+                const res = await api.get(`/products/${item.id}`);
+                return { ...res.data, quantity: item.quantity };
+            }));
+            setCart(updatedItems);
+        } catch (err) {
+            console.error("Price validation failed", err);
+        }
+    };
+
+    if (localCart.length > 0) {
+        validatePrices();
     }
-    setCart(JSON.parse(localStorage.getItem("cart")));
   }, [state]);
 
   const PlaceOrder = () => {

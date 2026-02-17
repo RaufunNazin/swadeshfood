@@ -22,8 +22,10 @@ def create_user(user : User ,db : Session = Depends(get_db)) :
     if db.query(models.User).filter(models.User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username unavailable")
     hashed_pass = pwd_context.hash(user.password)
-    user.password = hashed_pass
-    new_user = models.User(**user.dict())
+    user_data = user.dict()
+    user_data["role"] = 2
+    user_data["password"] = hashed_pass
+    new_user = models.User(**user_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
