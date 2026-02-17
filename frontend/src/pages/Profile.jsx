@@ -149,7 +149,7 @@ const Profile = () => {
               name: record.name,
               phone: record.phone,
               address: record.address,
-              products: JSON.parse(record.products),
+              products: record.products,
             });
             setOpenCustomerModal(true);
           }}

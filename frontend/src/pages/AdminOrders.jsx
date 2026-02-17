@@ -102,15 +102,18 @@ const AdminOrders = () => {
       title: "Products",
       dataIndex: "products",
       width: 300,
-      render: (json) => {
+      render: (products) => { // 'products' is now the array directly
         try {
-          const items = JSON.parse(json);
+          // const items = JSON.parse(json); // <--- OLD (Broken)
+          const items = products;            // <--- NEW (Working)
+          
           return (
             <div className="flex flex-col gap-1">
               {items.map((i, idx) => (
                 <div key={idx} className="text-xs bg-gray-100 p-1 rounded">
-                  {i.product_name}{" "}
-                  <span className="font-bold">x{i.quantity}</span>
+                  {/* Ensure you handle product_name correctly based on your schema */}
+                  {i.name || i.product_name} 
+                  <span className="font-bold"> x{i.quantity}</span>
                 </div>
               ))}
             </div>
