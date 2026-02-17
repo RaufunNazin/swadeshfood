@@ -17,27 +17,25 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # Set path explicitly
             export PATH=$PATH:/usr/local/bin:/usr/bin
-            
-            # Navigate to project
             cd /root/swadeshfood || exit 1
-            
-            # Sync with GitHub
-            git pull origin main
-            
-            # Backend Update
+
+            # 1. Force Sync (Prevents the merge error you saw)
+            git fetch origin
+            git reset --hard origin/main
+
+            # 2. Backend Update
             cd backend
             /root/swadeshfood/backend/venv/bin/pip install -r requirements.txt
             sudo /usr/bin/systemctl restart swadesh.service
-            
-            # Frontend Update
+
+            # 3. Frontend Update
             cd ../frontend
             npm install
             npm run build
-            
-            # Deploy files using the specific sudo commands we allowed
-            sudo -n /usr/bin/cp -r /root/swadeshfood/frontend/dist /var/www/swadeshfood/
-            sudo -n /usr/sbin/restorecon -Rv /var/www/swadeshfood
-            
-            echo "Secure deployment successful!"
+
+            # 4. Deploy files (Must match sudoers exactly)
+            sudo /usr/bin/cp -r /root/swadeshfood/frontend/dist /var/www/swadeshfood/
+            sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
+
+            echo "Secure deployment truly successful!"
