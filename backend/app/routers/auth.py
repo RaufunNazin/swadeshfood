@@ -6,7 +6,6 @@ from .. import models, utils, oauth2
 from passlib.context import CryptContext
 from ..limiter import limiter
 
-
 router = APIRouter()
 
 
