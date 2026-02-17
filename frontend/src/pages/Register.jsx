@@ -10,6 +10,31 @@ import {
   RiArrowLeftLine,
 } from "react-icons/ri";
 
+// --- FIX: Component moved OUTSIDE ---
+// We pass 'onKeyDown' as a prop now since it was using a function inside Register
+const InputField = ({
+  icon: Icon,
+  type,
+  placeholder,
+  value,
+  onChange,
+  onKeyDown,
+}) => (
+  <div className="relative group">
+    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-green-600 transition-colors">
+      <Icon className="text-xl" />
+    </div>
+    <input
+      type={type}
+      placeholder={placeholder}
+      className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-gray-800 placeholder-gray-400"
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+    />
+  </div>
+);
+
 const Register = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -61,22 +86,6 @@ const Register = () => {
       });
   };
 
-  const InputField = ({ icon: Icon, type, placeholder, value, onChange }) => (
-    <div className="relative group">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-green-600 transition-colors">
-        <Icon className="text-xl" />
-      </div>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-gray-800 placeholder-gray-400"
-        value={value}
-        onChange={onChange}
-        onKeyDown={handleKeyPress}
-      />
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
       <ToastContainer position="top-right" autoClose={2000} theme="colored" />
@@ -120,6 +129,7 @@ const Register = () => {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={handleKeyPress}
           />
           <InputField
             icon={RiMailLine}
@@ -127,6 +137,7 @@ const Register = () => {
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyPress}
           />
           <InputField
             icon={RiLockPasswordLine}
@@ -134,6 +145,7 @@ const Register = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleKeyPress}
           />
           <InputField
             icon={RiLockPasswordLine}
@@ -141,6 +153,7 @@ const Register = () => {
             placeholder="Confirm Password"
             value={cPassword}
             onChange={(e) => setCPassword(e.target.value)}
+            onKeyDown={handleKeyPress}
           />
 
           <button
