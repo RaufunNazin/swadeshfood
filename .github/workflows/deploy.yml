@@ -17,23 +17,27 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            # Set path explicitly
             export PATH=$PATH:/usr/local/bin:/usr/bin
-
-            cd /root/swadeshfood
+            
+            # Navigate to project
+            cd /root/swadeshfood || exit 1
+            
+            # Sync with GitHub
             git pull origin main
-
-            # Backend update
+            
+            # Backend Update
             cd backend
             /root/swadeshfood/backend/venv/bin/pip install -r requirements.txt
-            sudo systemctl restart swadesh.service
-
-            # Frontend update
+            sudo /usr/bin/systemctl restart swadesh.service
+            
+            # Frontend Update
             cd ../frontend
             npm install
             npm run build
-
-            # Deploy files using the sudo permissions we granted
-            sudo cp -r dist/* /var/www/swadeshfood/
-            sudo restorecon -Rv /var/www/swadeshfood
-
+            
+            # Deploy files using the specific sudo commands we allowed
+            sudo /usr/bin/cp -r dist/* /var/www/swadeshfood/
+            sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
+            
             echo "Secure deployment successful!"
