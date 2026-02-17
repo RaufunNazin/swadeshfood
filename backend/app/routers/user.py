@@ -17,7 +17,7 @@ def home():
     return {"ping": "pong"}
 
 
-@router.post("/register", status_code=201, response_model=Token, tags=["user"])
+@router.post("/register", status_code=201, tags=["user"])
 @limiter.limit("5/minute")
 def create_user(request: Request, user: User, db: Session = Depends(get_db)):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -9,7 +9,7 @@ from ..limiter import limiter
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token, tags=["auth"])
+@router.post("/login", tags=['auth'])
 @limiter.limit("5/minute")
 def login_user(
     request: Request,
