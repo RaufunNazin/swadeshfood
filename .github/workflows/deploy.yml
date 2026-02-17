@@ -1,0 +1,39 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into VPS and Update
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: deployer # Updated from root to deployer
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            export PATH=$PATH:/usr/local/bin:/usr/bin
+
+            cd /root/swadeshfood
+            git pull origin main
+
+            # Backend update
+            cd backend
+            /root/swadeshfood/backend/venv/bin/pip install -r requirements.txt
+            sudo systemctl restart swadesh.service
+
+            # Frontend update
+            cd ../frontend
+            npm install
+            npm run build
+
+            # Deploy files using the sudo permissions we granted
+            sudo cp -r dist/* /var/www/swadeshfood/
+            sudo restorecon -Rv /var/www/swadeshfood
+
+            echo "Secure deployment successful!"
