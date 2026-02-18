@@ -59,14 +59,14 @@ const SingleProduct = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div className="bg-white dark:bg-neutral-900 min-h-screen font-sans text-neutral-800 dark:text-neutral-200 transition-colors duration-300">
       <Notification />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* --- LEFT COLUMN: Image Gallery --- */}
           <div className="flex flex-col gap-6">
-            <div className="aspect-square bg-gray-50 dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center">
+            <div className="aspect-square bg-neutral-50 dark:bg-neutral-800 rounded-3xl overflow-hidden shadow-sm border border-neutral-100 dark:border-neutral-700 flex items-center justify-center">
               <img
                 src={image}
                 alt={product.name}
@@ -85,7 +85,7 @@ const SingleProduct = () => {
                     className={`relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
                       image === img
                         ? "border-green-600 dark:border-green-500 shadow-md ring-2 ring-green-100 dark:ring-green-900/50"
-                        : "border-transparent hover:border-gray-200 dark:hover:border-gray-600"
+                        : "border-transparent hover:border-neutral-200 dark:hover:border-neutral-600"
                     }`}
                   >
                     <img
@@ -106,7 +106,7 @@ const SingleProduct = () => {
               </span>
             )}
 
-            <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+            <h1 className="text-3xl lg:text-5xl font-bold text-neutral-900 dark:text-white mb-4 leading-tight">
               {product.name}
             </h1>
 
@@ -122,7 +122,7 @@ const SingleProduct = () => {
               )}
             </div>
 
-            <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-8 border-b border-gray-100 dark:border-gray-700 pb-8">
+            <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed mb-8 border-b border-neutral-100 dark:border-neutral-700 pb-8">
               {product.description ||
                 t("product_desc_default") ||
                 "Experience the authentic taste of nature with our premium organic selection. Sourced responsibly and delivered fresh to your doorstep."}
@@ -131,7 +131,7 @@ const SingleProduct = () => {
             {/* Sizes / Variants */}
             {sizes.length > 1 && (
               <div className="mb-8">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide mb-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wide mb-3">
                   {t("select_size") || "Select Size"}
                 </h3>
                 <div className="flex flex-wrap gap-3">
@@ -142,7 +142,7 @@ const SingleProduct = () => {
                       className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                         product.id === p.id
                           ? "border-green-600 bg-green-50 text-green-700 dark:border-green-500 dark:bg-green-900/30 dark:text-green-400"
-                          : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-green-300 dark:hover:border-green-500"
+                          : "border-neutral-200 dark:border-neutral-600 text-neutral-600 dark:text-neutral-300 hover:border-green-300 dark:hover:border-green-500"
                       }`}
                     >
                       {p.size}
@@ -155,21 +155,21 @@ const SingleProduct = () => {
             {/* Actions Row */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               {/* Quantity Counter */}
-              <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 w-fit border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-full px-4 py-2 w-fit border border-neutral-200 dark:border-neutral-700">
                 <button
                   onClick={() => quantity > 1 && setQuantity((q) => q - 1)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 rounded-full transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-700 rounded-full transition-colors"
                 >
                   <RiSubtractLine />
                 </button>
-                <span className="w-10 text-center font-semibold text-lg text-gray-800 dark:text-white">
+                <span className="w-10 text-center font-semibold text-lg text-neutral-800 dark:text-white">
                   {quantity}
                 </span>
                 <button
                   onClick={() =>
                     quantity < product.stock && setQuantity((q) => q + 1)
                   }
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 rounded-full transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-700 rounded-full transition-colors"
                 >
                   <RiAddLine />
                 </button>
@@ -186,20 +186,20 @@ const SingleProduct = () => {
             </div>
 
             {/* Quick Buy Button (Optional) */}
-            <button className="w-full border-2 border-gray-900 dark:border-gray-100 text-gray-900 dark:text-white font-bold py-3 rounded-full hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-colors">
+            <button className="w-full border-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-white font-bold py-3 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors">
               {t("buy_it_now") || "Buy It Now"}
             </button>
 
             {/* Meta Info */}
-            <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-700 grid grid-cols-2 gap-4 text-sm text-neutral-500 dark:text-neutral-400">
               <div>
-                <span className="block font-semibold text-gray-900 dark:text-white">
+                <span className="block font-semibold text-neutral-900 dark:text-white">
                   {t("category") || "Category"}
                 </span>
                 {product.category}
               </div>
               <div>
-                <span className="block font-semibold text-gray-900 dark:text-white">
+                <span className="block font-semibold text-neutral-900 dark:text-white">
                   {t("delivery") || "Delivery"}
                 </span>
                 {t("delivery_time") || "2-3 Days within Dhaka"}
@@ -211,7 +211,7 @@ const SingleProduct = () => {
         {/* --- Related Products Section --- */}
         <div className="mt-24">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
               {t("might_like") || "You Might Also Like"}
             </h2>
             <button

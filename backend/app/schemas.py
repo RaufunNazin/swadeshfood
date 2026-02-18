@@ -34,6 +34,9 @@ class User(UserBase):
 class ProductSearchSuggestion(BaseModel):
     id: int
     name: str
+    image1: str   # Added
+    price: float  # Added
+    stock: int    # Added
 
     class Config:
         from_attributes = True

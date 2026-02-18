@@ -209,9 +209,15 @@ def get_product_by_name(name: str, db: Session = Depends(get_db)):
 
 @router.get("/search/suggestions/{query}", response_model=List[ProductSearchSuggestion])
 def search_suggestions(query: str, db: Session = Depends(get_db)):
-    # Case-insensitive search (ilike), limit to 10 results for speed
+    # Select all columns required by the updated schema
     results = (
-        db.query(models.Product.id, models.Product.name)
+        db.query(
+            models.Product.id, 
+            models.Product.name, 
+            models.Product.image1, 
+            models.Product.price, 
+            models.Product.stock
+        )
         .filter(models.Product.name.ilike(f"%{query}%"))
         .limit(10)
         .all()

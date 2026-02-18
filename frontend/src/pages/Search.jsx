@@ -45,16 +45,16 @@ const Search = () => {
   }, [searchText]);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-300">
+    <div className="bg-neutral-50 dark:bg-neutral-900 min-h-screen font-sans transition-colors duration-300">
       <Notification />
 
       {/* Simple Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2 uppercase tracking-wide">
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-2 uppercase tracking-wide">
             {t("search_results") || "Search Results"}
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white flex items-center gap-3">
             <span className="text-brand dark:text-green-400">
               &quot;{searchText}&quot;
             </span>
@@ -66,19 +66,19 @@ const Search = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <AiOutlineLoading className="text-brand dark:text-green-500 text-6xl animate-spin mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-neutral-500 dark:text-neutral-400">
               {t("searching") || "Searching our inventory..."}
             </p>
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-full mb-6">
-              <AiOutlineSearch className="text-4xl text-gray-400 dark:text-gray-300" />
+            <div className="bg-neutral-100 dark:bg-neutral-700 p-6 rounded-full mb-6">
+              <AiOutlineSearch className="text-4xl text-neutral-400 dark:text-neutral-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+            <h2 className="text-2xl font-bold text-neutral-800 dark:text-white mb-2">
               {t("no_results") || "No products found"}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">
+            <p className="text-neutral-500 dark:text-neutral-400 mb-8 max-w-md">
               {t("no_match_1") || "We couldn't find anything matching"} &quot;
               {searchText}&quot;.{" "}
               {t("no_match_2") ||
@@ -93,7 +93,7 @@ const Search = () => {
           </div>
         ) : (
           <>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-neutral-500 dark:text-neutral-400 mb-6">
               {t("found") || "Found"} {products.length} {t("items") || "items"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

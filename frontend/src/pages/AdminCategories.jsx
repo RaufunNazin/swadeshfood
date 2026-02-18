@@ -2,7 +2,19 @@ import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import api from "../api";
 import { toast } from "react-toastify";
-import { Table, Button, Card, Modal, Input, Form, Space, Tooltip } from "antd";
+import {
+  Table,
+  Button,
+  Card,
+  Modal,
+  Input,
+  Form,
+  Space,
+  Tooltip,
+  ConfigProvider,
+  theme as antdTheme,
+} from "antd";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   PlusOutlined,
   EditOutlined,
@@ -23,6 +35,7 @@ const AdminCategories = () => {
   const [form] = Form.useForm();
 
   // Language Context
+  const { theme } = useTheme(); // 2. Grab current theme
   const { t } = useLanguage();
 
   // Fetch Categories
@@ -156,7 +169,7 @@ const AdminCategories = () => {
     {
       title: t("category_name") || "Category Name",
       dataIndex: "name",
-      className: "font-medium text-gray-700 dark:text-gray-200", // Dark mode text class
+      className: "font-medium text-neutral-700 dark:text-neutral-200", // Dark mode text class
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
@@ -181,109 +194,118 @@ const AdminCategories = () => {
   ];
 
   return (
-    <AdminLayout title={t("category_management") || "Category Management"}>
-      <Card className="shadow-sm border-0 rounded-xl dark:bg-gray-800 dark:border-gray-700">
-        {" "}
-        {/* Dark mode background */}
-        {/* Header Actions */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <Input
-            placeholder={t("search_categories") || "Search categories..."}
-            prefix={<SearchOutlined className="text-gray-400" />}
-            className="max-w-xs rounded-md"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-          />
-          <Button
-            type="primary"
-            className="bg-brand hover:bg-green-700 border-none rounded-md shadow-sm h-10 px-6 font-medium dark:bg-green-600 dark:hover:bg-green-500" // Updated colors for dark mode context if needed
-            icon={<PlusOutlined />}
-            onClick={() => openModal()}
-          >
-            {t("add_category") || "Add New Category"}
-          </Button>
-        </div>
-        {/* Table */}
-        <Table
-          dataSource={filteredCategories}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} ${t("of") || "of"} ${total} ${t("items") || "items"}`,
-          }}
-          className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
-          // Ant Design Table generally handles dark mode via ConfigProvider, but if not set globally,
-          // specific CSS overrides might be needed for the table body background.
-        />
-      </Card>
-
-      {/* Create/Edit Modal */}
-      <Modal
-        title={
-          <div className="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700 pb-3 mb-4">
-            {editingCategory
-              ? t("edit_category") || "Edit Category"
-              : t("create_category") || "Create New Category"}
-          </div>
-        }
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null}
-        width={500}
-        centered
-        // Ant Design Modal dark mode support usually requires ConfigProvider or custom styles for the modal content background
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="name"
-            label={
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                {t("category_name_label") || "Category Name"}
-              </span>
-            }
-            rules={[
-              {
-                required: true,
-                message:
-                  t("enter_category_name") || "Please enter a category name",
-              },
-            ]}
-          >
+    <ConfigProvider
+      theme={{
+        algorithm:
+          theme === "dark"
+            ? antdTheme.darkAlgorithm
+            : antdTheme.defaultAlgorithm,
+      }}
+    >
+      <AdminLayout title={t("category_management") || "Category Management"}>
+        <Card className="shadow-sm border-0 rounded-xl dark:bg-neutral-800 dark:border-neutral-700">
+          {" "}
+          {/* Dark mode background */}
+          {/* Header Actions */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <Input
-              placeholder={
-                t("category_placeholder") || "e.g. Rice, Spices, Beverages"
-              }
-              size="large"
-              className="rounded-md"
+              placeholder={t("search_categories") || "Search categories..."}
+              prefix={<SearchOutlined className="text-neutral-400" />}
+              className="max-w-xs rounded-md"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
             />
-          </Form.Item>
-
-          <div className="flex justify-end gap-3 mt-6 pt-2 border-t border-gray-50 dark:border-gray-700">
-            <Button
-              size="large"
-              onClick={() => setIsModalOpen(false)}
-              className="rounded-md"
-            >
-              {t("cancel") || "Cancel"}
-            </Button>
             <Button
               type="primary"
-              htmlType="submit"
-              size="large"
-              className="bg-brand hover:bg-green-700 border-none rounded-md px-6 dark:bg-green-600 dark:hover:bg-green-500"
+              className="bg-brand hover:bg-green-700 border-none rounded-md shadow-sm h-10 px-6 font-medium dark:bg-green-600 dark:hover:bg-green-500" // Updated colors for dark mode context if needed
+              icon={<PlusOutlined />}
+              onClick={() => openModal()}
             >
-              {editingCategory
-                ? t("update_category") || "Update Category"
-                : t("create_category_btn") || "Create Category"}
+              {t("add_category") || "Add New Category"}
             </Button>
           </div>
-        </Form>
-      </Modal>
-    </AdminLayout>
+          {/* Table */}
+          <Table
+            dataSource={filteredCategories}
+            columns={columns}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              pageSize: 10,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} ${t("of") || "of"} ${total} ${t("items") || "items"}`,
+            }}
+            className="border border-neutral-100 dark:border-neutral-700 rounded-lg overflow-hidden"
+            // Ant Design Table generally handles dark mode via ConfigProvider, but if not set globally,
+            // specific CSS overrides might be needed for the table body background.
+          />
+        </Card>
+
+        {/* Create/Edit Modal */}
+        <Modal
+          title={
+            <div className="text-lg font-semibold text-neutral-800 dark:text-neutral-100 border-b dark:border-neutral-700 pb-3 mb-4">
+              {editingCategory
+                ? t("edit_category") || "Edit Category"
+                : t("create_category") || "Create New Category"}
+            </div>
+          }
+          open={isModalOpen}
+          onCancel={() => setIsModalOpen(false)}
+          footer={null}
+          width={500}
+          centered
+          // Ant Design Modal dark mode support usually requires ConfigProvider or custom styles for the modal content background
+        >
+          <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <Form.Item
+              name="name"
+              label={
+                <span className="font-medium text-neutral-600 dark:text-neutral-300">
+                  {t("category_name_label") || "Category Name"}
+                </span>
+              }
+              rules={[
+                {
+                  required: true,
+                  message:
+                    t("enter_category_name") || "Please enter a category name",
+                },
+              ]}
+            >
+              <Input
+                placeholder={
+                  t("category_placeholder") || "e.g. Rice, Spices, Beverages"
+                }
+                size="large"
+                className="rounded-md"
+              />
+            </Form.Item>
+
+            <div className="flex justify-end gap-3 mt-6 pt-2 border-t border-neutral-50 dark:border-neutral-700">
+              <Button
+                size="large"
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-md"
+              >
+                {t("cancel") || "Cancel"}
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                className="bg-brand hover:bg-green-700 border-none rounded-md px-6 dark:bg-green-600 dark:hover:bg-green-500"
+              >
+                {editingCategory
+                  ? t("update_category") || "Update Category"
+                  : t("create_category_btn") || "Create Category"}
+              </Button>
+            </div>
+          </Form>
+        </Modal>
+      </AdminLayout>
+    </ConfigProvider>
   );
 };
 

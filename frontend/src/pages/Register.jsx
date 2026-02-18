@@ -22,13 +22,13 @@ const InputField = ({
   onKeyDown,
 }) => (
   <div className="relative group">
-    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 dark:text-gray-500 group-focus-within:text-green-600 dark:group-focus-within:text-green-400 transition-colors">
+    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-400 dark:text-neutral-500 group-focus-within:text-green-600 dark:group-focus-within:text-green-400 transition-colors">
       <Icon className="text-xl" />
     </div>
     <input
       type={type}
       placeholder={placeholder}
-      className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 focus:border-green-500 dark:focus:border-green-500 focus:ring-4 focus:ring-green-500/10 dark:focus:ring-green-500/20 outline-none transition-all text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+      className="w-full pl-12 pr-4 py-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-700 focus:bg-white dark:focus:bg-neutral-600 focus:border-green-500 dark:focus:border-green-500 focus:ring-4 focus:ring-green-500/10 dark:focus:ring-green-500/20 outline-none transition-all text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500"
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
@@ -97,7 +97,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-green-200/20 dark:bg-green-900/10 rounded-full blur-3xl"></div>
@@ -107,7 +107,7 @@ const Register = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium z-10"
+        className="absolute top-6 left-6 flex items-center gap-2 text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium z-10"
       >
         <RiArrowLeftLine className="text-xl" />
         <span className="hidden sm:inline">
@@ -115,7 +115,7 @@ const Register = () => {
         </span>
       </button>
 
-      <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none p-8 md:p-12 relative z-10 border border-white dark:border-gray-700 transition-colors duration-300">
+      <div className="bg-white dark:bg-neutral-800 w-full max-w-md rounded-3xl shadow-xl shadow-neutral-200/50 dark:shadow-none p-8 md:p-12 relative z-10 border border-white dark:border-neutral-700 transition-colors duration-300">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
           <img
@@ -123,10 +123,10 @@ const Register = () => {
             alt="Swadesh Food"
             className="h-14 mb-4 object-contain"
           />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
             {t("create_account") || "Create Account"}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-center text-sm">
+          <p className="text-neutral-500 dark:text-neutral-400 text-center text-sm">
             {t("join_us") || "Join us for authentic and healthy food"}
           </p>
         </div>
@@ -177,8 +177,8 @@ const Register = () => {
               : t("register") || "Register"}
           </button>
 
-          <div className="flex flex-col items-center gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <div className="flex flex-col items-center gap-4 mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-700">
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm">
               {t("already_have_account") || "Already have an account?"}{" "}
               <button
                 onClick={() => navigate("/login")}

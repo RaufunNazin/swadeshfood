@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useMemo } from "react"; // Added imports
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -61,7 +62,7 @@ const Navbar = ({ onMenuClick }) => {
 
   // 1. Function to call API
   const fetchSuggestions = async (value) => {
-    setSearchValue(value); // <--- ADD THIS LINE to track what they are typing
+    setSearchValue(value);
 
     if (!value) {
       setOptions([]);
@@ -69,16 +70,48 @@ const Navbar = ({ onMenuClick }) => {
     }
 
     setFetching(true);
-    setOptions([]);
-
     try {
       const { data } = await api.get(
         `/search/suggestions/${encodeURIComponent(value)}`,
       );
 
       const newOptions = data.map((product) => ({
-        label: product.name,
+        // This is what the user sees in the dropdown
+        label: (
+          <div className="flex items-center gap-3 py-1">
+            <img
+              src={product.image1}
+              alt=""
+              className="w-10 h-10 object-cover rounded-md border border-neutral-200 dark:border-neutral-700"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-neutral-800 dark:text-neutral-100 truncate">
+                  {product.name}
+                </span>
+                <span className="text-green-600 dark:text-green-400 font-bold ml-2">
+                  ৳{product.price}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[10px] uppercase tracking-wider">
+                <span
+                  className={
+                    product.stock > 0
+                      ? "text-neutral-400"
+                      : "text-red-500 font-bold"
+                  }
+                >
+                  {product.stock > 0
+                    ? `${t("stock")}: ${product.stock}`
+                    : t("out_of_stock")}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
         value: product.id,
+        // Keep a string version for internal searching/accessibility
+        searchValue: product.name,
       }));
       setOptions(newOptions);
     } catch (error) {
@@ -106,7 +139,7 @@ const Navbar = ({ onMenuClick }) => {
     ${
       isActive(path)
         ? "text-green-700 dark:text-green-400"
-        : "text-gray-500 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400"
+        : "text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400"
     }
   `;
 
@@ -121,12 +154,12 @@ const Navbar = ({ onMenuClick }) => {
   };
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+    <div className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-100 dark:border-neutral-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center h-20">
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="md:hidden p-2 -ml-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             onClick={onMenuClick}
           >
             <RiMenu4Line className="text-2xl" />
@@ -201,9 +234,10 @@ const Navbar = ({ onMenuClick }) => {
                 <Select
                   showSearch
                   placeholder={t("search_placeholder")}
+                  optionLabelProp="searchValue"
                   defaultActiveFirstOption={false}
                   suffixIcon={
-                    <RiSearchLine className="text-gray-400 text-lg" />
+                    <RiSearchLine className="text-neutral-400 text-lg" />
                   }
                   filterOption={false} // Disable local filtering
                   onSearch={debounceFetcher} // Call API on type
@@ -214,22 +248,23 @@ const Navbar = ({ onMenuClick }) => {
                   size="large"
                   variant="filled"
                   value={searchValue}
+                  dropdownStyle={{ minWidth: "300px" }}
                 />
               </ConfigProvider>
             </div>
 
             {/* Controls & Cart */}
-            <div className="flex items-center space-x-2 md:space-x-3 md:border-l md:pl-5 border-gray-200 dark:border-gray-700 h-8">
+            <div className="flex items-center space-x-2 md:space-x-3 md:border-l md:pl-5 border-neutral-200 dark:border-neutral-700 h-8">
               {/* Language Switcher */}
               <button
                 onClick={() => switchLanguage(language === "en" ? "bn" : "en")}
-                className="text-gray-500 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs font-bold flex flex-col items-center leading-none"
+                className="text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-xs font-bold flex flex-col items-center leading-none"
                 title="Switch Language"
               >
                 <span className={language === "en" ? "text-green-600" : ""}>
                   EN
                 </span>
-                <span className="w-full h-[1px] bg-gray-300 dark:bg-gray-600 my-[1px]"></span>
+                <span className="w-full h-[1px] bg-neutral-300 dark:bg-neutral-600 my-[1px]"></span>
                 <span className={language === "bn" ? "text-green-600" : ""}>
                   BN
                 </span>
@@ -238,7 +273,7 @@ const Navbar = ({ onMenuClick }) => {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="text-gray-500 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 {theme === "light" ? (
                   <RiMoonLine className="text-xl" />
@@ -252,7 +287,7 @@ const Navbar = ({ onMenuClick }) => {
                 onClick={() =>
                   navigate(isLoggedIn ? `/profile/${user.id}` : "/login")
                 }
-                className="text-gray-500 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 hidden md:block"
+                className="text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 hidden md:block"
               >
                 {isLoggedIn ? (
                   <Tooltip title={t("profile")}>
@@ -270,12 +305,12 @@ const Navbar = ({ onMenuClick }) => {
               {/* Cart */}
               <button
                 onClick={() => navigate("/cart")}
-                className="relative text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="relative text-neutral-600 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800"
               >
                 <Tooltip title="Cart">
                   <RiShoppingCartLine className="text-2xl" />
                   {JSON.parse(localStorage.getItem("cart"))?.length > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
+                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900">
                       {JSON.parse(localStorage.getItem("cart")).length}
                     </span>
                   )}

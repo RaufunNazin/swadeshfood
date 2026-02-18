@@ -46,23 +46,27 @@ const SidePanel = () => {
     button: ({ active }) => ({
       backgroundColor: active
         ? theme === "dark"
-          ? "#374151"
-          : "#fff0f0"
+          ? "#1e293b" // slate-800
+          : "#eff6ff" // blue-50
         : undefined,
-      color: active ? "#e11d48" : theme === "dark" ? "#d1d5db" : "#4b5563",
-      borderRight: active ? "3px solid #e11d48" : "none",
+      color: active
+        ? "#2563eb" // blue-600
+        : theme === "dark"
+          ? "#d1d5db"
+          : "#4b5563",
+      borderRight: active ? "3px solid #2563eb" : "none", // Blue highlight bar
       "&:hover": {
-        backgroundColor: theme === "dark" ? "#374151" : "#fff0f0",
-        color: "#e11d48",
+        backgroundColor: theme === "dark" ? "#1e293b" : "#eff6ff",
+        color: "#2563eb",
       },
     }),
   };
 
   return (
-    <div className="h-screen sticky top-0 bg-white dark:bg-gray-900 shadow-xl z-20 border-r border-gray-100 dark:border-gray-800 transition-colors duration-300">
+    <div className="h-screen sticky top-0 bg-white dark:bg-neutral-900 shadow-xl z-20 border-r border-neutral-100 dark:border-neutral-800 transition-colors duration-300">
       <Sidebar
         collapsed={collapsed}
-        backgroundColor={theme === "dark" ? "#111827" : "#ffffff"}
+        backgroundColor={theme === "dark" ? "#171717" : "#ffffff"}
         className="h-full border-none"
       >
         {/* Header */}
@@ -74,7 +78,7 @@ const SidePanel = () => {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
+            className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
           >
             <IoChevronForwardOutline
               className={`transition-transform duration-300 ${
@@ -94,7 +98,7 @@ const SidePanel = () => {
             {t("dashboard")}
           </MenuItem>
 
-          <div className="px-6 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mt-4">
+          <div className="px-6 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider mt-4">
             {!collapsed && t("management")}
           </div>
 
@@ -135,7 +139,7 @@ const SidePanel = () => {
               }
               onClick={toggleTheme}
             >
-              {theme === "light" ? "Dark Mode" : "Light Mode"}
+              {theme === "light" ? t("dark_mode") : t("light_mode")}
             </MenuItem>
 
             {/* Language Toggle */}
@@ -146,7 +150,7 @@ const SidePanel = () => {
               {language === "en" ? "বাংলা" : "English"}
             </MenuItem>
 
-            <div className="my-2 border-t border-gray-100 dark:border-gray-800 mx-4"></div>
+            <div className="my-2 border-t border-neutral-100 dark:border-neutral-800 mx-4"></div>
 
             <MenuItem
               icon={<IoHomeOutline size={20} />}

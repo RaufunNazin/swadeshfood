@@ -9,12 +9,12 @@ const AdminLayout = ({ children, title }) => {
   // though Tailwind 'dark:' classes handle most of it automatically.
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
       <SidePanel />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Header Area */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm z-10 p-4 px-8 flex justify-between items-center h-16 transition-colors duration-300 border-b border-transparent dark:border-gray-700">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+        <header className="bg-white dark:bg-neutral-800 shadow-sm z-10 p-4 px-8 flex justify-between items-center h-16 transition-colors duration-300 border-b border-transparent dark:border-neutral-700">
+          <h1 className="text-xl font-bold text-neutral-800 dark:text-white">
             {title}
           </h1>
           <div className="flex items-center gap-4">
@@ -26,7 +26,7 @@ const AdminLayout = ({ children, title }) => {
         </header>
 
         {/* Main Content Scrollable Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-neutral-50 dark:bg-neutral-900 p-6 transition-colors duration-300">
           <div className="container mx-auto max-w-7xl">
             {/* Render children directly; ensure children components are also dark-mode ready */}
             {children}

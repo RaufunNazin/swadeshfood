@@ -28,11 +28,11 @@ const New = () => {
   }, [limit, offset]);
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div className="bg-white dark:bg-neutral-900 min-h-screen font-sans text-neutral-800 dark:text-neutral-200 transition-colors duration-300">
       <Notification />
 
       {/* --- Modern Header --- */}
-      <div className="relative bg-green-50 dark:bg-gray-800 py-20 overflow-hidden transition-colors">
+      <div className="relative bg-green-50 dark:bg-neutral-800 py-20 overflow-hidden transition-colors">
         {/* Decorative Background */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-green-200/40 dark:bg-green-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
@@ -41,10 +41,10 @@ const New = () => {
           <span className="text-green-600 dark:text-green-400 font-bold tracking-widest uppercase text-sm mb-3 block">
             {t("fresh_in") || "Fresh In"}
           </span>
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-neutral-900 dark:text-white mb-4">
             {t("new_arrivals_title") || "New Arrivals"}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto text-lg">
+          <p className="text-neutral-600 dark:text-neutral-400 max-w-lg mx-auto text-lg">
             {t("new_arrivals_desc") ||
               "Be the first to explore our latest organic additions. Handpicked for quality and freshness."}
           </p>
@@ -57,14 +57,14 @@ const New = () => {
             <AiOutlineLoading className="text-green-600 dark:text-green-400 text-5xl animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-24 bg-gray-50 dark:bg-gray-800 rounded-3xl transition-colors">
-            <div className="inline-block p-6 bg-white dark:bg-gray-700 rounded-full shadow-sm mb-6">
-              <AiOutlineShopping className="text-4xl text-gray-400 dark:text-gray-300" />
+          <div className="text-center py-24 bg-neutral-50 dark:bg-neutral-800 rounded-3xl transition-colors">
+            <div className="inline-block p-6 bg-white dark:bg-neutral-700 rounded-full shadow-sm mb-6">
+              <AiOutlineShopping className="text-4xl text-neutral-400 dark:text-neutral-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
               {t("coming_soon_title") || "New products coming soon!"}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-8">
+            <p className="text-neutral-500 dark:text-neutral-400 mb-8">
               {t("restocking_msg") ||
                 "We are restocking our shelves with fresh goods. Check back later."}
             </p>
@@ -88,7 +88,7 @@ const New = () => {
             <div className="mt-16 text-center">
               <button
                 onClick={() => setLimit(limit + 12)}
-                className="px-8 py-3 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full font-bold hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all"
+                className="px-8 py-3 border-2 border-neutral-900 dark:border-white text-neutral-900 dark:text-white rounded-full font-bold hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-all"
               >
                 {t("view_more_arrivals") || "View More Arrivals"}
               </button>

@@ -4,7 +4,8 @@
 
 body {
   font-family: "Inter", sans-serif;
-  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300;
+  /* Updated bg and text to use neutral palette */
+  @apply bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100 transition-colors duration-300;
 }
 
 /* --- Burger Menu Fixes --- */
@@ -28,12 +29,10 @@ body {
 }
 
 /* 3. Fix the Close Button Positioning */
-/* We reset the specific width/height here to let the React Icon size itself */
 .bm-cross-button {
   top: 24px !important;
   right: 24px !important;
   z-index: 10000 !important;
-  /* Reset default bg/border from library if any */
   background: transparent !important;
 }
 
@@ -47,16 +46,15 @@ body {
   background: #ffffff;
   padding: 0;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
-  /* smooth transition for theme switch */
   transition:
     background-color 0.3s ease,
     box-shadow 0.3s ease;
 }
 
 /* --- DARK MODE OVERRIDE --- */
-/* When 'dark' class exists on HTML tag, change menu background */
 .dark .bm-menu {
-  background: #111827; /* gray-900 */
+  /* Updated from gray-900 hex to neutral-900 hex to match your palette */
+  background: #171717;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
 }
 
@@ -74,4 +72,13 @@ body {
 .bm-item {
   display: block;
   outline: none;
+}
+
+/* --- Ant Design Global Dark Mode Fixes --- */
+/* This ensures that even without ConfigProvider, simple AntD borders use neutral-800 in dark mode */
+.dark .ant-table,
+.dark .ant-select-selector,
+.dark .ant-input,
+.dark .ant-card {
+  @apply border-neutral-800 !important;
 }
