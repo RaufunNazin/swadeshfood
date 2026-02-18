@@ -40,22 +40,22 @@ const Home = () => {
       <Notification />
 
       {/* --- HERO SECTION --- */}
-      <div className="relative h-[650px] w-full overflow-hidden">
+      <div className="relative h-[450px] w-full overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="banner.jpeg"
+            src="farm.png"
             alt="Fresh Farm Produce"
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-transparent to-transparent flex items-center">
+        <div className="absolute inset-0 bg-gray-900/80 flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="max-w-xl space-y-8 animate-fade-in-up">
+            <div className="max-w-3xl space-y-8 animate-fade-in-up flex flex-col items-center mx-auto">
               <span className="inline-block px-4 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-300 text-sm font-semibold tracking-wide uppercase">
                 Direct from Farm
               </span>
               <h1 className="text-6xl md:text-8xl font-bold text-white leading-tight shadow-sm">
-                Organic <br />
+                Organic{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-400">
                   Living.
                 </span>
@@ -211,13 +211,15 @@ const Home = () => {
           <div className="space-y-8">
             <div className="w-16 h-1 bg-emerald-500 mx-auto rounded-full"></div>
             <h2 className="text-4xl md:text-6xl font-serif text-gray-800 leading-tight">
-              <span className="italic text-emerald-700">&quot;From our soil</span> to
-              your soul.&quot;
+              <span className="italic text-emerald-700">
+                &quot;From our soil
+              </span>{" "}
+              to your soul.&quot;
             </h2>
             <p className="text-gray-500 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
               We partner directly with sustainable farmers to bring you produce
-              that is 100% Organic, 100% Swadesh. It&apos;s not just food, it&apos;s a
-              promise of purity.
+              that is 100% Organic, 100% Swadesh. It&apos;s not just food,
+              it&apos;s a promise of purity.
             </p>
             <div className="pt-4">
               <button

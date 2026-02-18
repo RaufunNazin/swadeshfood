@@ -8,7 +8,7 @@ const Notification = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gray-900 text-white w-full py-2.5 px-4 relative z-[60] transition-all duration-300">
+    <div className="bg-gray-900 text-white w-full py-2.5 px-4 relative z-[20] transition-all duration-300">
       <div className="max-w-7xl mx-auto flex justify-center items-center gap-3">
         <div className="flex items-center gap-2 text-xs md:text-sm font-medium tracking-wide">
           <RiTruckLine className="text-green-400 text-lg" />
