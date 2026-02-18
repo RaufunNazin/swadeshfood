@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { slide as Menu } from "react-burger-menu";
 import { useNavigate } from "react-router-dom";
-import { Modal, Switch, ConfigProvider, theme as antdTheme } from "antd"; // Import Switch
+import { Modal, ConfigProvider, theme as antdTheme } from "antd"; // Import Switch
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -18,9 +18,6 @@ import {
   RiLoginCircleLine,
   RiArrowRightSLine,
   RiCloseLine,
-  RiMoonLine,
-  RiSunLine,
-  RiTranslate2,
 } from "react-icons/ri";
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -31,8 +28,8 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Contexts
-  const { theme, toggleTheme } = useTheme();
-  const { language, switchLanguage, t } = useLanguage();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
     api
