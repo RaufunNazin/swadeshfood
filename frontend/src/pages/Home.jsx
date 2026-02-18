@@ -54,7 +54,7 @@ const Home = () => {
         </div>
         <div className="absolute inset-0 bg-neutral-900/80 dark:bg-black/80 flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="max-w-3xl space-y-8 animate-fade-in-up flex flex-col items-center mx-auto text-center">
+            <div className="max-w-5xl space-y-8 animate-fade-in-up flex flex-col items-center mx-auto text-center">
               <span className="inline-block px-4 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-300 text-sm font-semibold tracking-wide uppercase">
                 {t("direct_farm") || "Direct from Farm"}
               </span>
