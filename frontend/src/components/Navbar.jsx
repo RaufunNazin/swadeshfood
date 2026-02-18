@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react"; // Added imports
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   RiShoppingCartLine,
@@ -9,17 +9,27 @@ import {
 } from "react-icons/ri";
 import { FiUser, FiLogIn } from "react-icons/fi";
 import api from "../api";
-// 1. Import ConfigProvider and theme from antd
-import { Tooltip, Select, ConfigProvider, theme as antdTheme } from "antd";
+import {
+  Tooltip,
+  Select,
+  ConfigProvider,
+  theme as antdTheme,
+  Spin,
+} from "antd"; // Added Spin
 import PropTypes from "prop-types";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import debounce from "lodash.debounce"; // Ensure you have lodash.debounce or use custom
 
 const Navbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // --- Search States ---
+  const [options, setOptions] = useState([]);
+  const [fetching, setFetching] = useState(false);
   const [searchValue, setSearchValue] = useState(null);
 
   // Contexts
@@ -47,8 +57,48 @@ const Navbar = ({ onMenuClick }) => {
     getProfile();
   }, []);
 
-  const handleSearch = (value) => {
-    if (value) navigate(`/search/${value}`);
+  // --- NEW: Search Logic ---
+
+  // 1. Function to call API
+  const fetchSuggestions = async (value) => {
+    setSearchValue(value); // <--- ADD THIS LINE to track what they are typing
+
+    if (!value) {
+      setOptions([]);
+      return;
+    }
+
+    setFetching(true);
+    setOptions([]);
+
+    try {
+      const { data } = await api.get(
+        `/search/suggestions/${encodeURIComponent(value)}`,
+      );
+
+      const newOptions = data.map((product) => ({
+        label: product.name,
+        value: product.id,
+      }));
+      setOptions(newOptions);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  // 2. Debounce (Wait 500ms before calling API)
+  const debounceFetcher = useMemo(() => {
+    return debounce(fetchSuggestions, 500);
+  }, []);
+
+  // 3. Handle User Selection
+  const handleSelect = (productId) => {
+    // Navigate directly to the product page
+    navigate(`/product/${productId}`);
+    setSearchValue(null); // Clear search bar after selection
+    setOptions([]); // Clear options
   };
 
   const navLinkClass = (path) => `
@@ -137,7 +187,6 @@ const Navbar = ({ onMenuClick }) => {
           <div className="flex items-center space-x-4 ml-auto">
             {/* Search */}
             <div className="hidden lg:block w-64 relative">
-              {/* 2. Wrap Select in ConfigProvider to apply Dark Algorithm */}
               <ConfigProvider
                 theme={{
                   algorithm:
@@ -145,8 +194,7 @@ const Navbar = ({ onMenuClick }) => {
                       ? antdTheme.darkAlgorithm
                       : antdTheme.defaultAlgorithm,
                   token: {
-                    borderRadius: 20, // Optional: Match your rounded style
-                    // You can customize colors further here if needed
+                    borderRadius: 20,
                   },
                 }}
               >
@@ -157,17 +205,15 @@ const Navbar = ({ onMenuClick }) => {
                   suffixIcon={
                     <RiSearchLine className="text-gray-400 text-lg" />
                   }
-                  filterOption={false}
-                  onSearch={(val) => setSearchValue(val)}
-                  onSelect={handleSearch}
-                  onInputKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearch(searchValue);
-                  }}
-                  notFoundContent={null}
+                  filterOption={false} // Disable local filtering
+                  onSearch={debounceFetcher} // Call API on type
+                  onChange={handleSelect} // Navigate on click
+                  notFoundContent={fetching ? <Spin size="small" /> : null}
+                  options={options}
                   className="w-full"
                   size="large"
                   variant="filled"
-                  // Removed manual style borderRadius here, handled in theme token or className
+                  value={searchValue}
                 />
               </ConfigProvider>
             </div>

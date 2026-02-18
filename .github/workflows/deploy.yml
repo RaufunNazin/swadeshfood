@@ -41,4 +41,4 @@ jobs:
             sudo /usr/bin/cp -r /root/swadeshfood/frontend/dist/* /var/www/swadeshfood/
             sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
 
-            echo "Secure deployment truly successful!"
+            echo "Secure deployment successful!"

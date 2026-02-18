@@ -28,7 +28,15 @@ class User(UserBase):
     # We do NOT include password here to prevent leaks
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class ProductSearchSuggestion(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
 
 
 class ResponseUser(User):
@@ -72,7 +80,7 @@ class Product(ProductBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- ORDER SCHEMAS ---
@@ -120,7 +128,7 @@ class Order(OrderBase):
     created_at: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- CATEGORY SCHEMAS ---
@@ -129,7 +137,7 @@ class Category(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- AUTH TOKENS ---
@@ -166,7 +174,7 @@ class RecipeItem(RecipeItemBase):
     total_cost: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # --- DASHBOARD/STATS ---

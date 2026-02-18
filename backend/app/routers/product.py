@@ -3,7 +3,13 @@ from fastapi.exceptions import HTTPException
 from ..database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..schemas import Product, ProductUpdate, RecipeItemCreate, RecipeItem
+from ..schemas import (
+    Product,
+    ProductUpdate,
+    RecipeItemCreate,
+    RecipeItem,
+    ProductSearchSuggestion,
+)
 from .. import models, oauth2
 from ..oauth2 import check_authorization
 import os
@@ -199,6 +205,19 @@ def get_product_by_name(name: str, db: Session = Depends(get_db)):
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+
+@router.get("/search/suggestions/{query}", response_model=List[ProductSearchSuggestion])
+def search_suggestions(query: str, db: Session = Depends(get_db)):
+    # Case-insensitive search (ilike), limit to 10 results for speed
+    results = (
+        db.query(models.Product.id, models.Product.name)
+        .filter(models.Product.name.ilike(f"%{query}%"))
+        .limit(10)
+        .all()
+    )
+
+    return results
 
 
 @router.post("/products", status_code=201, response_model=Product, tags=["product"])
