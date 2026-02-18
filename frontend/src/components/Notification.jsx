@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { RiTruckLine } from "react-icons/ri";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const Notification = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const { t } = useLanguage();
 
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gray-900 text-white w-full py-2.5 px-4 relative z-[20] transition-all duration-300">
+    // Added dark:bg-gray-950 to ensure distinction in dark mode
+    <div className="bg-gray-900 dark:bg-black text-white w-full py-2.5 px-4 relative z-[20] transition-all duration-300 border-b border-transparent dark:border-gray-800">
       <div className="max-w-7xl mx-auto flex justify-center items-center gap-3">
         <div className="flex items-center gap-2 text-xs md:text-sm font-medium tracking-wide">
           <RiTruckLine className="text-green-400 text-lg" />
           <span>
-            We deliver across Bangladesh!
+            {t("delivery_notice") || "We deliver across Bangladesh!"}
             <span className="text-gray-400 font-light ml-2 hidden sm:inline border-l border-gray-700 pl-2">
-              Taste the Purity of Nature.
+              {t("brand_tagline") || "Taste the Purity of Nature."}
             </span>
           </span>
         </div>

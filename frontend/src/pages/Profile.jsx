@@ -12,12 +12,16 @@ import {
   ShoppingOutlined,
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Language Context
+  const { t } = useLanguage();
 
   // Modal States
   const [customerDetails, setCustomerDetails] = useState({});
@@ -51,9 +55,6 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    // REMOVE: const token = localStorage.getItem("token");
-    // REMOVE: if (!token) navigate("/login");
-
     api
       .get("/me")
       .then((res) => {
@@ -69,7 +70,7 @@ const Profile = () => {
       .delete(`/order/${selectedOrderId}`)
       .then((res) => {
         if (res.status === 200) {
-          toast.success("Order cancelled successfully");
+          toast.success(t("order_cancelled") || "Order cancelled successfully");
           getOrders(user.id);
         }
       })
@@ -80,46 +81,54 @@ const Profile = () => {
   const changePassword = () => {
     const { old, new: newPass, confirm } = passwords;
     if (!old || !newPass || !confirm) {
-      toast.error("Please fill all fields");
+      toast.error(t("fill_required") || "Please fill all fields");
       return;
     }
     if (newPass !== confirm) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwords_mismatch") || "Passwords do not match");
       return;
     }
 
     api
       .put("/password", { old_password: old, new_password: newPass })
       .then(() => {
-        toast.success("Password updated!");
+        toast.success(t("password_updated") || "Password updated!");
         setPasswords({ old: "", new: "", confirm: "" });
         setOpenPasswordModal(false);
       })
       .catch((err) =>
-        toast.error(err.response?.data?.message || "Failed to update"),
+        toast.error(
+          err.response?.data?.message ||
+            t("update_failed") ||
+            "Failed to update",
+        ),
       );
   };
 
   // --- Table Columns ---
   const columns = [
     {
-      title: "Order ID",
+      title: t("order_id") || "Order ID",
       dataIndex: "id",
       key: "id",
-      render: (id) => <span className="font-mono text-gray-500">#{id}</span>,
+      render: (id) => (
+        <span className="font-mono text-gray-500 dark:text-gray-400">
+          #{id}
+        </span>
+      ),
     },
     {
-      title: "Date",
+      title: t("date") || "Date",
       dataIndex: "created_at",
       key: "created_at",
       render: (ts) => (
-        <span className="text-gray-600">
+        <span className="text-gray-600 dark:text-gray-300">
           {new Date(ts * 1000).toLocaleDateString()}
         </span>
       ),
     },
     {
-      title: "Status",
+      title: t("status") || "Status",
       dataIndex: "status",
       key: "status",
       render: (status) => {
@@ -131,7 +140,7 @@ const Profile = () => {
       },
     },
     {
-      title: "Payment",
+      title: t("payment") || "Payment",
       dataIndex: "paid",
       key: "paid",
       render: (paid) => (
@@ -139,7 +148,7 @@ const Profile = () => {
       ),
     },
     {
-      title: "Details",
+      title: t("details") || "Details",
       key: "details",
       render: (_, record) => (
         <Button
@@ -154,12 +163,12 @@ const Profile = () => {
             setOpenCustomerModal(true);
           }}
         >
-          View
+          {t("view") || "View"}
         </Button>
       ),
     },
     {
-      title: "Action",
+      title: t("action") || "Action",
       key: "action",
       render: (_, record) =>
         record.status === "new" && (
@@ -171,28 +180,28 @@ const Profile = () => {
               setOpenCancelModal(true);
             }}
           >
-            Cancel
+            {t("cancel") || "Cancel"}
           </Button>
         ),
     },
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300">
       <Notification />
 
       {/* --- Header --- */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-3xl font-bold border-4 border-white shadow-lg">
+            <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 text-3xl font-bold border-4 border-white dark:border-gray-700 shadow-lg">
               {user.username?.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+            <div className="text-center md:text-left">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {user.username}
               </h1>
-              <p className="text-gray-500 flex items-center gap-2">
+              <p className="text-gray-500 dark:text-gray-400 flex items-center justify-center md:justify-start gap-2">
                 <MailOutlined /> {user.email}
               </p>
             </div>
@@ -202,11 +211,12 @@ const Profile = () => {
             <Button
               icon={<LockOutlined />}
               onClick={() => setOpenPasswordModal(true)}
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
             >
-              Change Password
+              {t("change_password") || "Change Password"}
             </Button>
             <Button danger icon={<PoweroffOutlined />} onClick={logout}>
-              Logout
+              {t("logout") || "Logout"}
             </Button>
           </div>
         </div>
@@ -214,10 +224,12 @@ const Profile = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* --- Orders Section --- */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-2">
-            <ShoppingOutlined className="text-xl text-green-600" />
-            <h2 className="text-lg font-bold text-gray-900">Order History</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-300">
+          <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+            <ShoppingOutlined className="text-xl text-green-600 dark:text-green-400" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              {t("order_history") || "Order History"}
+            </h2>
           </div>
 
           <div className="p-6">
@@ -228,6 +240,8 @@ const Profile = () => {
               loading={loading}
               pagination={{ pageSize: 5 }}
               scroll={{ x: 600 }}
+              className="dark:border-gray-700"
+              // Note: For full dark mode on AntD tables, global ConfigProvider or CSS overrides are best.
             />
           </div>
         </div>
@@ -237,30 +251,42 @@ const Profile = () => {
 
       {/* --- Order Details Modal --- */}
       <Modal
-        title="Order Details"
+        title={
+          <span className="dark:text-white">
+            {t("order_details") || "Order Details"}
+          </span>
+        }
         open={openCustomerModal}
         onCancel={() => setOpenCustomerModal(false)}
         footer={null}
         width={600}
+        // Modal styling for dark mode usually requires global overrides
       >
         <Descriptions bordered column={1} size="small" className="mt-4">
-          <Descriptions.Item label="Recipient">
-            {customerDetails.name}
+          <Descriptions.Item label={t("recipient") || "Recipient"}>
+            <span className="dark:text-gray-300">{customerDetails.name}</span>
           </Descriptions.Item>
-          <Descriptions.Item label="Phone">
-            {customerDetails.phone}
+          <Descriptions.Item label={t("phone") || "Phone"}>
+            <span className="dark:text-gray-300">{customerDetails.phone}</span>
           </Descriptions.Item>
-          <Descriptions.Item label="Address">
-            {customerDetails.address}
+          <Descriptions.Item label={t("address") || "Address"}>
+            <span className="dark:text-gray-300">
+              {customerDetails.address}
+            </span>
           </Descriptions.Item>
         </Descriptions>
 
         <div className="mt-6">
-          <h4 className="font-bold mb-2 text-gray-700">Items Ordered:</h4>
-          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+          <h4 className="font-bold mb-2 text-gray-700 dark:text-gray-200">
+            {t("items_ordered") || "Items Ordered"}:
+          </h4>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">
             {customerDetails.products?.map((p, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span>{p.product_name}</span>
+              <div
+                key={idx}
+                className="flex justify-between text-sm dark:text-gray-300"
+              >
+                <span>{p.product_name || p.name}</span>
                 <span className="font-semibold">x{p.quantity}</span>
               </div>
             ))}
@@ -270,59 +296,70 @@ const Profile = () => {
 
       {/* --- Cancel Modal --- */}
       <Modal
-        title="Cancel Order"
+        title={t("cancel_order") || "Cancel Order"}
         open={openCancelModal}
         onOk={cancelOrder}
-        okText="Yes, Cancel Order"
+        okText={t("yes_cancel") || "Yes, Cancel Order"}
         okButtonProps={{ danger: true }}
         onCancel={() => setOpenCancelModal(false)}
       >
-        <p>
-          Are you sure you want to cancel this order? This action cannot be
-          undone.
+        <p className="dark:text-gray-300">
+          {t("cancel_confirm_msg") ||
+            "Are you sure you want to cancel this order? This action cannot be undone."}
         </p>
       </Modal>
 
       {/* --- Change Password Modal --- */}
       <Modal
-        title="Change Password"
+        title={
+          <span className="dark:text-white">
+            {t("change_password") || "Change Password"}
+          </span>
+        }
         open={openPasswordModal}
         onOk={changePassword}
-        okText="Update Password"
+        okText={t("update_password") || "Update Password"}
         onCancel={() => setOpenPasswordModal(false)}
+        okButtonProps={{
+          className:
+            "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500",
+        }}
       >
         <div className="space-y-4 py-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Current Password
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t("current_password") || "Current Password"}
             </label>
             <Input.Password
               value={passwords.old}
               onChange={(e) =>
                 setPasswords({ ...passwords, old: e.target.value })
               }
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t("new_password") || "New Password"}
             </label>
             <Input.Password
               value={passwords.new}
               onChange={(e) =>
                 setPasswords({ ...passwords, new: e.target.value })
               }
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t("confirm_password") || "Confirm New Password"}
             </label>
             <Input.Password
               value={passwords.confirm}
               onChange={(e) =>
                 setPasswords({ ...passwords, confirm: e.target.value })
               }
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
         </div>

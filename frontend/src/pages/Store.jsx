@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Select } from "antd";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const Store = () => {
   const { searchCategory } = useParams();
@@ -17,6 +18,9 @@ const Store = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [sizes, setSizes] = useState([]);
+
+  // Language Context
+  const { t } = useLanguage();
 
   // Fetch Logic
   useEffect(() => {
@@ -69,31 +73,33 @@ const Store = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen font-sans text-gray-800">
+    <div className="bg-white dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300">
       <Notification />
 
       {/* --- Header Section --- */}
-      <div className="bg-gray-50 py-16 text-center border-b border-gray-100">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-          {searchCategory ? `${searchCategory} Collection` : "The Store"}
+      <div className="bg-gray-50 dark:bg-gray-800 py-16 text-center border-b border-gray-100 dark:border-gray-700 transition-colors">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">
+          {searchCategory
+            ? `${searchCategory} ${t("collection") || "Collection"}`
+            : t("the_store") || "The Store"}
         </h1>
-        <p className="text-gray-500 max-w-xl mx-auto text-lg">
-          Browse our full range of organic, farm-fresh products delivered
-          straight to your door.
+        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-lg">
+          {t("store_desc") ||
+            "Browse our full range of organic, farm-fresh products delivered straight to your door."}
         </p>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* --- Toolbar / Filters --- */}
-        <div className="flex flex-col lg:flex-row justify-between items-center mb-10 gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-24 z-30">
-          <div className="flex items-center gap-2 text-gray-500 font-medium">
+        <div className="flex flex-col lg:flex-row justify-between items-center mb-10 gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm sticky top-24 z-30 transition-colors">
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-300 font-medium">
             <AiOutlineFilter className="text-xl" />
-            <span>Filter By:</span>
+            <span>{t("filter_by") || "Filter By"}:</span>
           </div>
 
           <div className="flex flex-wrap gap-3 w-full lg:w-auto">
             <Select
-              placeholder="Category"
+              placeholder={t("category") || "Category"}
               size="large"
               style={{ width: 140 }}
               onChange={(val) => handleFilter("category", val)}
@@ -102,9 +108,11 @@ const Store = () => {
                 value: c.name,
               }))}
               allowClear
+              // Note: AntD Select dark mode support depends on global ConfigProvider.
+              // Without it, the dropdown might remain white, which is usually acceptable.
             />
             <Select
-              placeholder="Size"
+              placeholder={t("size") || "Size"}
               size="large"
               style={{ width: 100 }}
               onChange={(val) => handleFilter("size", val)}
@@ -112,13 +120,13 @@ const Store = () => {
               allowClear
             />
             <Select
-              placeholder="Sort Price"
+              placeholder={t("sort_price") || "Sort Price"}
               size="large"
               style={{ width: 140 }}
               onChange={(val) => handleFilter("sort", val)}
               options={[
-                { label: "Low to High", value: "asc" },
-                { label: "High to Low", value: "desc" },
+                { label: t("low_to_high") || "Low to High", value: "asc" },
+                { label: t("high_to_low") || "High to Low", value: "desc" },
               ]}
             />
             <button
@@ -126,9 +134,9 @@ const Store = () => {
                 navigate("/store");
                 window.location.reload();
               }}
-              className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors font-semibold"
+              className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors font-semibold"
             >
-              Reset
+              {t("reset") || "Reset"}
             </button>
           </div>
         </div>
@@ -136,27 +144,28 @@ const Store = () => {
         {/* --- Product Grid --- */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <AiOutlineLoading className="text-green-600 text-5xl animate-spin" />
+            <AiOutlineLoading className="text-green-600 dark:text-green-400 text-5xl animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="inline-block p-6 rounded-full bg-gray-50 mb-4">
-              <AiOutlineFilter className="text-4xl text-gray-300" />
+          <div className="text-center py-20 bg-gray-50 dark:bg-gray-800 rounded-3xl transition-colors">
+            <div className="inline-block p-6 rounded-full bg-gray-50 dark:bg-gray-700 mb-4">
+              <AiOutlineFilter className="text-4xl text-gray-300 dark:text-gray-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              No Products Found
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {t("no_products_found") || "No Products Found"}
             </h2>
-            <p className="text-gray-500 mb-6">
-              Try adjusting your filters or search criteria.
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {t("adjust_filters") ||
+                "Try adjusting your filters or search criteria."}
             </p>
             <button
               onClick={() => {
                 navigate("/store");
                 window.location.reload();
               }}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 transition-colors"
             >
-              Clear All Filters
+              {t("clear_filters") || "Clear All Filters"}
             </button>
           </div>
         ) : (
@@ -173,9 +182,9 @@ const Store = () => {
             <div className="mt-16 text-center">
               <button
                 onClick={() => setLimit(limit + 12)}
-                className="px-8 py-3 bg-gray-900 text-white rounded-full font-semibold hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+                className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-semibold hover:bg-black dark:hover:bg-gray-200 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
               >
-                Load More Products
+                {t("load_more_products") || "Load More Products"}
               </button>
             </div>
           </>

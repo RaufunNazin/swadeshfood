@@ -24,6 +24,7 @@ import {
   FileImageOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const { TextArea } = Input;
 
@@ -61,11 +62,14 @@ const AdminProducts = () => {
     total: 0,
   });
 
+  // Language Context
+  const { t } = useLanguage();
+
   // --- HELPER: Validate File Size (Max 1MB) ---
   const validateFile = (file) => {
     const isLt1M = file.size / 1024 / 1024 < 1;
     if (!isLt1M) {
-      toast.error("Image must be smaller than 1MB!");
+      toast.error(t("image_size_error") || "Image must be smaller than 1MB!");
       return Upload.LIST_IGNORE; // Prevents adding to the list
     }
     return false; // Prevent auto-upload, keep in list
@@ -83,7 +87,7 @@ const AdminProducts = () => {
         setLoading(false);
       })
       .catch(() => {
-        toast.error("Failed to load products");
+        toast.error(t("load_products_failed") || "Failed to load products");
         setLoading(false);
       });
   };
@@ -123,44 +127,47 @@ const AdminProducts = () => {
       if (fileObj) {
         formData.append("image", fileObj);
       } else {
-        toast.error("Please select a valid image file");
+        toast.error(
+          t("select_valid_image") || "Please select a valid image file",
+        );
         return;
       }
     }
 
     try {
       if (isEditMode) {
-        await api.put(
-          `/products/${currentProduct.id}`,
-          { ...values, new: values.new ? 1 : 0 },
-        );
-        toast.success("Product Updated");
+        await api.put(`/products/${currentProduct.id}`, {
+          ...values,
+          new: values.new ? 1 : 0,
+        });
+        toast.success(t("product_updated") || "Product Updated");
       } else {
         await api.post("/products", formData);
-        toast.success("Product Created");
+        toast.success(t("product_created") || "Product Created");
       }
       setIsModalOpen(false);
       fetchProducts(pagination.current);
     } catch (err) {
       const errorMsg =
-        err.response?.data?.detail?.[0]?.msg || "Error saving product";
+        err.response?.data?.detail?.[0]?.msg ||
+        t("error_saving_product") ||
+        "Error saving product";
       toast.error(errorMsg);
     }
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
-      title: "Delete Product?",
-      content: "This cannot be undone.",
-      okText: "Delete",
+      title: t("delete_product_title") || "Delete Product?",
+      content: t("delete_product_confirm") || "This cannot be undone.",
+      okText: t("delete") || "Delete",
       okType: "danger",
+      cancelText: t("cancel") || "Cancel",
       onOk: () => {
-        api
-          .delete(`/products/${id}`)
-          .then(() => {
-            toast.success("Deleted successfully");
-            fetchProducts(pagination.current);
-          });
+        api.delete(`/products/${id}`).then(() => {
+          toast.success(t("deleted_success") || "Deleted successfully");
+          fetchProducts(pagination.current);
+        });
       },
     });
   };
@@ -179,27 +186,22 @@ const AdminProducts = () => {
       return;
 
     api
-      .post(
-        `/products/${currentProduct.id}/recipe`,
-        {
-          ingredient_name: newIngredient.name,
-          quantity: parseFloat(newIngredient.qty),
-          unit_price: parseFloat(newIngredient.price),
-        },
-      )
+      .post(`/products/${currentProduct.id}/recipe`, {
+        ingredient_name: newIngredient.name,
+        quantity: parseFloat(newIngredient.qty),
+        unit_price: parseFloat(newIngredient.price),
+      })
       .then((res) => {
         setRecipeItems([...recipeItems, res.data]);
         setNewIngredient({ name: "", qty: "", price: "" });
-        toast.success("Ingredient added");
+        toast.success(t("ingredient_added") || "Ingredient added");
       });
   };
 
   const removeIngredient = (itemId) => {
-    api
-      .delete(`/products/recipe/${itemId}`)
-      .then(() => {
-        setRecipeItems(recipeItems.filter((i) => i.id !== itemId));
-      });
+    api.delete(`/products/recipe/${itemId}`).then(() => {
+      setRecipeItems(recipeItems.filter((i) => i.id !== itemId));
+    });
   };
 
   // 4. Gallery Logic
@@ -234,7 +236,10 @@ const AdminProducts = () => {
     }
 
     if (!hasFile) {
-      toast.info("Please select at least one new image to upload");
+      toast.info(
+        t("select_image_upload") ||
+          "Please select at least one new image to upload",
+      );
       return;
     }
 
@@ -244,12 +249,12 @@ const AdminProducts = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      toast.success("Gallery updated successfully!");
+      toast.success(t("gallery_updated") || "Gallery updated successfully!");
       setGalleryModalOpen(false);
       setGalleryImages({ img2: null, img3: null });
       fetchProducts(pagination.current);
     } catch (err) {
-      toast.error("Upload failed");
+      toast.error(t("upload_failed") || "Upload failed");
     }
   };
 
@@ -257,22 +262,35 @@ const AdminProducts = () => {
   const columns = [
     { title: "ID", dataIndex: "id", width: 60 },
     {
-      title: "Main Image",
+      title: t("main_image") || "Main Image",
       dataIndex: "image1",
       render: (src) => (
         <Image src={src} width={50} className="rounded border" />
       ),
     },
-    { title: "Name", dataIndex: "name", width: 180, className: "font-medium" },
-    { title: "Category", dataIndex: "category" },
-    { title: "Price", dataIndex: "price", render: (p) => `৳${p}` },
     {
-      title: "Stock",
+      title: t("name") || "Name",
+      dataIndex: "name",
+      width: 180,
+      className: "font-medium dark:text-gray-200",
+    },
+    {
+      title: t("category") || "Category",
+      dataIndex: "category",
+      className: "dark:text-gray-300",
+    },
+    {
+      title: t("price_label") || "Price",
+      dataIndex: "price",
+      render: (p) => <span className="dark:text-gray-300">৳{p}</span>,
+    },
+    {
+      title: t("stock") || "Stock",
       dataIndex: "stock",
       render: (s) => <Tag color={s < 10 ? "red" : "green"}>{s}</Tag>,
     },
     {
-      title: "Actions",
+      title: t("actions") || "Actions",
       key: "actions",
       width: 200,
       render: (_, record) => (
@@ -280,12 +298,12 @@ const AdminProducts = () => {
           <Button
             icon={<FileImageOutlined />}
             onClick={() => openGalleryModal(record)}
-            title="Gallery"
+            title={t("gallery") || "Gallery"}
           />
           <Button
             icon={<ExperimentOutlined />}
             onClick={() => openRecipeModal(record)}
-            title="Recipe"
+            title={t("recipe") || "Recipe"}
           />
           <Button
             icon={<EditOutlined />}
@@ -307,13 +325,16 @@ const AdminProducts = () => {
   ];
 
   return (
-    <AdminLayout title="Product Inventory">
-      <Card className="shadow-sm border-0 rounded-xl">
+    <AdminLayout title={t("product_inventory") || "Product Inventory"}>
+      <Card className="shadow-sm border-0 rounded-xl dark:bg-gray-800">
         <div className="flex justify-between mb-4">
-          <Input.Search placeholder="Search products..." className="max-w-xs" />
+          <Input.Search
+            placeholder={t("search_products") || "Search products..."}
+            className="max-w-xs dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
           <Button
             type="primary"
-            className="bg-brand"
+            className="bg-brand dark:bg-green-600 dark:hover:bg-green-500 dark:border-none"
             icon={<PlusOutlined />}
             onClick={() => {
               setIsEditMode(false);
@@ -321,7 +342,7 @@ const AdminProducts = () => {
               setIsModalOpen(true);
             }}
           >
-            Add Product
+            {t("add_product") || "Add Product"}
           </Button>
         </div>
 
@@ -335,36 +356,51 @@ const AdminProducts = () => {
             onChange: (page, size) => fetchProducts(page, size),
           }}
           scroll={{ x: 800 }}
+          className="dark:border-gray-700"
+          // AntD Table dark mode requires global ConfigProvider for full styling
         />
       </Card>
 
       {/* --- Create/Edit Modal --- */}
       <Modal
-        title={isEditMode ? "Edit Product" : "New Product"}
+        title={
+          isEditMode
+            ? t("edit_product") || "Edit Product"
+            : t("new_product") || "New Product"
+        }
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
         width={700}
+        // Modal styling for dark mode might need global CSS override
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="name"
-              label="Name"
+              label={t("name") || "Name"}
               rules={[{ required: true }]}
               className="col-span-2"
             >
               <Input size="large" />
             </Form.Item>
-            <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+            <Form.Item
+              name="price"
+              label={t("price_label") || "Price"}
+              rules={[{ required: true }]}
+            >
               <Input type="number" step="0.01" prefix="৳" />
             </Form.Item>
-            <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
+            <Form.Item
+              name="stock"
+              label={t("stock") || "Stock"}
+              rules={[{ required: true }]}
+            >
               <Input type="number" />
             </Form.Item>
             <Form.Item
               name="category"
-              label="Category"
+              label={t("category") || "Category"}
               rules={[{ required: true }]}
             >
               <Select
@@ -374,19 +410,23 @@ const AdminProducts = () => {
                 }))}
               />
             </Form.Item>
-            <Form.Item name="size" label="Size/Unit">
-              <Input placeholder="e.g. Large, 500g" />
+            <Form.Item name="size" label={t("size_unit") || "Size/Unit"}>
+              <Input
+                placeholder={t("size_placeholder") || "e.g. Large, 500g"}
+              />
             </Form.Item>
           </div>
 
           {/* UPDATED: Description with 2000 char limit */}
           <Form.Item
             name="description"
-            label="Description"
+            label={t("description") || "Description"}
             rules={[
               {
                 max: 2000,
-                message: "Description cannot exceed 2000 characters",
+                message:
+                  t("description_max_error") ||
+                  "Description cannot exceed 2000 characters",
               },
             ]}
           >
@@ -394,18 +434,22 @@ const AdminProducts = () => {
               rows={5}
               maxLength={2000}
               showCount
-              placeholder="Product details..."
+              placeholder={
+                t("product_details_placeholder") || "Product details..."
+              }
             />
           </Form.Item>
 
           {!isEditMode && (
             <Form.Item
-              label="Main Image"
+              label={t("main_image") || "Main Image"}
               name="image"
               rules={[
                 {
                   required: true,
-                  message: "Please upload the main product image",
+                  message:
+                    t("upload_main_image") ||
+                    "Please upload the main product image",
                 },
               ]}
             >
@@ -416,20 +460,28 @@ const AdminProducts = () => {
                 beforeUpload={validateFile} // <--- Added Validation
               >
                 <Button icon={<UploadOutlined />} className="w-full">
-                  Select Image File (Max 1MB)
+                  {t("select_image_file") || "Select Image File (Max 1MB)"}
                 </Button>
               </Upload>
             </Form.Item>
           )}
 
           <Form.Item name="new" valuePropName="checked">
-            <Checkbox>Mark as New Arrival</Checkbox>
+            <Checkbox>
+              {t("mark_new_arrival") || "Mark as New Arrival"}
+            </Checkbox>
           </Form.Item>
 
           <div className="flex justify-end gap-2 border-t pt-4">
-            <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="primary" htmlType="submit" className="bg-brand">
-              Save Product
+            <Button onClick={() => setIsModalOpen(false)}>
+              {t("cancel") || "Cancel"}
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="bg-brand dark:bg-green-600 dark:hover:bg-green-500"
+            >
+              {t("save_product") || "Save Product"}
             </Button>
           </div>
         </Form>
@@ -437,24 +489,24 @@ const AdminProducts = () => {
 
       {/* --- Recipe Modal --- */}
       <Modal
-        title={`Recipe: ${currentProduct?.name || ""}`}
+        title={`${t("recipe") || "Recipe"}: ${currentProduct?.name || ""}`}
         open={recipeModalOpen}
         onCancel={() => setRecipeModalOpen(false)}
         footer={null}
         width={700}
       >
-        {/* ... Recipe Content (Same as before) ... */}
-        <div className="bg-gray-50 p-4 rounded mb-4 border border-gray-100">
+        {/* ... Recipe Content ... */}
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded mb-4 border border-gray-100 dark:border-gray-600">
           <div className="flex gap-2">
             <Input
-              placeholder="Item Name"
+              placeholder={t("item_name") || "Item Name"}
               value={newIngredient.name}
               onChange={(e) =>
                 setNewIngredient({ ...newIngredient, name: e.target.value })
               }
             />
             <Input
-              placeholder="Qty"
+              placeholder={t("qty") || "Qty"}
               style={{ width: 100 }}
               type="number"
               value={newIngredient.qty}
@@ -463,7 +515,7 @@ const AdminProducts = () => {
               }
             />
             <Input
-              placeholder="Cost ($)"
+              placeholder={t("cost") || "Cost ($)"}
               style={{ width: 100 }}
               type="number"
               value={newIngredient.price}
@@ -475,7 +527,7 @@ const AdminProducts = () => {
               type="primary"
               onClick={addIngredient}
               icon={<PlusOutlined />}
-              className="bg-brand"
+              className="bg-brand dark:bg-green-600"
             />
           </div>
         </div>
@@ -485,15 +537,18 @@ const AdminProducts = () => {
           pagination={false}
           size="small"
           columns={[
-            { title: "Ingredient", dataIndex: "ingredient_name" },
-            { title: "Qty", dataIndex: "quantity" },
             {
-              title: "Unit Cost",
+              title: t("ingredient") || "Ingredient",
+              dataIndex: "ingredient_name",
+            },
+            { title: t("qty") || "Qty", dataIndex: "quantity" },
+            {
+              title: t("unit_cost") || "Unit Cost",
               dataIndex: "unit_price",
               render: (p) => `৳${p}`,
             },
             {
-              title: "Total",
+              title: t("total") || "Total",
               dataIndex: "total_cost",
               render: (p) => `৳${p.toFixed(2)}`,
             },
@@ -509,30 +564,31 @@ const AdminProducts = () => {
               ),
             },
           ]}
+          className="dark:bg-gray-800"
         />
       </Modal>
 
       {/* --- Gallery Modal --- */}
       <Modal
-        title={`Gallery: ${currentProduct?.name}`}
+        title={`${t("gallery") || "Gallery"}: ${currentProduct?.name}`}
         open={galleryModalOpen}
         onCancel={() => setGalleryModalOpen(false)}
         onOk={handleGalleryUpload}
-        okText="Upload Images"
-        okButtonProps={{ className: "bg-brand" }}
+        okText={t("upload_images") || "Upload Images"}
+        okButtonProps={{ className: "bg-brand dark:bg-green-600" }}
         width={600}
       >
         <div className="grid grid-cols-2 gap-6">
-          <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
-            <p className="mb-3 font-semibold text-gray-600">
-              Side View (Image 2)
+          <div className="p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-center">
+            <p className="mb-3 font-semibold text-gray-600 dark:text-gray-300">
+              {t("side_view") || "Side View (Image 2)"}
             </p>
             {currentProduct?.image2 && (
               <div className="mb-3">
                 <Image
                   src={currentProduct.image2}
                   height={80}
-                  className="rounded border border-gray-200"
+                  className="rounded border border-gray-200 dark:border-gray-600"
                 />
               </div>
             )}
@@ -548,21 +604,21 @@ const AdminProducts = () => {
             >
               <div>
                 <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Max 1MB</div>
+                <div style={{ marginTop: 8 }}>{t("max_1mb") || "Max 1MB"}</div>
               </div>
             </Upload>
           </div>
 
-          <div className="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
-            <p className="mb-3 font-semibold text-gray-600">
-              Detail View (Image 3)
+          <div className="p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-center">
+            <p className="mb-3 font-semibold text-gray-600 dark:text-gray-300">
+              {t("detail_view") || "Detail View (Image 3)"}
             </p>
             {currentProduct?.image3 && (
               <div className="mb-3">
                 <Image
                   src={currentProduct.image3}
                   height={80}
-                  className="rounded border border-gray-200"
+                  className="rounded border border-gray-200 dark:border-gray-600"
                 />
               </div>
             )}
@@ -578,7 +634,7 @@ const AdminProducts = () => {
             >
               <div>
                 <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Max 1MB</div>
+                <div style={{ marginTop: 8 }}>{t("max_1mb") || "Max 1MB"}</div>
               </div>
             </Upload>
           </div>

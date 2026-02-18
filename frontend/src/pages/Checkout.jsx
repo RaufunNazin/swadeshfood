@@ -73,20 +73,20 @@ const Checkout = () => {
   const [loginPassword, setLoginPassword] = useState("");
 
   const getProfile = () => {
-      // REMOVE THIS: const token = localStorage.getItem("token");
-      // REMOVE THIS: if (!token) ...
-  
-      // JUST CALL THE API directly.
-      // If the cookie exists, it works. If not, it fails (401).
-      api
-        .get("/me")
-        .then((res) => {
-          if (res.status === 200) {
-            setUser(res.data);
-          }
-        })
-        .catch((err) => console.log(err));
-    };
+    // REMOVE THIS: const token = localStorage.getItem("token");
+    // REMOVE THIS: if (!token) ...
+
+    // JUST CALL THE API directly.
+    // If the cookie exists, it works. If not, it fails (401).
+    api
+      .get("/me")
+      .then((res) => {
+        if (res.status === 200) {
+          setUser(res.data);
+        }
+      })
+      .catch((err) => console.log(err));
+  };
 
   useEffect(() => {
     // Check if redirect from login

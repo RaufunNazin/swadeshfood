@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -33,6 +34,9 @@ const AdminOrders = () => {
 
   // Detail Modal State
   const [detailModal, setDetailModal] = useState({ open: false, data: null });
+
+  // Language Context
+  const { t } = useLanguage();
 
   const fetchOrders = () => {
     setLoading(true);
@@ -69,7 +73,7 @@ const AdminOrders = () => {
 
   const updateStatus = (id, status) => {
     api.patch(`/order/${id}/status/${status}`, {}).then(() => {
-      toast.success("Status Updated");
+      toast.success(t("status_updated") || "Status Updated");
       fetchOrders();
     });
   };
@@ -77,7 +81,11 @@ const AdminOrders = () => {
   const togglePaid = (id, currentStatus) => {
     const newStatus = currentStatus === 1 ? 0 : 1;
     api.patch(`/order/${id}/paid/${newStatus}`, {}).then(() => {
-      toast.success(`Marked as ${newStatus ? "Paid" : "Unpaid"}`);
+      toast.success(
+        newStatus
+          ? t("marked_paid") || "Marked as Paid"
+          : t("marked_unpaid") || "Marked as Unpaid",
+      );
       fetchOrders();
     });
   };
@@ -85,46 +93,58 @@ const AdminOrders = () => {
   const columns = [
     { title: "ID", dataIndex: "id", width: 70 },
     {
-      title: "Customer",
+      title: t("customer") || "Customer",
       render: (_, r) => (
         <div className="flex flex-col">
-          <span className="font-semibold">{r.name}</span>
+          <span className="font-semibold dark:text-gray-200">{r.name}</span>
           <span className="text-xs text-gray-400">{r.phone}</span>
         </div>
       ),
     },
     {
-      title: "Date",
+      title: t("date") || "Date",
       dataIndex: "created_at",
-      render: (ts) => dayjs.unix(ts).format("DD MMM YYYY"),
+      render: (ts) => (
+        <span className="dark:text-gray-300">
+          {dayjs.unix(ts).format("DD MMM YYYY")}
+        </span>
+      ),
     },
     {
-      title: "Products",
+      title: t("products") || "Products",
       dataIndex: "products",
       width: 300,
-      render: (products) => { // 'products' is now the array directly
+      render: (products) => {
         try {
-          // const items = JSON.parse(json); // <--- OLD (Broken)
-          const items = products;            // <--- NEW (Working)
-          
+          // Check if products is an array (Pydantic parsed) or needs JSON.parse (legacy/safety)
+          const items = Array.isArray(products)
+            ? products
+            : JSON.parse(products || "[]");
+
           return (
             <div className="flex flex-col gap-1">
               {items.map((i, idx) => (
-                <div key={idx} className="text-xs bg-gray-100 p-1 rounded">
-                  {/* Ensure you handle product_name correctly based on your schema */}
-                  {i.name || i.product_name} 
+                <div
+                  key={idx}
+                  className="text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 p-1 rounded"
+                >
+                  {i.name || i.product_name}
                   <span className="font-bold"> x{i.quantity}</span>
                 </div>
               ))}
             </div>
           );
         } catch (e) {
-          return "Error parsing products";
+          return (
+            <span className="text-red-500 text-xs">
+              {t("error_parsing") || "Error parsing"}
+            </span>
+          );
         }
       },
     },
     {
-      title: "Status",
+      title: t("status") || "Status",
       dataIndex: "status",
       render: (status, record) => (
         <Select
@@ -139,15 +159,19 @@ const AdminOrders = () => {
                 : ""
           }
         >
-          <Option value="new">New</Option>
-          <Option value="processing">Processing</Option>
-          <Option value="transit">In Transit</Option>
-          <Option value="delivered">Delivered</Option>
+          <Option value="new">{t("status_new") || "New"}</Option>
+          <Option value="processing">
+            {t("status_processing") || "Processing"}
+          </Option>
+          <Option value="transit">{t("status_transit") || "In Transit"}</Option>
+          <Option value="delivered">
+            {t("status_delivered") || "Delivered"}
+          </Option>
         </Select>
       ),
     },
     {
-      title: "Payment",
+      title: t("payment") || "Payment",
       dataIndex: "paid",
       render: (paid, record) => (
         <Tag
@@ -156,15 +180,15 @@ const AdminOrders = () => {
           className="cursor-pointer"
           onClick={() => togglePaid(record.id, paid)}
         >
-          {paid ? "PAID" : "UNPAID"}
+          {paid ? t("paid") || "PAID" : t("unpaid") || "UNPAID"}
         </Tag>
       ),
     },
     {
-      title: "Actions",
+      title: t("actions") || "Actions",
       render: (_, r) => (
         <div className="flex gap-2">
-          <Tooltip title="View Details">
+          <Tooltip title={t("view_details") || "View Details"}>
             <Button
               icon={<EyeOutlined />}
               onClick={() => setDetailModal({ open: true, data: r })}
@@ -175,11 +199,13 @@ const AdminOrders = () => {
             icon={<DeleteOutlined />}
             onClick={() => {
               Modal.confirm({
-                title: "Delete Order?",
+                title: t("delete_order_title") || "Delete Order?",
+                content:
+                  t("delete_order_confirm") || "This action cannot be undone.",
+                okText: t("delete") || "Delete",
+                cancelText: t("cancel") || "Cancel",
                 onOk: () => {
-                  api
-                    .delete(`/order/${r.id}`)
-                    .then(() => fetchOrders());
+                  api.delete(`/order/${r.id}`).then(() => fetchOrders());
                 },
               });
             }}
@@ -190,14 +216,15 @@ const AdminOrders = () => {
   ];
 
   return (
-    <AdminLayout title="Order History">
-      <Card className="shadow-sm border-0 rounded-xl mb-6">
+    <AdminLayout title={t("order_history") || "Order History"}>
+      <Card className="shadow-sm border-0 rounded-xl mb-6 dark:bg-gray-800">
         <div className="flex flex-wrap gap-4 items-center">
           <Select
-            placeholder="Filter by User"
+            placeholder={t("filter_by_user") || "Filter by User"}
             style={{ width: 200 }}
             allowClear
             onChange={(v) => setFilters({ ...filters, userId: v })}
+            className="dark:bg-gray-700 dark:text-white"
           >
             {users.map((u) => (
               <Option key={u.id} value={u.id}>
@@ -206,61 +233,77 @@ const AdminOrders = () => {
             ))}
           </Select>
           <Select
-            placeholder="Payment Status"
+            placeholder={t("payment_status") || "Payment Status"}
             style={{ width: 150 }}
             allowClear
             onChange={(v) => setFilters({ ...filters, paid: v })}
           >
-            <Option value="1">Paid</Option>
-            <Option value="0">Unpaid</Option>
+            <Option value="1">{t("paid") || "Paid"}</Option>
+            <Option value="0">{t("unpaid") || "Unpaid"}</Option>
           </Select>
-          <RangePicker onChange={setDateRange} />
+          <RangePicker
+            onChange={setDateRange}
+            className="dark:bg-gray-700 dark:border-gray-600"
+          />
           <Button
             type="primary"
-            className="bg-brand ml-auto"
+            className="bg-brand ml-auto dark:bg-green-600 dark:hover:bg-green-500 dark:text-white dark:border-none"
             onClick={fetchOrders}
           >
-            Refresh
+            {t("refresh") || "Refresh"}
           </Button>
         </div>
       </Card>
 
-      <Card className="shadow-sm border-0 rounded-xl">
+      <Card className="shadow-sm border-0 rounded-xl dark:bg-gray-800">
         <Table
           dataSource={orders}
           columns={columns}
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
+          className="dark:border-gray-700"
+          // AntD Table dark mode requires ConfigProvider usually for full styling
         />
       </Card>
 
       <Modal
-        title="Order Details"
+        title={
+          <span className="dark:text-gray-100">
+            {t("order_details") || "Order Details"}
+          </span>
+        }
         open={detailModal.open}
         onCancel={() => setDetailModal({ open: false, data: null })}
         footer={null}
+        width={600}
+        // Modal body dark mode styling might need global CSS override
       >
         {detailModal.data && (
-          <div className="flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
+          <div className="flex flex-col gap-3 dark:text-gray-300">
+            <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700 p-3 rounded">
               <div>
-                <strong>Name:</strong> {detailModal.data.name}
+                <strong>{t("name") || "Name"}:</strong> {detailModal.data.name}
               </div>
               <div>
-                <strong>Email:</strong> {detailModal.data.email}
+                <strong>{t("email") || "Email"}:</strong>{" "}
+                {detailModal.data.email}
               </div>
               <div>
-                <strong>Phone:</strong> {detailModal.data.phone}
+                <strong>{t("phone") || "Phone"}:</strong>{" "}
+                {detailModal.data.phone}
               </div>
               <div>
-                <strong>Address:</strong> {detailModal.data.address}
+                <strong>{t("address") || "Address"}:</strong>{" "}
+                {detailModal.data.address}
               </div>
             </div>
             <div>
-              <strong>Order Notes:</strong>
-              <p className="text-gray-500 italic">
-                {detailModal.data.order_description || "No notes"}
+              <strong>{t("order_notes") || "Order Notes"}:</strong>
+              <p className="text-gray-500 dark:text-gray-400 italic">
+                {detailModal.data.order_description ||
+                  t("no_notes") ||
+                  "No notes"}
               </p>
             </div>
           </div>

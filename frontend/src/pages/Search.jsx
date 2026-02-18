@@ -6,14 +6,16 @@ import api from "../api";
 import { AiOutlineLoading, AiOutlineSearch } from "react-icons/ai";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const Search = () => {
   const { searchText } = useParams();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage(); // Language hook
 
-  // Pagination states (kept for future implementation, simplified for now)
+  // Pagination states (kept for future implementation)
   const offset = 0;
   const limit = 20;
 
@@ -23,7 +25,7 @@ const Search = () => {
       setProducts([]); // Clear previous results immediately
 
       try {
-        // Ensure searchText is encoded (e.g., "rice oil" -> "rice%20oil")
+        // Ensure searchText is encoded
         const encodedText = encodeURIComponent(searchText);
         const res = await api.get(`/search/${encodedText}/${offset}/${limit}`);
 
@@ -43,17 +45,19 @@ const Search = () => {
   }, [searchText]);
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans transition-colors duration-300">
       <Notification />
 
       {/* Simple Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-          <p className="text-gray-500 text-sm mb-2 uppercase tracking-wide">
-            Search Results
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2 uppercase tracking-wide">
+            {t("search_results") || "Search Results"}
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="text-brand">&quot;{searchText}&quot;</span>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <span className="text-brand dark:text-green-400">
+              &quot;{searchText}&quot;
+            </span>
           </h1>
         </div>
       </div>
@@ -61,31 +65,37 @@ const Search = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[50vh]">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <AiOutlineLoading className="text-brand text-6xl animate-spin mb-4" />
-            <p className="text-gray-500">Searching our inventory...</p>
+            <AiOutlineLoading className="text-brand dark:text-green-500 text-6xl animate-spin mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">
+              {t("searching") || "Searching our inventory..."}
+            </p>
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="bg-gray-100 p-6 rounded-full mb-6">
-              <AiOutlineSearch className="text-4xl text-gray-400" />
+            <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-full mb-6">
+              <AiOutlineSearch className="text-4xl text-gray-400 dark:text-gray-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              No products found
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+              {t("no_results") || "No products found"}
             </h2>
-            <p className="text-gray-500 mb-8 max-w-md">
-              We couldn&apos;t find anything matching &quot;{searchText}&quot;.
-              Try checking for typos or use a more general term.
+            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md">
+              {t("no_match_1") || "We couldn't find anything matching"} &quot;
+              {searchText}&quot;.{" "}
+              {t("no_match_2") ||
+                "Try checking for typos or use a more general term."}
             </p>
             <button
               onClick={() => navigate("/store")}
-              className="bg-brand text-white px-8 py-3 rounded-md hover:bg-green-700 transition-colors shadow-sm font-medium"
+              className="bg-brand hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white px-8 py-3 rounded-md transition-colors shadow-sm font-medium"
             >
-              Browse All Products
+              {t("browse_all") || "Browse All Products"}
             </button>
           </div>
         ) : (
           <>
-            <p className="text-gray-500 mb-6">Found {products.length} items</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {t("found") || "Found"} {products.length} {t("items") || "items"}
+            </p>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map((product) => (
                 <ItemCard key={product.id} product={product} />

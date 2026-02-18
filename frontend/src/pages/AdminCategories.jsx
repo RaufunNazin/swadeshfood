@@ -9,6 +9,7 @@ import {
   DeleteOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { useLanguage } from "../contexts/LanguageContext"; // Import language context
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -21,6 +22,9 @@ const AdminCategories = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [form] = Form.useForm();
 
+  // Language Context
+  const { t } = useLanguage();
+
   // Fetch Categories
   const getCategories = () => {
     setLoading(true);
@@ -32,13 +36,14 @@ const AdminCategories = () => {
         setLoading(false);
       })
       .catch(() => {
-        toast.error("Failed to load categories");
+        toast.error(t("load_failed") || "Failed to load categories");
         setLoading(false);
       });
   };
 
   useEffect(() => {
     getCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter Logic
@@ -69,23 +74,35 @@ const AdminCategories = () => {
       api
         .put(`/categories/${editingCategory.id}`, formData, config)
         .then(() => {
-          toast.success("Category updated successfully");
+          toast.success(
+            t("category_updated") || "Category updated successfully",
+          );
           setIsModalOpen(false);
           getCategories();
         })
         .catch((err) =>
-          toast.error(err.response?.data?.message || "Update failed"),
+          toast.error(
+            err.response?.data?.message ||
+              t("update_failed") ||
+              "Update failed",
+          ),
         );
     } else {
       api
         .post("/categories", formData, config)
         .then(() => {
-          toast.success("Category created successfully");
+          toast.success(
+            t("category_created") || "Category created successfully",
+          );
           setIsModalOpen(false);
           getCategories();
         })
         .catch((err) =>
-          toast.error(err.response?.data?.message || "Creation failed"),
+          toast.error(
+            err.response?.data?.message ||
+              t("creation_failed") ||
+              "Creation failed",
+          ),
         );
     }
   };
@@ -93,21 +110,26 @@ const AdminCategories = () => {
   // Handle Delete
   const deleteCategory = (id) => {
     Modal.confirm({
-      title: "Delete Category?",
+      title: t("delete_category_title") || "Delete Category?",
       content:
+        t("delete_category_confirm") ||
         "This action cannot be undone. Products in this category might be affected.",
-      okText: "Delete",
+      okText: t("delete") || "Delete",
       okType: "danger",
-      cancelText: "Cancel",
+      cancelText: t("cancel") || "Cancel",
       onOk: () => {
         api
           .delete(`/categories/${id}`)
           .then(() => {
-            toast.success("Category deleted");
+            toast.success(t("category_deleted") || "Category deleted");
             getCategories();
           })
           .catch((err) =>
-            toast.error(err.response?.data?.message || "Delete failed"),
+            toast.error(
+              err.response?.data?.message ||
+                t("delete_failed") ||
+                "Delete failed",
+            ),
           );
       },
     });
@@ -132,21 +154,21 @@ const AdminCategories = () => {
       sorter: (a, b) => a.id - b.id,
     },
     {
-      title: "Category Name",
+      title: t("category_name") || "Category Name",
       dataIndex: "name",
-      className: "font-medium text-gray-700",
+      className: "font-medium text-gray-700 dark:text-gray-200", // Dark mode text class
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-      title: "Actions",
+      title: t("actions") || "Actions",
       width: 150,
       align: "right",
       render: (_, record) => (
         <Space>
-          <Tooltip title="Edit">
+          <Tooltip title={t("edit") || "Edit"}>
             <Button icon={<EditOutlined />} onClick={() => openModal(record)} />
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title={t("delete") || "Delete"}>
             <Button
               danger
               icon={<DeleteOutlined />}
@@ -159,12 +181,14 @@ const AdminCategories = () => {
   ];
 
   return (
-    <AdminLayout title="Category Management">
-      <Card className="shadow-sm border-0 rounded-xl">
+    <AdminLayout title={t("category_management") || "Category Management"}>
+      <Card className="shadow-sm border-0 rounded-xl dark:bg-gray-800 dark:border-gray-700">
+        {" "}
+        {/* Dark mode background */}
         {/* Header Actions */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <Input
-            placeholder="Search categories..."
+            placeholder={t("search_categories") || "Search categories..."}
             prefix={<SearchOutlined className="text-gray-400" />}
             className="max-w-xs rounded-md"
             value={searchText}
@@ -173,14 +197,13 @@ const AdminCategories = () => {
           />
           <Button
             type="primary"
-            className="bg-brand hover:bg-red-600 border-none rounded-md shadow-sm h-10 px-6 font-medium"
+            className="bg-brand hover:bg-green-700 border-none rounded-md shadow-sm h-10 px-6 font-medium dark:bg-green-600 dark:hover:bg-green-500" // Updated colors for dark mode context if needed
             icon={<PlusOutlined />}
             onClick={() => openModal()}
           >
-            Add New Category
+            {t("add_category") || "Add New Category"}
           </Button>
         </div>
-
         {/* Table */}
         <Table
           dataSource={filteredCategories}
@@ -190,17 +213,21 @@ const AdminCategories = () => {
           pagination={{
             pageSize: 10,
             showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} items`,
+              `${range[0]}-${range[1]} ${t("of") || "of"} ${total} ${t("items") || "items"}`,
           }}
-          className="border border-gray-100 rounded-lg overflow-hidden"
+          className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"
+          // Ant Design Table generally handles dark mode via ConfigProvider, but if not set globally,
+          // specific CSS overrides might be needed for the table body background.
         />
       </Card>
 
       {/* Create/Edit Modal */}
       <Modal
         title={
-          <div className="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">
-            {editingCategory ? "Edit Category" : "Create New Category"}
+          <div className="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700 pb-3 mb-4">
+            {editingCategory
+              ? t("edit_category") || "Edit Category"
+              : t("create_category") || "Create New Category"}
           </div>
         }
         open={isModalOpen}
@@ -208,39 +235,50 @@ const AdminCategories = () => {
         footer={null}
         width={500}
         centered
+        // Ant Design Modal dark mode support usually requires ConfigProvider or custom styles for the modal content background
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             name="name"
             label={
-              <span className="font-medium text-gray-600">Category Name</span>
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {t("category_name_label") || "Category Name"}
+              </span>
             }
             rules={[
-              { required: true, message: "Please enter a category name" },
+              {
+                required: true,
+                message:
+                  t("enter_category_name") || "Please enter a category name",
+              },
             ]}
           >
             <Input
-              placeholder="e.g. Rice, Spices, Beverages"
+              placeholder={
+                t("category_placeholder") || "e.g. Rice, Spices, Beverages"
+              }
               size="large"
               className="rounded-md"
             />
           </Form.Item>
 
-          <div className="flex justify-end gap-3 mt-6 pt-2 border-t border-gray-50">
+          <div className="flex justify-end gap-3 mt-6 pt-2 border-t border-gray-50 dark:border-gray-700">
             <Button
               size="large"
               onClick={() => setIsModalOpen(false)}
               className="rounded-md"
             >
-              Cancel
+              {t("cancel") || "Cancel"}
             </Button>
             <Button
               type="primary"
               htmlType="submit"
               size="large"
-              className="bg-brand hover:bg-red-600 border-none rounded-md px-6"
+              className="bg-brand hover:bg-green-700 border-none rounded-md px-6 dark:bg-green-600 dark:hover:bg-green-500"
             >
-              {editingCategory ? "Update Category" : "Create Category"}
+              {editingCategory
+                ? t("update_category") || "Update Category"
+                : t("create_category_btn") || "Create Category"}
             </Button>
           </div>
         </Form>

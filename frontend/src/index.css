@@ -4,6 +4,7 @@
 
 body {
   font-family: "Inter", sans-serif;
+  @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300;
 }
 
 /* --- Burger Menu Fixes --- */
@@ -46,6 +47,17 @@ body {
   background: #ffffff;
   padding: 0;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+  /* smooth transition for theme switch */
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* --- DARK MODE OVERRIDE --- */
+/* When 'dark' class exists on HTML tag, change menu background */
+.dark .bm-menu {
+  background: #111827; /* gray-900 */
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
 }
 
 /* 5. Hide default burger button */

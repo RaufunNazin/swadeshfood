@@ -6,6 +6,7 @@ import { AiOutlineLoading, AiOutlineShopping } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
+import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 
 const New = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ const New = () => {
   const [limit, setLimit] = useState(12);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Language Context
+  const { t } = useLanguage();
 
   useEffect(() => {
     setLoading(true);
@@ -24,25 +28,25 @@ const New = () => {
   }, [limit, offset]);
 
   return (
-    <div className="bg-white min-h-screen font-sans text-gray-800">
+    <div className="bg-white dark:bg-gray-900 min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-300">
       <Notification />
 
       {/* --- Modern Header --- */}
-      <div className="relative bg-green-50 py-20 overflow-hidden">
+      <div className="relative bg-green-50 dark:bg-gray-800 py-20 overflow-hidden transition-colors">
         {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-green-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-green-200/40 dark:bg-green-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
         <div className="relative z-10 text-center px-4">
-          <span className="text-green-600 font-bold tracking-widest uppercase text-sm mb-3 block">
-            Fresh In
+          <span className="text-green-600 dark:text-green-400 font-bold tracking-widest uppercase text-sm mb-3 block">
+            {t("fresh_in") || "Fresh In"}
           </span>
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
-            New Arrivals
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
+            {t("new_arrivals_title") || "New Arrivals"}
           </h1>
-          <p className="text-gray-600 max-w-lg mx-auto text-lg">
-            Be the first to explore our latest organic additions. Handpicked for
-            quality and freshness.
+          <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto text-lg">
+            {t("new_arrivals_desc") ||
+              "Be the first to explore our latest organic additions. Handpicked for quality and freshness."}
           </p>
         </div>
       </div>
@@ -50,24 +54,25 @@ const New = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (
           <div className="flex justify-center py-20">
-            <AiOutlineLoading className="text-green-600 text-5xl animate-spin" />
+            <AiOutlineLoading className="text-green-600 dark:text-green-400 text-5xl animate-spin" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-24 bg-gray-50 rounded-3xl">
-            <div className="inline-block p-6 bg-white rounded-full shadow-sm mb-6">
-              <AiOutlineShopping className="text-4xl text-gray-400" />
+          <div className="text-center py-24 bg-gray-50 dark:bg-gray-800 rounded-3xl transition-colors">
+            <div className="inline-block p-6 bg-white dark:bg-gray-700 rounded-full shadow-sm mb-6">
+              <AiOutlineShopping className="text-4xl text-gray-400 dark:text-gray-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              New products coming soon!
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {t("coming_soon_title") || "New products coming soon!"}
             </h2>
-            <p className="text-gray-500 mb-8">
-              We are restocking our shelves with fresh goods. Check back later.
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
+              {t("restocking_msg") ||
+                "We are restocking our shelves with fresh goods. Check back later."}
             </p>
             <button
               onClick={() => navigate("/store")}
-              className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors font-semibold"
+              className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white px-8 py-3 rounded-full transition-colors font-semibold shadow-lg shadow-green-200 dark:shadow-none"
             >
-              Browse Main Store
+              {t("browse_main_store") || "Browse Main Store"}
             </button>
           </div>
         ) : (
@@ -83,9 +88,9 @@ const New = () => {
             <div className="mt-16 text-center">
               <button
                 onClick={() => setLimit(limit + 12)}
-                className="px-8 py-3 border-2 border-gray-900 text-gray-900 rounded-full font-bold hover:bg-gray-900 hover:text-white transition-all"
+                className="px-8 py-3 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-full font-bold hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all"
               >
-                View More Arrivals
+                {t("view_more_arrivals") || "View More Arrivals"}
               </button>
             </div>
           </>
