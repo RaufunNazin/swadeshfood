@@ -58,18 +58,18 @@ const Home = () => {
               <span className="inline-block px-4 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-300 text-sm font-semibold tracking-wide uppercase">
                 {t("direct_farm") || "Direct from Farm"}
               </span>
-              <h1 className="text-6xl md:text-8xl font-bold text-white leading-tight shadow-sm">
+              <h1 className="text-4xl md:text-8xl font-bold text-white leading-tight shadow-sm">
                 {t("organic") || "Organic"}{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-400">
                   {t("living") || "Living."}
                 </span>
               </h1>
-              <p className="text-xl text-neutral-200 leading-relaxed font-light">
+              <p className="text-lg text-neutral-200 leading-relaxed font-light">
                 {t("hero_subtitle") ||
                   "Nourish your family with the purest ingredients. No chemicals, just nature's love."}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-row gap-4 pt-4">
                 <button
                   onClick={() => navigate("/store")}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-green-900/30 flex justify-center items-center gap-3 transform hover:-translate-y-1"

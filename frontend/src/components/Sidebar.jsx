@@ -171,39 +171,6 @@ const Sidebar = ({ isOpen, onClose }) => {
 
             <div className="my-4 border-t border-neutral-100 dark:border-neutral-800 mx-2"></div>
 
-            {/* --- Settings (Theme & Lang) --- */}
-            <div className="px-3.5 py-2">
-              <div className="flex justify-between items-center mb-4">
-                <span className="flex items-center gap-4 text-neutral-600 dark:text-neutral-400 font-medium">
-                  {theme === "light" ? (
-                    <RiSunLine className="text-xl" />
-                  ) : (
-                    <RiMoonLine className="text-xl" />
-                  )}
-                  Dark Mode
-                </span>
-                <Switch
-                  checked={theme === "dark"}
-                  onChange={toggleTheme}
-                  className="bg-neutral-300"
-                />
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="flex items-center gap-4 text-neutral-600 dark:text-neutral-400 font-medium">
-                  <RiTranslate2 className="text-xl" />
-                  Bangla
-                </span>
-                <Switch
-                  checked={language === "bn"}
-                  onChange={(checked) => switchLanguage(checked ? "bn" : "en")}
-                  className="bg-neutral-300"
-                />
-              </div>
-            </div>
-
-            <div className="my-4 border-t border-neutral-100 dark:border-neutral-800 mx-2"></div>
-
             {isLoggedIn ? (
               <>
                 <NavItem

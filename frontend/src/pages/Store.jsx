@@ -111,7 +111,7 @@ const Store = () => {
               <Select
                 placeholder={t("category") || "Category"}
                 size="large"
-                style={{ width: 140 }}
+                style={{ width: 175 }}
                 onChange={(val) => handleFilter("category", val)}
                 options={categories.map((c) => ({
                   label: c.name,
@@ -124,7 +124,7 @@ const Store = () => {
               <Select
                 placeholder={t("size") || "Size"}
                 size="large"
-                style={{ width: 100 }}
+                style={{ width: 175 }}
                 onChange={(val) => handleFilter("size", val)}
                 options={sizes.map((s) => ({ label: s, value: s }))}
                 allowClear
@@ -132,7 +132,7 @@ const Store = () => {
               <Select
                 placeholder={t("sort_price") || "Sort Price"}
                 size="large"
-                style={{ width: 140 }}
+                style={{ width: 175 }}
                 onChange={(val) => handleFilter("sort", val)}
                 options={[
                   { label: t("low_to_high") || "Low to High", value: "asc" },

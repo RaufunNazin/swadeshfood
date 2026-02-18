@@ -219,7 +219,7 @@ const Connect = () => {
               {t("call_us") || "Call Us"}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {t("phone_number_val") || "+880 1700-663922"}
+              {"+880 1700-663922"}
             </p>
           </div>
           <div className="flex flex-col items-center text-center p-4 border-t md:border-t-0 md:border-l border-neutral-200 dark:border-neutral-700">
@@ -228,7 +228,7 @@ const Connect = () => {
               {t("email_us") || "Email Us"}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400 break-all">
-              {t("email_val") || "swadeshagrofoodslimited@gmail.com"}
+              {"swadeshagrofoodslimited@gmail.com"}
             </p>
           </div>
           <div className="flex flex-col items-center text-center p-4 border-t md:border-t-0 md:border-l border-neutral-200 dark:border-neutral-700">
@@ -237,7 +237,9 @@ const Connect = () => {
               {t("visit_us") || "Visit Us"}
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-              {t("address_line") || "Middle Badda, Dhaka-1212"}
+              Pa-67/1, Alatunnesa School Road,
+              <br />
+              Middle Badda, Dhaka-1212, Bangladesh
             </p>
           </div>
         </div>
