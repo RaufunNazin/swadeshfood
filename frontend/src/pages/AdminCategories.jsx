@@ -218,7 +218,7 @@ const AdminCategories = () => {
             />
             <Button
               type="primary"
-              className="bg-brand hover:bg-green-700 border-none rounded-md shadow-sm h-10 px-6 font-medium dark:bg-green-600 dark:hover:bg-green-500" // Updated colors for dark mode context if needed
+              className="bg-brand dark:bg-green-600 dark:hover:bg-green-500 dark:border-none" // Updated colors for dark mode context if needed
               icon={<PlusOutlined />}
               onClick={() => openModal()}
             >

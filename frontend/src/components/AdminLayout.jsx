@@ -3,26 +3,15 @@ import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
 
 const AdminLayout = ({ children, title }) => {
-  // We strictly don't need useLanguage here unless 'title' needs translation dynamically,
-  // but usually admin titles are passed as props.
-  // We use useTheme to ensure specific dark mode styles if needed,
-  // though Tailwind 'dark:' classes handle most of it automatically.
-
   return (
     <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
       <SidePanel />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Header Area */}
-        <header className="bg-white dark:bg-neutral-800 shadow-sm z-10 p-4 px-8 flex justify-between items-center h-16 transition-colors duration-300 border-b border-transparent dark:border-neutral-700">
-          <h1 className="text-xl font-bold text-neutral-800 dark:text-white">
+        <header className="bg-white dark:bg-neutral-800 shadow-sm z-10 p-4 px-8 flex justify-between mx-auto max-w-7xl w-full items-center h-16 transition-colors duration-300 m-5 rounded-xl">
+          <h1 className="text-xl font-mono text-neutral-800 dark:text-white">
             {title}
           </h1>
-          <div className="flex items-center gap-4">
-            {/* Admin Avatar */}
-            <div className="w-8 h-8 rounded-full bg-brand/10 dark:bg-green-900/30 text-brand dark:text-green-400 flex items-center justify-center font-bold">
-              A
-            </div>
-          </div>
         </header>
 
         {/* Main Content Scrollable Area */}

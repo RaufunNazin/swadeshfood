@@ -32,15 +32,15 @@ const SidePanel = () => {
       .catch(() => navigate("/login"));
   };
 
-  useEffect(() => {
-    api
-      .get("/me")
-      .then((res) => {
-        if (res.data.role !== 1) navigate("/");
-        setUser(res.data);
-      })
-      .catch(() => navigate("/login"));
-  }, [navigate]);
+  // useEffect(() => {
+  //   api
+  //     .get("/me")
+  //     .then((res) => {
+  //       if (res.data.role !== 1) navigate("/");
+  //       setUser(res.data);
+  //     })
+  //     .catch(() => navigate("/login"));
+  // }, [navigate]);
 
   const menuItemStyles = {
     button: ({ active }) => ({
@@ -63,30 +63,30 @@ const SidePanel = () => {
   };
 
   return (
-    <div className="h-screen sticky top-0 bg-white dark:bg-neutral-900 shadow-xl z-20 border-r border-neutral-100 dark:border-neutral-800 transition-colors duration-300">
+    <div className="h-[calc(100vh-40px)] sticky top-5 ml-5 my-5 bg-white dark:bg-neutral-900 shadow-sm z-20 border border-neutral-100 dark:border-neutral-800 transition-colors duration-300 rounded-3xl overflow-hidden flex flex-col">
       <Sidebar
         collapsed={collapsed}
         backgroundColor={theme === "dark" ? "#171717" : "#ffffff"}
         className="h-full border-none"
       >
         {/* Header */}
-        <div className="p-5 flex items-center justify-between">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className={`px-7 py-5 flex items-center w-full ${collapsed ? "justify-center" : "justify-between"}`}
+        >
           {!collapsed && (
-            <span className="font-bold text-xl text-brand dark:text-green-400">
+            <span className="font-mono text-xl text-brand dark:text-green-400">
               {user.username || "Admin"}
             </span>
           )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
-          >
+          <div className="p-1 rounded text-neutral-600 dark:text-neutral-300">
             <IoChevronForwardOutline
               className={`transition-transform duration-300 ${
                 collapsed ? "rotate-0" : "rotate-180"
               }`}
             />
-          </button>
-        </div>
+          </div>
+        </button>
 
         {/* Menu Items */}
         <Menu menuItemStyles={menuItemStyles} className="mt-4">

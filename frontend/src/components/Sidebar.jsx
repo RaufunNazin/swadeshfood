@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react"; // Added useMemo
 import { slide as Menu } from "react-burger-menu";
 import { useNavigate } from "react-router-dom";
-import { Modal, ConfigProvider, theme as antdTheme } from "antd"; // Import Switch
+import { Modal, ConfigProvider, theme as antdTheme, Select, Spin } from "antd"; // Added Select, Spin
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import debounce from "lodash.debounce"; // Added debounce
 import {
   RiHomeLine,
   RiStoreLine,
@@ -24,24 +25,96 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+
+  // --- Search States ---
+  const [options, setOptions] = useState([]);
+  const [fetching, setFetching] = useState(false);
+  const [searchValue, setSearchValue] = useState(null);
 
   // Contexts
   const { theme } = useTheme();
   const { t } = useLanguage();
 
   useEffect(() => {
-    api
-      .get("/me")
-      .then((res) => {
-        setUser(res.data);
-        setIsLoggedIn(true);
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-      });
+    if (isOpen) {
+      api
+        .get("/me")
+        .then((res) => {
+          setUser(res.data);
+          setIsLoggedIn(true);
+        })
+        .catch(() => {
+          setIsLoggedIn(false);
+        });
+    }
   }, [isOpen]);
+
+  // --- Search Logic ---
+  const fetchSuggestions = async (value) => {
+    setSearchValue(value);
+    if (!value) {
+      setOptions([]);
+      return;
+    }
+
+    setFetching(true);
+    try {
+      const { data } = await api.get(
+        `/search/suggestions/${encodeURIComponent(value)}`,
+      );
+
+      const newOptions = data.map((product) => ({
+        label: (
+          <div className="flex items-center gap-3 py-1">
+            <img
+              src={product.image1}
+              alt=""
+              className="w-10 h-10 object-cover rounded-md border border-neutral-200 dark:border-neutral-700"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-neutral-800 dark:text-neutral-100 truncate">
+                  {product.name}
+                </span>
+                <span className="text-green-600 dark:text-green-400 font-bold ml-2">
+                  ৳{product.price}
+                </span>
+              </div>
+              <div className="text-[10px] uppercase tracking-wider">
+                <span
+                  className={
+                    product.stock > 0
+                      ? "text-neutral-400"
+                      : "text-red-500 font-bold"
+                  }
+                >
+                  {product.stock > 0
+                    ? `${t("stock")}: ${product.stock}`
+                    : t("out_of_stock")}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
+        value: product.id,
+        searchValue: product.name,
+      }));
+      setOptions(newOptions);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const debounceFetcher = useMemo(() => debounce(fetchSuggestions, 500), []);
+
+  const handleSelect = (productId) => {
+    handleNavigation(`/product/${productId}`);
+    setSearchValue(null);
+    setOptions([]);
+  };
 
   const handleClose = () => {
     if (onClose && typeof onClose === "function") {
@@ -69,6 +142,9 @@ const Sidebar = ({ isOpen, onClose }) => {
             theme === "dark"
               ? antdTheme.darkAlgorithm
               : antdTheme.defaultAlgorithm,
+          token: {
+            borderRadius: 12,
+          },
         }}
       >
         <Menu
@@ -82,14 +158,14 @@ const Sidebar = ({ isOpen, onClose }) => {
             </div>
           }
           width={"85%"}
-          className="md:hidden bg-white dark:bg-neutral-900" // Dark mode bg
+          className="md:hidden bg-white dark:bg-neutral-900"
           noOverlay={false}
         >
           {/* --- Header Profile Section --- */}
           <div className="px-6 pt-10 pb-6 border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900">
             {isLoggedIn ? (
               <div
-                className="flex items-center gap-4"
+                className="flex items-center gap-4 cursor-pointer"
                 onClick={() => handleNavigation(`/profile/${user.id}`)}
               >
                 <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-700 dark:text-green-400 text-xl font-bold border border-green-200 dark:border-green-800">
@@ -109,30 +185,37 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-3">
                 <img src="/logo.png" alt="logo" className="h-10 w-auto" />
                 <span className="font-bold text-neutral-800 dark:text-white text-lg">
-                  Swadesh Food
+                  {t("brand_name") || "Swadesh Food"}
                 </span>
               </div>
             )}
           </div>
 
-          {/* --- Search Bar --- */}
+          {/* --- Autocomplete Search Bar --- */}
           <div className="px-6 py-6 bg-white dark:bg-neutral-900">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={t("search_placeholder")}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleNavigation(`/search/${searchText}`);
-                    setSearchText("");
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 border-none focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900 outline-none text-sm transition-all"
-              />
-              <RiSearchLine className="absolute left-3 top-3.5 text-neutral-400 text-lg" />
-            </div>
+            <Select
+              showSearch
+              placeholder={t("search_placeholder")}
+              optionLabelProp="searchValue"
+              defaultActiveFirstOption={false}
+              suffixIcon={<RiSearchLine className="text-neutral-400 text-lg" />}
+              filterOption={false}
+              onSearch={debounceFetcher}
+              onChange={handleSelect}
+              notFoundContent={fetching ? <Spin size="small" /> : null}
+              options={options}
+              className="w-full sidebar-search"
+              size="large"
+              variant="filled"
+              value={searchValue}
+              // Helps make sure dropdown stays within mobile screen
+              dropdownStyle={{ minWidth: "250px", maxWidth: "300px" }}
+              onInputKeyDown={(e) => {
+                if (e.key === "Enter" && searchValue) {
+                  handleNavigation(`/search/${searchValue}`);
+                }
+              }}
+            />
           </div>
 
           {/* --- Menu Links --- */}
@@ -140,7 +223,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             {user?.role === 1 && (
               <NavItem
                 icon={RiDashboardLine}
-                label={t("admin")}
+                label={t("dashboard")}
                 onClick={() => handleNavigation("/admin/dashboard")}
               />
             )}
@@ -195,7 +278,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </Menu>
 
         <Modal
-          title="Sign Out"
+          title={t("logout")}
           centered
           open={modalOpen}
           onOk={logout}
