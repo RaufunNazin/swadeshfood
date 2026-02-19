@@ -32,15 +32,15 @@ const SidePanel = () => {
       .catch(() => navigate("/login"));
   };
 
-  // useEffect(() => {
-  //   api
-  //     .get("/me")
-  //     .then((res) => {
-  //       if (res.data.role !== 1) navigate("/");
-  //       setUser(res.data);
-  //     })
-  //     .catch(() => navigate("/login"));
-  // }, [navigate]);
+  useEffect(() => {
+    api
+      .get("/me")
+      .then((res) => {
+        if (res.data.role !== 1) navigate("/");
+        setUser(res.data);
+      })
+      .catch(() => navigate("/login"));
+  }, [navigate]);
 
   const menuItemStyles = {
     button: ({ active }) => ({
