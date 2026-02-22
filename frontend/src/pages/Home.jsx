@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import "../App.css";
-import { AiOutlineLoading, AiOutlineArrowRight } from "react-icons/ai";
+import { AiOutlineArrowRight } from "react-icons/ai";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
-import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { useLanguage } from "../contexts/LanguageContext";
+import { ItemCardSkeleton, CategorySkeleton } from "../components/Skeletons";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -103,22 +104,25 @@ const Home = () => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => navigate(`/store/${category.name}`)}
-                className="group flex flex-col items-center gap-4 transition-all duration-300"
-              >
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:shadow-emerald-100 dark:group-hover:shadow-neutral-900 transition-all duration-300 group-hover:scale-110 relative overflow-hidden ring-4 ring-transparent group-hover:ring-emerald-50 dark:group-hover:ring-neutral-700">
-                  <span className="text-4xl md:text-5xl font-bold text-emerald-600/80 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors drop-shadow-sm">
-                    {category.name.charAt(0)}
-                  </span>
-                </div>
-                <span className="font-medium text-neutral-600 dark:text-neutral-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 text-lg transition-colors">
-                  {category.name}
-                </span>
-              </button>
-            ))}
+            {loading
+              ? // Show 5 skeleton circles while loading
+                [...Array(5)].map((_, i) => <CategorySkeleton key={i} />)
+              : categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => navigate(`/store/${category.name}`)}
+                    className="group flex flex-col items-center gap-4 transition-all duration-300"
+                  >
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:shadow-emerald-100 dark:group-hover:shadow-neutral-900 transition-all duration-300 group-hover:scale-110 relative overflow-hidden ring-4 ring-transparent group-hover:ring-emerald-50 dark:group-hover:ring-neutral-700">
+                      <span className="text-4xl md:text-5xl font-bold text-emerald-600/80 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors drop-shadow-sm">
+                        {category.name.charAt(0)}
+                      </span>
+                    </div>
+                    <span className="font-medium text-neutral-600 dark:text-neutral-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 text-lg transition-colors">
+                      {category.name}
+                    </span>
+                  </button>
+                ))}
           </div>
         </div>
       </div>
@@ -145,8 +149,10 @@ const Home = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <AiOutlineLoading className="text-emerald-600 dark:text-emerald-400 text-5xl animate-spin" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <ItemCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -187,8 +193,10 @@ const Home = () => {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-10">
-              <AiOutlineLoading className="text-green-600 dark:text-green-400 text-4xl animate-spin" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <ItemCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">

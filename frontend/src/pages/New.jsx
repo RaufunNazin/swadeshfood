@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../api";
-import { AiOutlineLoading, AiOutlineShopping } from "react-icons/ai";
+import { AiOutlineShopping } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
 import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { ItemCardSkeleton } from "../components/Skeletons";
 
 const New = () => {
   const navigate = useNavigate();
@@ -53,8 +54,10 @@ const New = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <AiOutlineLoading className="text-green-600 dark:text-green-400 text-5xl animate-spin" />
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {[...Array(8)].map((_, i) => (
+              <ItemCardSkeleton key={i} />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-24 bg-neutral-50 dark:bg-neutral-800 rounded-3xl transition-colors">

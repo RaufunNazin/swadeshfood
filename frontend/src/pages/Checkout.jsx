@@ -16,6 +16,7 @@ import PropTypes from "prop-types";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext"; // Added
 import FreeDeliveryBar from "../components/FreeDeliveryBar";
+import { CheckoutSkeleton } from "../components/Skeletons";
 
 const InputField = ({
   icon: Icon,
@@ -53,6 +54,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [cart, setCart] = useState([]);
+
+  const [loading, setLoading] = useState(true); // <-- Add this
 
   const { theme } = useTheme();
   const { t } = useLanguage(); // Added
@@ -109,11 +112,15 @@ const Checkout = () => {
         setCart(updatedItems);
       } catch (err) {
         console.error("Price validation failed", err);
+      } finally {
+        setLoading(false); // <-- Turn off loading here
       }
     };
 
     if (localCart.length > 0) {
       validatePrices();
+    } else {
+      setLoading(false); // Turn off if cart is empty
     }
 
     api
@@ -210,165 +217,168 @@ const Checkout = () => {
               {t("complete_purchase")}
             </p>
           </div>
+          {loading ? (
+            <CheckoutSkeleton />
+          ) : (
+            <div className="grid lg:grid-cols-2 gap-12">
+              <div className="space-y-8">
+                {/* Shipping Form */}
+                <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700">
+                  <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center text-sm">
+                      1
+                    </span>
+                    {t("shipping_info")}
+                  </h2>
 
-          <div className="grid lg:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              {/* Shipping Form */}
-              <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700">
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center text-sm">
-                    1
-                  </span>
-                  {t("shipping_info")}
-                </h2>
-
-                <div className="space-y-4">
-                  <InputField
-                    icon={RiUserLine}
-                    placeholder={t("full_name")}
-                    value={name}
-                    onChange={setName}
-                    required
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <InputField
-                      icon={RiMailLine}
-                      placeholder={t("email_optional")}
-                      type="email"
-                      value={email}
-                      onChange={setEmail}
-                    />
-                    <InputField
-                      icon={RiPhoneLine}
-                      placeholder={t("phone_number")}
-                      value={phone}
-                      onChange={setPhone}
+                      icon={RiUserLine}
+                      placeholder={t("full_name")}
+                      value={name}
+                      onChange={setName}
                       required
                     />
-                  </div>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 pointer-events-none text-neutral-400">
-                      <RiMapPinLine />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <InputField
+                        icon={RiMailLine}
+                        placeholder={t("email_optional")}
+                        type="email"
+                        value={email}
+                        onChange={setEmail}
+                      />
+                      <InputField
+                        icon={RiPhoneLine}
+                        placeholder={t("phone_number")}
+                        value={phone}
+                        onChange={setPhone}
+                        required
+                      />
+                    </div>
+                    <div className="relative">
+                      <div className="absolute top-3 left-3 pointer-events-none text-neutral-400">
+                        <RiMapPinLine />
+                      </div>
+                      <textarea
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-24 resize-none"
+                        placeholder={t("full_address") + "*"}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
                     </div>
                     <textarea
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-24 resize-none"
-                      placeholder={t("full_address") + "*"}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-20 resize-none"
+                      placeholder={t("order_notes")}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
-                  <textarea
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-20 resize-none"
-                    placeholder={t("order_notes")}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
+                </div>
+
+                {/* Payment Method */}
+                <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700">
+                  <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center text-sm">
+                      2
+                    </span>
+                    {t("payment_method")}
+                  </h2>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 p-4 border border-green-500 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10 rounded-xl cursor-pointer">
+                      <Radio
+                        checked={true}
+                        className="text-green-600 dark:text-green-500"
+                      />
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-100">
+                        {t("cash_on_delivery")}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl opacity-50 cursor-not-allowed">
+                      <Radio checked={false} disabled />
+                      <span className="font-medium text-neutral-500 dark:text-neutral-400">
+                        {t("digital_payment")} ({t("coming_soon")})
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700">
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 flex items-center justify-center text-sm">
-                    2
-                  </span>
-                  {t("payment_method")}
-                </h2>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 border border-green-500 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10 rounded-xl cursor-pointer">
-                    <Radio
-                      checked={true}
-                      className="text-green-600 dark:text-green-500"
-                    />
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-100">
-                      {t("cash_on_delivery")}
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl opacity-50 cursor-not-allowed">
-                    <Radio checked={false} disabled />
-                    <span className="font-medium text-neutral-500 dark:text-neutral-400">
-                      {t("digital_payment")} ({t("coming_soon")})
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </div>
+              {/* --- Right Column: Summary --- */}
+              <div className="lg:pl-8">
+                <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700 sticky top-24">
+                  <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">
+                    {t("your_order")}
+                  </h2>
 
-            {/* --- Right Column: Summary --- */}
-            <div className="lg:pl-8">
-              <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700 sticky top-24">
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">
-                  {t("your_order")}
-                </h2>
+                  <FreeDeliveryBar subtotal={subtotal} />
 
-                <FreeDeliveryBar subtotal={subtotal} />
-
-                <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin">
-                  {cart.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-700 rounded-lg overflow-hidden">
-                          <img
-                            src={item.image1}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
+                  <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin">
+                    {cart.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-700 rounded-lg overflow-hidden">
+                            <img
+                              src={item.image1}
+                              className="w-full h-full object-cover"
+                              alt=""
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-neutral-800 dark:text-neutral-100 text-sm line-clamp-1">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              {t("qty")}: {item.quantity}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-neutral-800 dark:text-neutral-100 text-sm line-clamp-1">
-                            {item.name}
-                          </p>
-                          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                            {t("qty")}: {item.quantity}
-                          </p>
-                        </div>
+                        <span className="font-semibold text-sm dark:text-neutral-200">
+                          ৳ {(item.price * item.quantity).toFixed(2)}
+                        </span>
                       </div>
-                      <span className="font-semibold text-sm dark:text-neutral-200">
-                        ৳ {(item.price * item.quantity).toFixed(2)}
+                    ))}
+                  </div>
+
+                  <div className="border-t border-neutral-100 dark:border-neutral-700 pt-4 space-y-3">
+                    <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
+                      <span>{t("subtotal")}</span>
+                      <span className="dark:text-neutral-200">
+                        ৳ {subtotal.toFixed(2)}
                       </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
+                      <span>{t("shipping_cost")}</span>
+                      <span className="dark:text-neutral-200">
+                        {shipping === 0 ? (
+                          <span className="text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">
+                            {t("free") || "FREE"}
+                          </span>
+                        ) : (
+                          `৳ ${shipping.toFixed(2)}`
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-700 mt-2">
+                      <span>{t("total")}</span>
+                      <span className="text-green-600 dark:text-green-400">
+                        ৳ {total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="border-t border-neutral-100 dark:border-neutral-700 pt-4 space-y-3">
-                  <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
-                    <span>{t("subtotal")}</span>
-                    <span className="dark:text-neutral-200">
-                      ৳ {subtotal.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
-                    <span>{t("shipping_cost")}</span>
-                    <span className="dark:text-neutral-200">
-                      {shipping === 0 ? (
-                        <span className="text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">
-                          {t("free") || "FREE"}
-                        </span>
-                      ) : (
-                        `৳ ${shipping.toFixed(2)}`
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xl font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-700 mt-2">
-                    <span>{t("total")}</span>
-                    <span className="text-green-600 dark:text-green-400">
-                      ৳ {total.toFixed(2)}
-                    </span>
-                  </div>
+                  <button
+                    onClick={PlaceOrder}
+                    className="w-full mt-8 bg-green-600 dark:bg-green-600 text-white py-4 rounded-full font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg shadow-green-200 dark:shadow-none active:scale-95"
+                  >
+                    {t("confirm_order")}
+                  </button>
                 </div>
-
-                <button
-                  onClick={PlaceOrder}
-                  className="w-full mt-8 bg-green-600 dark:bg-green-600 text-white py-4 rounded-full font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg shadow-green-200 dark:shadow-none active:scale-95"
-                >
-                  {t("confirm_order")}
-                </button>
               </div>
             </div>
-          </div>
+          )}
         </main>
 
         <Footer />
