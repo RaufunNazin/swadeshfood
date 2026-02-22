@@ -10,8 +10,9 @@ const Notification = () => {
   const { t, language } = useLanguage();
 
   useEffect(() => {
+    // Updated path to include /admin
     api
-      .get("/notification")
+      .get("/admin/notification")
       .then((res) => {
         setBannerData(res.data);
       })
@@ -33,26 +34,45 @@ const Notification = () => {
 
   const displayMessage = language === "bn" ? messageBn : messageEn;
 
+  const isHighlighted = bannerData?.is_highlighted === 1;
+
   return (
-    <div className="bg-neutral-900 dark:bg-black text-white w-full py-2.5 px-4 relative z-[20] transition-all duration-300 border-b border-transparent dark:border-neutral-800">
-      <div className="max-w-7xl mx-auto flex justify-center items-center gap-3">
-        <div className="flex items-center gap-2 text-xs md:text-sm font-medium tracking-wide">
-          <RiTruckLine className="text-green-400 text-lg" />
+    <div
+      className={`w-full relative z-[20] transition-all duration-300 border-b border-transparent dark:border-neutral-800 flex items-center
+        ${
+          isHighlighted
+            ? "animate-urgent text-white py-3.5 px-4 font-bold md:py-4"
+            : "bg-neutral-900 dark:bg-black text-white py-2.5 px-4"
+        }
+      `}
+    >
+      <div className="max-w-7xl mx-auto flex justify-center items-center gap-3 w-full">
+        <div
+          className={`flex items-center gap-2 tracking-wide 
+            ${isHighlighted ? "text-sm md:text-base" : "text-xs md:text-sm font-medium"}
+          `}
+        >
+          <RiTruckLine
+            className={`${isHighlighted ? "text-green-300 text-xl" : "text-green-400 text-lg"}`}
+          />
           <span>
             {displayMessage}
-            <span className="text-neutral-400 font-light ml-2 hidden sm:inline border-l border-neutral-700 pl-2">
-              {t("brand_tagline") || "Taste the Purity of Nature."}
-            </span>
+            {/* Tagline hidden when highlighted to give the offer text more space */}
+            {!isHighlighted && (
+              <span className="text-neutral-400 font-light ml-2 hidden sm:inline border-l border-neutral-700 pl-2">
+                {t("brand_tagline") || "Taste the Purity of Nature."}
+              </span>
+            )}
           </span>
         </div>
       </div>
 
       <button
         onClick={() => setIsVisible(false)}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-white transition-colors rounded-full hover:bg-white/10"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
         aria-label="Close notification"
       >
-        <RxCross2 size={16} />
+        <RxCross2 size={isHighlighted ? 20 : 16} />
       </button>
     </div>
   );

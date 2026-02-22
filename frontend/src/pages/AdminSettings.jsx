@@ -25,21 +25,23 @@ const AdminSettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSettings = () => {
     api
-      .get("/notification")
+      .get("/admin/notification")
       .then((res) => {
         form.setFieldsValue({
           text_en: res.data.text_en,
           text_bn: res.data.text_bn,
           is_active: res.data.is_active === 1,
+          is_highlighted: res.data.is_highlighted === 1, // Add this
         });
         setLoading(false);
       })
       .catch(() => {
-        toast.error("Failed to load settings");
+        toast.error(t("load_settings_failed") || "Failed to load settings");
         setLoading(false);
       });
   };
@@ -50,16 +52,21 @@ const AdminSettings = () => {
       text_en: values.text_en,
       text_bn: values.text_bn,
       is_active: values.is_active ? 1 : 0,
+      is_highlighted: values.is_highlighted ? 1 : 0, // Add this
     };
 
     api
       .put("/admin/notification", payload)
       .then(() => {
-        toast.success("Notification updated successfully!");
+        toast.success(
+          t("notification_updated") || "Notification updated successfully!",
+        );
         setSaving(false);
       })
       .catch(() => {
-        toast.error("Failed to update notification");
+        toast.error(
+          t("notification_update_failed") || "Failed to update notification",
+        );
         setSaving(false);
       });
   };
@@ -73,10 +80,10 @@ const AdminSettings = () => {
             : antdTheme.defaultAlgorithm,
       }}
     >
-      <AdminLayout title="Store Settings">
+      <AdminLayout title={t("store_settings") || "Store Settings"}>
         <div className="max-w-2xl">
           <Card
-            title="Top Notification Banner"
+            title={t("top_notification_banner") || "Top Notification Banner"}
             className="shadow-sm rounded-xl border-neutral-100 dark:border-neutral-800 dark:bg-neutral-900"
           >
             {loading ? (
@@ -90,7 +97,19 @@ const AdminSettings = () => {
                   valuePropName="checked"
                   label={
                     <span className="dark:text-neutral-300">
-                      Show Banner on Website
+                      {t("show_banner_website") || "Show Banner on Website"}
+                    </span>
+                  }
+                >
+                  <Switch />
+                </Form.Item>
+                <Form.Item
+                  name="is_highlighted"
+                  valuePropName="checked"
+                  label={
+                    <span className="dark:text-neutral-300">
+                      {t("highlight_banner") ||
+                        "Highlight Banner (Blink & Enlarge)"}
                     </span>
                   }
                 >
@@ -100,14 +119,23 @@ const AdminSettings = () => {
                 <Form.Item
                   name="text_en"
                   label={
-                    <span className="dark:text-neutral-300">English Text</span>
+                    <span className="dark:text-neutral-300">
+                      {t("english_text") || "English Text"}
+                    </span>
                   }
                   rules={[
-                    { required: true, message: "Please enter English text" },
+                    {
+                      required: true,
+                      message:
+                        t("enter_english_text") || "Please enter English text",
+                    },
                   ]}
                 >
                   <Input
-                    placeholder="e.g. Free delivery on orders over $50!"
+                    placeholder={
+                      t("english_text_placeholder") ||
+                      "e.g. Free delivery on orders over $50!"
+                    }
                     size="large"
                   />
                 </Form.Item>
@@ -115,14 +143,23 @@ const AdminSettings = () => {
                 <Form.Item
                   name="text_bn"
                   label={
-                    <span className="dark:text-neutral-300">Bangla Text</span>
+                    <span className="dark:text-neutral-300">
+                      {t("bangla_text") || "Bangla Text"}
+                    </span>
                   }
                   rules={[
-                    { required: true, message: "Please enter Bangla text" },
+                    {
+                      required: true,
+                      message:
+                        t("enter_bangla_text") || "Please enter Bangla text",
+                    },
                   ]}
                 >
                   <Input
-                    placeholder="e.g. ৫০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!"
+                    placeholder={
+                      t("bangla_text_placeholder") ||
+                      "e.g. ৫০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!"
+                    }
                     size="large"
                   />
                 </Form.Item>
@@ -135,7 +172,7 @@ const AdminSettings = () => {
                     size="large"
                     className="bg-green-600 hover:bg-green-700 border-none px-8"
                   >
-                    Save Changes
+                    {t("save_changes") || "Save Changes"}
                   </Button>
                 </Form.Item>
               </Form>

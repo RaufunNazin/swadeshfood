@@ -103,12 +103,12 @@ def get_dashboard_stats(
 def get_notification(db: Session = Depends(get_db)):
     notif = db.query(models.NotificationBanner).first()
 
-    # Auto-create default if it doesn't exist yet
     if not notif:
         notif = models.NotificationBanner(
             text_en="We deliver across Bangladesh!",
             text_bn="আমরা সমগ্র বাংলাদেশে ডেলিভারি দিচ্ছি!",
             is_active=1,
+            is_highlighted=0,  # Add this
         )
         db.add(notif)
         db.commit()
@@ -117,13 +117,13 @@ def get_notification(db: Session = Depends(get_db)):
     return notif
 
 
-@router.put("/admin/notification", response_model=NotificationOut, tags=["settings"])
+@router.put("/notification", response_model=NotificationOut, tags=["settings"])
 def update_notification(
     notif_update: NotificationUpdate,
     db: Session = Depends(get_db),
     user=Depends(oauth2.get_current_user),
 ):
-    check_authorization(user)  # Ensure user is admin
+    check_authorization(user)
 
     notif = db.query(models.NotificationBanner).first()
     if not notif:
@@ -132,6 +132,7 @@ def update_notification(
     notif.text_en = notif_update.text_en
     notif.text_bn = notif_update.text_bn
     notif.is_active = notif_update.is_active
+    notif.is_highlighted = notif_update.is_highlighted  # Add this
 
     db.commit()
     db.refresh(notif)

@@ -82,3 +82,20 @@ body {
 .dark .ant-card {
   @apply border-neutral-800 !important;
 }
+
+/* Add to index.css */
+@keyframes urgent-pulse {
+  0%,
+  100% {
+    background-color: #111827;
+  } /* neutral-900 */
+  50% {
+    background-color: #064e3b;
+  } /* green-900 for a positive offer glow */
+}
+.animate-urgent {
+  animation: urgent-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.dark .animate-urgent {
+  animation: urgent-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
