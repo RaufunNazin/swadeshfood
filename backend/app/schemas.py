@@ -34,9 +34,9 @@ class User(UserBase):
 class ProductSearchSuggestion(BaseModel):
     id: int
     name: str
-    image1: str   # Added
+    image1: str  # Added
     price: float  # Added
-    stock: int    # Added
+    stock: int  # Added
 
     class Config:
         from_attributes = True
@@ -192,3 +192,16 @@ class DashboardStats(BaseModel):
     total_orders: int
     sold_products_count: int
     sales_graph: List[SalesReport]
+
+
+class NotificationUpdate(BaseModel):
+    text_en: str
+    text_bn: str
+    is_active: int
+
+
+class NotificationOut(NotificationUpdate):
+    id: int
+
+    class Config:
+        from_attributes = True

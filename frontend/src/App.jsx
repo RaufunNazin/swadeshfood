@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { ToastContainer } from "react-toastify";
+import AdminSettings from "./pages/AdminSettings";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -149,6 +150,7 @@ function App() {
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/categories" element={<AdminCategories />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
         </Routes>
       </BrowserRouter>
     </div>

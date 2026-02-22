@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from ..database import get_db
@@ -6,9 +6,15 @@ from .. import models, oauth2
 from ..oauth2 import check_authorization
 
 # IMPORT Order from schemas here
-from ..schemas import DashboardStats, SalesReport, Order
+from ..schemas import (
+    DashboardStats,
+    SalesReport,
+    Order,
+    NotificationOut,
+    NotificationUpdate,
+)
 from typing import List, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime
 import json
 import collections
 
@@ -91,6 +97,45 @@ def get_dashboard_stats(
 
 
 # --- New Feature Endpoints ---
+
+
+@router.get("/notification", response_model=NotificationOut, tags=["settings"])
+def get_notification(db: Session = Depends(get_db)):
+    notif = db.query(models.NotificationBanner).first()
+
+    # Auto-create default if it doesn't exist yet
+    if not notif:
+        notif = models.NotificationBanner(
+            text_en="We deliver across Bangladesh!",
+            text_bn="আমরা সমগ্র বাংলাদেশে ডেলিভারি দিচ্ছি!",
+            is_active=1,
+        )
+        db.add(notif)
+        db.commit()
+        db.refresh(notif)
+
+    return notif
+
+
+@router.put("/admin/notification", response_model=NotificationOut, tags=["settings"])
+def update_notification(
+    notif_update: NotificationUpdate,
+    db: Session = Depends(get_db),
+    user=Depends(oauth2.get_current_user),
+):
+    check_authorization(user)  # Ensure user is admin
+
+    notif = db.query(models.NotificationBanner).first()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification banner not found")
+
+    notif.text_en = notif_update.text_en
+    notif.text_bn = notif_update.text_bn
+    notif.is_active = notif_update.is_active
+
+    db.commit()
+    db.refresh(notif)
+    return notif
 
 
 # 1. Top Selling Products

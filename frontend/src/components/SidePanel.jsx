@@ -9,6 +9,7 @@ import {
   IoMoonOutline,
   IoSunnyOutline,
   IoLanguageOutline,
+  IoSettingsOutline,
 } from "react-icons/io5";
 import { MdLogout, MdDashboard, MdShoppingCart } from "react-icons/md";
 import api from "../api";
@@ -122,6 +123,13 @@ const SidePanel = () => {
             onClick={() => navigate("/admin/categories")}
           >
             {t("categories")}
+          </MenuItem>
+          <MenuItem
+            active={location.pathname === "/admin/settings"}
+            icon={<IoSettingsOutline size={20} />}
+            onClick={() => navigate("/admin/settings")}
+          >
+            {t("settings")}
           </MenuItem>
         </Menu>
 
