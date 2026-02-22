@@ -17,15 +17,19 @@ const SingleProduct = () => {
   const [image, setImage] = useState("");
   const [allProducts, setAllProducts] = useState([]);
   const [sizes, setSizes] = useState([]);
-  const [quantity, setQuantity] = useState(1);
+
+  // 1. Renamed to localQty to prevent confusion with Context functions
+  const [localQty, setLocalQty] = useState(1);
 
   const [offset] = useState(0);
   const [limit, setLimit] = useState(4);
 
   const { t } = useLanguage();
-  const { addToCart } = useCart();
 
-  // ✅ Added-state (2s dopamine)
+  // 2. Pulled 'cart' from useCart to check combined quantities
+  const { cart, addToCart } = useCart();
+
+  // Added-state (2s dopamine)
   const [addState, setAddState] = useState("idle"); // "idle" | "added"
   const addedTimerRef = useRef(null);
 
@@ -59,12 +63,13 @@ const SingleProduct = () => {
       .then((res) => {
         setProduct(res.data);
         setImage(res.data.image1);
-        setQuantity(1);
+        setLocalQty(1);
         getProductsByName(res.data.name);
       })
       .catch((err) => console.log(err));
   }, [productId]);
 
+  // 3. Updated Logic for UI Feedback
   const handleAddToCart = () => {
     if (!product?.id) return;
 
@@ -74,21 +79,38 @@ const SingleProduct = () => {
       return;
     }
 
-    const desiredQty = Math.max(1, Number(quantity || 1));
-    const safeQty = Math.min(desiredQty, stock);
+    // Check what is already in the cart
+    const existingItem = cart.find((i) => i.id === product.id);
+    const currentCartQty = Number(existingItem?.quantity ?? 0);
 
-    if (safeQty !== desiredQty) {
-      toast.info(
-        t("qty_clamped_stock", { count: stock }) ||
-          `Quantity reduced to available stock: ${stock}`,
+    // Calculate combined total
+    const desiredQty = Math.max(1, Number(localQty || 1));
+    const combinedTotal = currentCartQty + desiredQty;
+
+    // Accurate UI Feedback
+    if (currentCartQty >= stock) {
+      toast.error(
+        t("max_stock_reached", { count: stock }) ||
+          `You already have the maximum available stock (${stock}) in your cart.`,
       );
-      setQuantity(safeQty);
+      return; // Stop here, no animations
     }
 
-    addToCart(product, safeQty);
+    if (combinedTotal > stock) {
+      const availableToAdd = stock - currentCartQty;
+      toast.info(
+        t("qty_clamped_stock", { count: stock }) ||
+          `Only ${availableToAdd} more available. Quantity adjusted to max stock: ${stock}`,
+      );
+      setLocalQty(1); // Reset local counter back to 1
+    } else {
+      toast.success(t("added_to_cart") || "Added to cart", { autoClose: 1000 });
+    }
 
-    toast.success(t("added_to_cart") || "Added to cart", { autoClose: 1000 });
+    // Context securely clamps it
+    addToCart(product, desiredQty);
 
+    // Trigger visual dopamine
     setAddState("added");
     if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
     addedTimerRef.current = setTimeout(() => setAddState("idle"), 2000);
@@ -182,7 +204,7 @@ const SingleProduct = () => {
                       onClick={() => {
                         setProduct(p);
                         setImage(p.image1);
-                        setQuantity(1);
+                        setLocalQty(1);
                       }}
                       className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                         product.id === p.id
@@ -202,19 +224,19 @@ const SingleProduct = () => {
               {/* Quantity Counter */}
               <div className="flex items-center bg-neutral-100 dark:bg-neutral-800 rounded-full px-4 py-2 w-fit border border-neutral-200 dark:border-neutral-700">
                 <button
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  onClick={() => setLocalQty((q) => Math.max(1, q - 1))}
                   className="w-8 h-8 flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-700 rounded-full transition-colors"
                 >
                   <RiSubtractLine />
                 </button>
                 <span className="w-10 text-center font-semibold text-lg text-neutral-800 dark:text-white">
-                  {quantity}
+                  {localQty}
                 </span>
                 <button
-                  onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                  disabled={quantity >= maxQty}
+                  onClick={() => setLocalQty((q) => Math.min(maxQty, q + 1))}
+                  disabled={localQty >= maxQty}
                   className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
-                    quantity >= maxQty
+                    localQty >= maxQty
                       ? "text-neutral-300 dark:text-neutral-600 cursor-not-allowed"
                       : "text-neutral-500 dark:text-neutral-400 hover:bg-white dark:hover:bg-neutral-700"
                   }`}

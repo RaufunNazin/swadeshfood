@@ -66,7 +66,6 @@ const Checkout = () => {
   // CartContext source of truth
   const {
     cart,
-    updateQuantity,
     setQuantity,
     removeFromCart,
     clearCart,
