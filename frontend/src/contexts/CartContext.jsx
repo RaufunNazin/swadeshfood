@@ -15,55 +15,70 @@ const safeReadCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  // ✅ hydrate immediately (prevents the "write [] then read" wipe)
   const [cart, setCart] = useState(() => safeReadCart());
 
-  // ✅ keep localStorage in sync AFTER cart is already hydrated
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(cart));
     } catch (e) {
-      // ignore storage quota / private mode errors
       console.error("Failed to persist cart", e);
     }
   }, [cart]);
-
-  const updateQuantity = (productId, delta, stock) => {
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.id !== productId) return item;
-
-        const nextQty = (item.quantity || 1) + delta;
-        const maxQty = typeof stock === "number" ? stock : Infinity;
-        const clampedQty = Math.max(1, Math.min(nextQty, maxQty));
-
-        return { ...item, quantity: clampedQty };
-      }),
-    );
-  };
 
   const removeFromCart = (productId) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const addToCart = (product) => {
+  // ✅ exact setter (best for live stock validation + checkout)
+  const setQuantity = (productId, qty, stock) => {
+    const maxQty = typeof stock === "number" ? stock : Infinity;
+    const desired = Math.max(1, Math.min(Number(qty || 1), maxQty));
+
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === productId ? { ...item, quantity: desired } : item,
+      ),
+    );
+  };
+
+  // ✅ +/- delta (good for cart UI buttons)
+  const updateQuantity = (productId, delta, stock) => {
+    const maxQty = typeof stock === "number" ? stock : Infinity;
+
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.id !== productId) return item;
+
+        const nextQty = Number(item.quantity || 1) + Number(delta || 0);
+        const clampedQty = Math.max(1, Math.min(nextQty, maxQty));
+        return { ...item, quantity: clampedQty };
+      }),
+    );
+  };
+
+  // ✅ clamp add-to-cart by stock if product has stock
+  const addToCart = (product, qty = 1) => {
+    const stock = typeof product.stock === "number" ? product.stock : Infinity;
+
     setCart((prevCart) => {
       const idx = prevCart.findIndex((item) => item.id === product.id);
+
       if (idx > -1) {
         const updated = [...prevCart];
-        updated[idx] = {
-          ...updated[idx],
-          quantity: (updated[idx].quantity || 1) + 1,
-        };
+        const current = Number(updated[idx].quantity || 1);
+        const desired = Math.min(current + Number(qty || 1), stock);
+
+        updated[idx] = { ...updated[idx], quantity: desired };
         return updated;
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+
+      const initialQty = Math.max(1, Math.min(Number(qty || 1), stock));
+      return [...prevCart, { ...product, quantity: initialQty }];
     });
   };
 
   const clearCart = () => setCart([]);
 
-  // Use memo so navbar/cart renders are stable
   const subtotal = useMemo(
     () =>
       cart.reduce(
@@ -84,6 +99,7 @@ export const CartProvider = ({ children }) => {
         cart,
         addToCart,
         updateQuantity,
+        setQuantity, // ✅ new
         removeFromCart,
         clearCart,
         subtotal,
@@ -95,9 +111,7 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-CartProvider.propTypes = {
-  children: PropTypes.node,
-};
+CartProvider.propTypes = { children: PropTypes.node };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useCart = () => useContext(CartContext);

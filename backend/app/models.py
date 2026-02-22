@@ -41,6 +41,7 @@ class Order(Base):
     order_description = Column(String(300), nullable=True)
     method = Column(Integer, nullable=False)
     created_at = Column(Integer, nullable=True)
+    stock_released = Column(Integer, nullable=False, default=0)
 
 
 class Category(Base):

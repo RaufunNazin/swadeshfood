@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Footer from "../components/Footer";
 import "react-toastify/dist/ReactToastify.css";
 import api from "../api";
@@ -7,41 +7,113 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Select, ConfigProvider, theme as antdTheme } from "antd";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
-import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { ItemCardSkeleton } from "../components/Skeletons";
 
 const Store = () => {
   const { searchCategory } = useParams();
   const navigate = useNavigate();
+
   const [offset] = useState(0);
   const [limit, setLimit] = useState(12);
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [categories, setCategories] = useState([]);
   const [sizes, setSizes] = useState([]);
 
-  // Language Context
+  // Controlled filter states (so we can reset without reload)
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedSort, setSelectedSort] = useState(null);
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersBodyRef = useRef(null);
+  const [filtersMaxHeight, setFiltersMaxHeight] = useState("0px");
+
   const { theme } = useTheme();
   const { t } = useLanguage();
 
-  // Fetch Logic
-  useEffect(() => {
-    setLoading(true);
-    let endpoint = `/products/price-range/${offset}/${limit}`;
+  // --- Fetch products helper ---
+  const fetchProducts = useCallback(
+    async (endpoint) => {
+      setLoading(true);
+      try {
+        const res = await api.get(endpoint);
+        setProducts(res.data);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setProducts],
+  );
 
+  useEffect(() => {
+    const el = filtersBodyRef.current;
+    if (!el) return;
+
+    if (filtersOpen) {
+      // open: measure content height
+      setFiltersMaxHeight(`${el.scrollHeight}px`);
+    } else {
+      // closed
+      setFiltersMaxHeight("0px");
+    }
+  }, [filtersOpen, categories.length, sizes.length]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setFiltersOpen(mq.matches);
+  }, []);
+
+  // --- Base load / route category load ---
+  useEffect(() => {
+    // If route has /store/:searchCategory, set that as selected category UI state
     if (searchCategory) {
-      endpoint = `/filter/category/${searchCategory}/${offset}/${limit}`;
+      setSelectedCategory(searchCategory);
+    } else {
+      setSelectedCategory(null);
     }
 
-    api
-      .get(endpoint)
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.log(err))
-      .finally(() => setLoading(false));
-  }, [searchCategory, limit, offset]);
+    // Reset other filters on route category change
+    setSelectedSize(null);
+    setSelectedSort(null);
 
-  // Fetch Filters
+    // Reset pagination on route change
+    setLimit(12);
+
+    const endpoint = searchCategory
+      ? `/filter/category/${searchCategory}/${offset}/12`
+      : `/products/price-range/${offset}/12`;
+
+    fetchProducts(endpoint);
+  }, [searchCategory, offset, fetchProducts]);
+
+  // --- Refetch when limit changes (load more) using current filters ---
+  useEffect(() => {
+    // Determine active endpoint based on current selected filters
+    // Priority: size > sort > category > default
+    let endpoint = `/products/price-range/${offset}/${limit}`;
+
+    if (selectedCategory) {
+      endpoint = `/filter/category/${selectedCategory}/${offset}/${limit}`;
+    }
+    if (selectedSize) {
+      endpoint = `/filter/size/${selectedSize}/${offset}/${limit}`;
+    }
+    if (selectedSort) {
+      endpoint = `/sort/${selectedSort}/${offset}/${limit}`;
+    }
+
+    fetchProducts(endpoint);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit]);
+
+  // --- Fetch Filters ---
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,21 +130,80 @@ const Store = () => {
     fetchData();
   }, []);
 
-  // Filter Handlers
-  const handleFilter = (type, value) => {
-    setLoading(true);
-    let endpoint = `/products/${offset}/${limit}`; // default reset
+  // --- Filter Handlers (no reload) ---
+  const handleCategoryChange = async (value) => {
+    setSelectedCategory(value || null);
+    setSelectedSize(null);
+    setSelectedSort(null);
+    setLimit(12);
 
-    if (type === "sort") endpoint = `/sort/${value}/${offset}/${limit}`;
-    if (type === "category")
-      endpoint = `/filter/category/${value}/${offset}/${limit}`;
-    if (type === "size") endpoint = `/filter/size/${value}/${offset}/${limit}`;
-    if (type === "new") endpoint = `/filter/new/${value}/${offset}/${limit}`;
+    if (!value) {
+      // If cleared:
+      if (searchCategory) {
+        // If user is on /store/:searchCategory, revert to that route category
+        setSelectedCategory(searchCategory);
+        await fetchProducts(`/filter/category/${searchCategory}/${offset}/12`);
+      } else {
+        await fetchProducts(`/products/price-range/${offset}/12`);
+      }
+      return;
+    }
 
-    api
-      .get(endpoint)
-      .then((res) => setProducts(res.data))
-      .finally(() => setLoading(false));
+    // Navigate to keep URL consistent (optional but cleaner for sharing)
+    navigate(`/store/${value}`);
+    // fetch will happen via route useEffect
+  };
+
+  const handleSizeChange = async (value) => {
+    setSelectedSize(value || null);
+    setSelectedSort(null);
+    setLimit(12);
+
+    if (!value) {
+      // revert to category or default
+      if (selectedCategory) {
+        await fetchProducts(
+          `/filter/category/${selectedCategory}/${offset}/12`,
+        );
+      } else {
+        await fetchProducts(`/products/price-range/${offset}/12`);
+      }
+      return;
+    }
+
+    await fetchProducts(`/filter/size/${value}/${offset}/12`);
+  };
+
+  const handleSortChange = async (value) => {
+    setSelectedSort(value || null);
+    setLimit(12);
+
+    if (!value) {
+      // revert to size/category/default
+      if (selectedSize) {
+        await fetchProducts(`/filter/size/${selectedSize}/${offset}/12`);
+      } else if (selectedCategory) {
+        await fetchProducts(
+          `/filter/category/${selectedCategory}/${offset}/12`,
+        );
+      } else {
+        await fetchProducts(`/products/price-range/${offset}/12`);
+      }
+      return;
+    }
+
+    await fetchProducts(`/sort/${value}/${offset}/12`);
+  };
+
+  const handleReset = async () => {
+    setSelectedSize(null);
+    setSelectedSort(null);
+    setLimit(12);
+
+    // Reset to base store (no category) OR current route category?
+    // You requested "reset", so most apps reset to plain /store.
+    navigate("/store");
+    // fetch will happen via route useEffect
   };
 
   return (
@@ -87,72 +218,111 @@ const Store = () => {
       <div className="bg-white dark:bg-neutral-900 min-h-screen font-sans text-neutral-800 dark:text-neutral-200 transition-colors duration-300">
         <Notification />
 
-        {/* --- Header Section --- */}
+        {/* Header */}
         <div className="bg-neutral-50 dark:bg-neutral-800 py-16 text-center border-b border-neutral-100 dark:border-neutral-700 transition-colors">
           <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-4 tracking-tight">
             {searchCategory
               ? `${searchCategory} ${t("collection") || "Collection"}`
               : t("the_store") || "The Store"}
           </h1>
-          <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto text-lg">
+          <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto text-lg p-2">
             {t("store_desc") ||
               "Browse our full range of organic, farm-fresh products delivered straight to your door."}
           </p>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* --- Toolbar / Filters --- */}
-          <div className="flex flex-col lg:flex-row justify-between items-center mb-10 gap-4 bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm sticky top-24 z-30 transition-colors">
-            <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-300 font-medium">
-              <AiOutlineFilter className="text-xl" />
-              <span>{t("filter_by") || "Filter By"}:</span>
-            </div>
+          {/* Filters Accordion */}
+          <div className="mb-8 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm transition-colors overflow-hidden">
+            {/* Header Button */}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 p-4"
+            >
+              <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-200 font-semibold">
+                <AiOutlineFilter className="text-xl" />
+                <span>{t("filters") || "Filters"}</span>
+              </div>
 
-            <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-              <Select
-                placeholder={t("category") || "Category"}
-                size="large"
-                style={{ width: 175 }}
-                onChange={(val) => handleFilter("category", val)}
-                options={categories.map((c) => ({
-                  label: c.name,
-                  value: c.name,
-                }))}
-                allowClear
-                // Note: AntD Select dark mode support depends on global ConfigProvider.
-                // Without it, the dropdown might remain white, which is usually acceptable.
-              />
-              <Select
-                placeholder={t("size") || "Size"}
-                size="large"
-                style={{ width: 175 }}
-                onChange={(val) => handleFilter("size", val)}
-                options={sizes.map((s) => ({ label: s, value: s }))}
-                allowClear
-              />
-              <Select
-                placeholder={t("sort_price") || "Sort Price"}
-                size="large"
-                style={{ width: 175 }}
-                onChange={(val) => handleFilter("sort", val)}
-                options={[
-                  { label: t("low_to_high") || "Low to High", value: "asc" },
-                  { label: t("high_to_low") || "High to Low", value: "desc" },
-                ]}
-              />
-              <button
-                onClick={() => {
-                  navigate("/store");
-                  window.location.reload();
-                }}
-                className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors font-semibold"
+              {/* Chevron (native CSS rotation) */}
+              <span
+                className={`transition-transform duration-200 ${
+                  filtersOpen ? "rotate-180" : "rotate-0"
+                }`}
               >
-                {t("reset") || "Reset"}
-              </button>
+                ▼
+              </span>
+            </button>
+
+            {/* Animated Body */}
+            <div
+              ref={filtersBodyRef}
+              style={{ maxHeight: filtersMaxHeight }}
+              className={`transition-[max-height] duration-300 ease-in-out`}
+            >
+              <div
+                className={`px-4 pb-4 transition-opacity duration-200 ${
+                  filtersOpen ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <Select
+                    placeholder={t("category") || "Category"}
+                    size="large"
+                    className="w-full"
+                    value={selectedCategory}
+                    onChange={handleCategoryChange}
+                    options={categories.map((c) => ({
+                      label: c.name,
+                      value: c.name,
+                    }))}
+                    allowClear
+                  />
+
+                  <Select
+                    placeholder={t("size") || "Size"}
+                    size="large"
+                    className="w-full"
+                    value={selectedSize}
+                    onChange={handleSizeChange}
+                    options={sizes.map((s) => ({ label: s, value: s }))}
+                    allowClear
+                  />
+
+                  <Select
+                    placeholder={t("sort_price") || "Sort Price"}
+                    size="large"
+                    className="w-full"
+                    value={selectedSort}
+                    onChange={handleSortChange}
+                    options={[
+                      {
+                        label: t("low_to_high") || "Low to High",
+                        value: "asc",
+                      },
+                      {
+                        label: t("high_to_low") || "High to Low",
+                        value: "desc",
+                      },
+                    ]}
+                    allowClear
+                  />
+
+                  <button
+                    onClick={handleReset}
+                    className="w-full px-4 py-[10px] text-sm font-semibold rounded-lg transition-colors
+                     text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30
+                     border border-red-100 dark:border-red-900/40"
+                  >
+                    {t("reset") || "Reset"}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* --- Product Grid --- */}
+          {/* Product Grid */}
           {loading ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {[...Array(8)].map((_, i) => (
@@ -172,10 +342,7 @@ const Store = () => {
                   "Try adjusting your filters or search criteria."}
               </p>
               <button
-                onClick={() => {
-                  navigate("/store");
-                  window.location.reload();
-                }}
+                onClick={handleReset}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 transition-colors"
               >
                 {t("clear_filters") || "Clear All Filters"}
@@ -194,7 +361,7 @@ const Store = () => {
               {/* Load More */}
               <div className="mt-16 text-center">
                 <button
-                  onClick={() => setLimit(limit + 12)}
+                  onClick={() => setLimit((prev) => prev + 12)}
                   className="px-8 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-full font-semibold hover:bg-black dark:hover:bg-neutral-200 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
                 >
                   {t("load_more_products") || "Load More Products"}
@@ -203,6 +370,7 @@ const Store = () => {
             </>
           )}
         </div>
+
         <Footer />
       </div>
     </ConfigProvider>

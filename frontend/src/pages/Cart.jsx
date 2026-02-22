@@ -12,19 +12,13 @@ const Cart = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  // CartContext = single source of truth
   const { cart, updateQuantity, removeFromCart, subtotal } = useCart();
-
-  // Store settings from context (single API call globally)
   const { storeSettings, loading: settingsLoading } = useStoreSettings();
 
-  // Same logic as Checkout
   const shipping = useMemo(() => {
     const threshold = Number(storeSettings.free_delivery_threshold || 0);
     const charge = Number(storeSettings.delivery_charge || 0);
-
-    if (subtotal >= threshold) return 0;
-    return charge;
+    return subtotal >= threshold ? 0 : charge;
   }, [subtotal, storeSettings]);
 
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
@@ -34,7 +28,6 @@ const Cart = () => {
       <Notification />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        {/* Header */}
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
             {t("shopping_cart") || "Shopping Cart"}
@@ -49,7 +42,6 @@ const Cart = () => {
         </div>
 
         {cart.length === 0 ? (
-          /* Empty State */
           <div className="bg-white dark:bg-neutral-800 rounded-3xl p-12 text-center shadow-sm border border-neutral-100 dark:border-neutral-700 max-w-2xl mx-auto">
             <div className="bg-green-50 dark:bg-green-900/30 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
               <RiShoppingBag3Line className="text-4xl text-green-600 dark:text-green-400" />
@@ -70,77 +62,107 @@ const Cart = () => {
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Cart Items List */}
             <div className="flex-1 space-y-4">
-              {cart.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white dark:bg-neutral-800 p-4 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 flex gap-4 sm:gap-6 items-center"
-                >
-                  {/* Image */}
-                  <div className="w-24 h-24 flex-shrink-0 bg-neutral-50 dark:bg-neutral-700 rounded-xl overflow-hidden">
-                    <img
-                      src={product.image1}
-                      alt={product.name}
-                      className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
-                    />
-                  </div>
+              {cart.map((product) => {
+                const stock = Number(product.stock ?? 0);
+                const qty = Number(product.quantity ?? 1);
+                const atMax = stock > 0 && qty >= stock;
+                const outOfStock = stock <= 0;
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-bold text-neutral-900 dark:text-white text-lg truncate pr-4">
-                        {product.name}
-                      </h3>
-                      <button
-                        onClick={() => removeFromCart(product.id)}
-                        className="text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
-                      >
-                        <RxCross2 size={20} />
-                      </button>
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-white dark:bg-neutral-800 p-4 rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-700 flex gap-4 sm:gap-6 items-center"
+                  >
+                    <div className="w-24 h-24 flex-shrink-0 bg-neutral-50 dark:bg-neutral-700 rounded-xl overflow-hidden">
+                      <img
+                        src={product.image1}
+                        alt={product.name}
+                        className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
+                      />
                     </div>
 
-                    <p className="text-green-600 dark:text-green-400 font-bold mb-4">
-                      ৳ {parseFloat(product.price).toFixed(2)}
-                    </p>
-
-                    {/* Quantity Control */}
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center bg-neutral-100 dark:bg-neutral-700 rounded-full px-3 py-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-bold text-neutral-900 dark:text-white text-lg truncate pr-4">
+                          {product.name}
+                        </h3>
                         <button
-                          onClick={() =>
-                            updateQuantity(product.id, -1, product.stock)
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-neutral-500 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-600 hover:shadow-sm rounded-full transition-all"
+                          onClick={() => removeFromCart(product.id)}
+                          className="text-neutral-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
                         >
-                          <RiSubtractLine size={14} />
-                        </button>
-                        <span className="w-8 text-center font-semibold text-neutral-800 dark:text-white text-sm">
-                          {product.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(product.id, 1, product.stock)
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-neutral-500 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-600 hover:shadow-sm rounded-full transition-all"
-                        >
-                          <RiAddLine size={14} />
+                          <RxCross2 size={20} />
                         </button>
                       </div>
 
-                      <span className="text-neutral-400 dark:text-neutral-500 text-sm hidden sm:block">
-                        {t("total") || "Total"}:{" "}
-                        <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                          ৳ {(product.price * product.quantity).toFixed(2)}
+                      <p className="text-green-600 dark:text-green-400 font-bold">
+                        ৳ {Number(product.price).toFixed(2)}
+                      </p>
+
+                      {/* Stock hint */}
+                      <p className="text-xs mt-1 text-neutral-500 dark:text-neutral-400">
+                        {outOfStock
+                          ? t("out_of_stock") || "Out of stock"
+                          : stock <= 10
+                            ? t("only_left", { count: stock }) ||
+                              `Only ${stock} left`
+                            : ""}
+                      </p>
+
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center bg-neutral-100 dark:bg-neutral-700 rounded-full px-3 py-1">
+                          <button
+                            disabled={qty <= 1}
+                            onClick={() =>
+                              updateQuantity(product.id, -1, stock)
+                            }
+                            className={`w-6 h-6 flex items-center justify-center rounded-full transition-all
+                              ${
+                                qty <= 1
+                                  ? "opacity-40 cursor-not-allowed"
+                                  : "text-neutral-500 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-600 hover:shadow-sm"
+                              }`}
+                          >
+                            <RiSubtractLine size={14} />
+                          </button>
+
+                          <span className="w-8 text-center font-semibold text-neutral-800 dark:text-white text-sm">
+                            {qty}
+                          </span>
+
+                          <button
+                            disabled={product.quantity >= product.stock}
+                            onClick={() => updateQuantity(product.id, 1, stock)}
+                            className={`w-6 h-6 flex items-center justify-center rounded-full transition-all
+                              ${
+                                outOfStock || atMax
+                                  ? "opacity-40 cursor-not-allowed"
+                                  : "text-neutral-500 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-600 hover:shadow-sm"
+                              }`}
+                            title={
+                              atMax
+                                ? t("max_stock_reached", { count: stock }) ||
+                                  `Max ${stock}`
+                                : undefined
+                            }
+                          >
+                            <RiAddLine size={14} />
+                          </button>
+                        </div>
+
+                        <span className="text-neutral-400 dark:text-neutral-500 text-sm hidden sm:block">
+                          {t("total") || "Total"}:{" "}
+                          <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                            ৳ {(Number(product.price) * qty).toFixed(2)}
+                          </span>
                         </span>
-                      </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Order Summary Sidebar */}
             <div className="lg:w-96 flex-shrink-0">
               <div className="bg-white dark:bg-neutral-800 p-6 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700 sticky top-24">
                 <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">
@@ -170,7 +192,7 @@ const Cart = () => {
                     </span>
                   </div>
 
-                  <div className="h-px bg-neutral-100 dark:bg-neutral-700 my-2"></div>
+                  <div className="h-px bg-neutral-100 dark:bg-neutral-700 my-2" />
 
                   <div className="flex justify-between text-lg font-bold text-neutral-900 dark:text-white">
                     <span>{t("total") || "Total"}</span>

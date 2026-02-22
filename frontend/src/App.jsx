@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 
 // Public Pages
@@ -157,12 +158,28 @@ function App() {
   );
 }
 
-// Layout Component
 const Layout = ({ children, onMenuClick }) => {
+  const location = useLocation();
+
+  // toggles a class to restart the animation on every route change
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    setAnimate(false);
+    const raf = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(raf);
+  }, [location.pathname]);
+
   return (
     <>
       <Navbar onMenuClick={onMenuClick} />
-      {children}
+
+      {/* Only animate the page content, not the navbar */}
+      <div
+        className={`page-transition ${animate ? "page-transition--in" : ""}`}
+      >
+        {children}
+      </div>
     </>
   );
 };

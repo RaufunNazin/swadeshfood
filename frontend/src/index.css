@@ -99,3 +99,30 @@ body {
 .dark .animate-urgent {
   animation: urgent-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* --- Smooth Page Transitions (SPA feel) --- */
+.page-transition {
+  will-change: opacity, transform;
+}
+
+.page-transition--in {
+  animation: pageFadeUp 150ms ease-out both;
+}
+
+@keyframes pageFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition--in {
+    animation: none;
+  }
+}
