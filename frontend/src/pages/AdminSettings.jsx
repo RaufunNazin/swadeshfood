@@ -11,7 +11,8 @@ import {
   Spin,
   ConfigProvider,
   theme as antdTheme,
-} from "antd";
+  Select,
+} from "antd"; // Import Select
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -19,7 +20,6 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
   const { theme } = useTheme();
   const { t } = useLanguage();
 
@@ -36,7 +36,8 @@ const AdminSettings = () => {
           text_en: res.data.text_en,
           text_bn: res.data.text_bn,
           is_active: res.data.is_active === 1,
-          is_highlighted: res.data.is_highlighted === 1, // Add this
+          is_highlighted: res.data.is_highlighted === 1,
+          notif_type: res.data.notif_type || "info", // Add this
         });
         setLoading(false);
       })
@@ -52,7 +53,8 @@ const AdminSettings = () => {
       text_en: values.text_en,
       text_bn: values.text_bn,
       is_active: values.is_active ? 1 : 0,
-      is_highlighted: values.is_highlighted ? 1 : 0, // Add this
+      is_highlighted: values.is_highlighted ? 1 : 0,
+      notif_type: values.notif_type, // Add this
     };
 
     api
@@ -92,28 +94,56 @@ const AdminSettings = () => {
               </div>
             ) : (
               <Form form={form} layout="vertical" onFinish={handleSave}>
+                <div className="grid grid-cols-2 gap-4">
+                  <Form.Item
+                    name="is_active"
+                    valuePropName="checked"
+                    label={
+                      <span className="dark:text-neutral-300">
+                        {t("show_banner_website") || "Show Banner"}
+                      </span>
+                    }
+                  >
+                    <Switch />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="is_highlighted"
+                    valuePropName="checked"
+                    label={
+                      <span className="dark:text-neutral-300">
+                        {t("highlight_banner") || "Blink Banner"}
+                      </span>
+                    }
+                  >
+                    <Switch />
+                  </Form.Item>
+                </div>
+
+                {/* --- NEW: Notification Type Select --- */}
                 <Form.Item
-                  name="is_active"
-                  valuePropName="checked"
+                  name="notif_type"
                   label={
                     <span className="dark:text-neutral-300">
-                      {t("show_banner_website") || "Show Banner on Website"}
+                      {t("notif_type") || "Notification Type"}
                     </span>
                   }
+                  rules={[{ required: true }]}
                 >
-                  <Switch />
-                </Form.Item>
-                <Form.Item
-                  name="is_highlighted"
-                  valuePropName="checked"
-                  label={
-                    <span className="dark:text-neutral-300">
-                      {t("highlight_banner") ||
-                        "Highlight Banner (Blink & Enlarge)"}
-                    </span>
-                  }
-                >
-                  <Switch />
+                  <Select size="large">
+                    <Select.Option value="info">
+                      {t("type_info") || "Info"}
+                    </Select.Option>
+                    <Select.Option value="success">
+                      {t("type_success") || "Success"}
+                    </Select.Option>
+                    <Select.Option value="warning">
+                      {t("type_warning") || "Warning"}
+                    </Select.Option>
+                    <Select.Option value="urgent">
+                      {t("type_urgent") || "Urgent"}
+                    </Select.Option>
+                  </Select>
                 </Form.Item>
 
                 <Form.Item
@@ -123,19 +153,10 @@ const AdminSettings = () => {
                       {t("english_text") || "English Text"}
                     </span>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message:
-                        t("enter_english_text") || "Please enter English text",
-                    },
-                  ]}
+                  rules={[{ required: true, message: t("enter_english_text") }]}
                 >
                   <Input
-                    placeholder={
-                      t("english_text_placeholder") ||
-                      "e.g. Free delivery on orders over $50!"
-                    }
+                    placeholder={t("english_text_placeholder")}
                     size="large"
                   />
                 </Form.Item>
@@ -147,19 +168,10 @@ const AdminSettings = () => {
                       {t("bangla_text") || "Bangla Text"}
                     </span>
                   }
-                  rules={[
-                    {
-                      required: true,
-                      message:
-                        t("enter_bangla_text") || "Please enter Bangla text",
-                    },
-                  ]}
+                  rules={[{ required: true, message: t("enter_bangla_text") }]}
                 >
                   <Input
-                    placeholder={
-                      t("bangla_text_placeholder") ||
-                      "e.g. ৫০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!"
-                    }
+                    placeholder={t("bangla_text_placeholder")}
                     size="large"
                   />
                 </Form.Item>

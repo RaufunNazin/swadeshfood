@@ -19,8 +19,13 @@ import { useLanguage } from "../contexts/LanguageContext";
 const SidePanel = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState({});
+
+  // 1. Initialize state from localStorage
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = localStorage.getItem("adminSidebarCollapsed");
+    return saved === "true"; // Returns true if it was saved as "true"
+  });
 
   // Contexts
   const { theme, toggleTheme } = useTheme();
@@ -43,19 +48,22 @@ const SidePanel = () => {
       .catch(() => navigate("/login"));
   }, [navigate]);
 
+  // 2. Create a handler to update state AND localStorage
+  const handleToggleCollapse = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem("adminSidebarCollapsed", newState);
+  };
+
   const menuItemStyles = {
     button: ({ active }) => ({
       backgroundColor: active
         ? theme === "dark"
-          ? "#1e293b" // slate-800
-          : "#eff6ff" // blue-50
+          ? "#1e293b"
+          : "#eff6ff"
         : undefined,
-      color: active
-        ? "#2563eb" // blue-600
-        : theme === "dark"
-          ? "#d1d5db"
-          : "#4b5563",
-      borderRight: active ? "3px solid #2563eb" : "none", // Blue highlight bar
+      color: active ? "#2563eb" : theme === "dark" ? "#d1d5db" : "#4b5563",
+      borderRight: active ? "3px solid #2563eb" : "none",
       "&:hover": {
         backgroundColor: theme === "dark" ? "#1e293b" : "#eff6ff",
         color: "#2563eb",
@@ -72,7 +80,7 @@ const SidePanel = () => {
       >
         {/* Header */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={handleToggleCollapse} // 3. Use the new handler here
           className={`px-7 py-5 flex items-center w-full ${collapsed ? "justify-center" : "justify-between"}`}
         >
           {!collapsed && (

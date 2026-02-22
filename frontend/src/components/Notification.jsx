@@ -1,8 +1,37 @@
 import { useState, useEffect } from "react";
 import { RxCross2 } from "react-icons/rx";
-import { RiTruckLine } from "react-icons/ri";
+import {
+  RiTruckLine,
+  RiLeafLine,
+  RiErrorWarningLine,
+  RiFlashlightLine,
+} from "react-icons/ri"; // Import the specific icons
 import { useLanguage } from "../contexts/LanguageContext";
 import api from "../api";
+
+// Configuration map for types
+const TYPE_CONFIG = {
+  info: {
+    icon: RiTruckLine,
+    bgClass: "bg-neutral-900 dark:bg-black",
+    iconColor: "text-blue-400",
+  },
+  success: {
+    icon: RiLeafLine,
+    bgClass: "bg-green-700 dark:bg-green-950",
+    iconColor: "text-green-300",
+  },
+  warning: {
+    icon: RiErrorWarningLine,
+    bgClass: "bg-orange-500 dark:bg-orange-950",
+    iconColor: "text-orange-200",
+  },
+  urgent: {
+    icon: RiFlashlightLine,
+    bgClass: "bg-red-600 dark:bg-red-950",
+    iconColor: "text-red-200",
+  },
+};
 
 const Notification = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -10,19 +39,14 @@ const Notification = () => {
   const { t, language } = useLanguage();
 
   useEffect(() => {
-    // Updated path to include /admin
     api
       .get("/admin/notification")
-      .then((res) => {
-        setBannerData(res.data);
-      })
+      .then((res) => setBannerData(res.data))
       .catch((err) => console.error("Failed to fetch notification", err));
   }, []);
 
-  // Don't render if it's explicitly turned off in DB, or if user closed it
   if (!isVisible || (bannerData && bannerData.is_active === 0)) return null;
 
-  // Fallback text while loading or if API fails
   const messageEn =
     bannerData?.text_en ||
     t("delivery_notice") ||
@@ -31,19 +55,20 @@ const Notification = () => {
     bannerData?.text_bn ||
     t("delivery_notice") ||
     "আমরা সমগ্র বাংলাদেশে ডেলিভারি দিচ্ছি!";
-
   const displayMessage = language === "bn" ? messageBn : messageEn;
 
   const isHighlighted = bannerData?.is_highlighted === 1;
+  const currentType = bannerData?.notif_type || "info";
+
+  // Get config based on type, fallback to 'info' if type is somehow invalid
+  const config = TYPE_CONFIG[currentType] || TYPE_CONFIG.info;
+  const IconComponent = config.icon;
 
   return (
     <div
-      className={`w-full relative z-[20] transition-all duration-300 border-b border-transparent dark:border-neutral-800 flex items-center
-        ${
-          isHighlighted
-            ? "animate-urgent text-white py-3.5 px-4 font-bold md:py-4"
-            : "bg-neutral-900 dark:bg-black text-white py-2.5 px-4"
-        }
+      className={`w-full text-white relative z-[20] transition-all duration-300 flex items-center
+        ${config.bgClass} 
+        ${isHighlighted ? "animate-pulse py-3.5 px-4 font-bold md:py-4" : "py-2.5 px-4"}
       `}
     >
       <div className="max-w-7xl mx-auto flex justify-center items-center gap-3 w-full">
@@ -52,14 +77,13 @@ const Notification = () => {
             ${isHighlighted ? "text-sm md:text-base" : "text-xs md:text-sm font-medium"}
           `}
         >
-          <RiTruckLine
-            className={`${isHighlighted ? "text-green-300 text-xl" : "text-green-400 text-lg"}`}
+          <IconComponent
+            className={`${config.iconColor} ${isHighlighted ? "text-xl" : "text-lg"}`}
           />
           <span>
             {displayMessage}
-            {/* Tagline hidden when highlighted to give the offer text more space */}
             {!isHighlighted && (
-              <span className="text-neutral-400 font-light ml-2 hidden sm:inline border-l border-neutral-700 pl-2">
+              <span className="text-neutral-300 font-light ml-2 hidden sm:inline border-l border-white/20 pl-2">
                 {t("brand_tagline") || "Taste the Purity of Nature."}
               </span>
             )}
@@ -69,7 +93,7 @@ const Notification = () => {
 
       <button
         onClick={() => setIsVisible(false)}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white transition-colors rounded-full hover:bg-white/10"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-1 text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/20"
         aria-label="Close notification"
       >
         <RxCross2 size={isHighlighted ? 20 : 16} />

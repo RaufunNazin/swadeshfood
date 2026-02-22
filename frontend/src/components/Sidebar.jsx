@@ -226,7 +226,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             {user?.role === 1 && (
               <NavItem
                 icon={RiDashboardLine}
-                label={t("dashboard")}
+                label={t("admin")}
                 onClick={() => handleNavigation("/admin/dashboard")}
               />
             )}

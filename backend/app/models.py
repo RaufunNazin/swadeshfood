@@ -69,3 +69,4 @@ class NotificationBanner(Base):
     text_bn = Column(String(500), nullable=False)
     is_active = Column(Integer, default=1, nullable=False)  # 1 for active, 0 for hidden
     is_highlighted = Column(Integer, default=0, nullable=False)
+    notif_type = Column(String(50), default="info", nullable=False)

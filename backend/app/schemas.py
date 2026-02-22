@@ -199,6 +199,7 @@ class NotificationUpdate(BaseModel):
     text_bn: str
     is_active: int
     is_highlighted: int  # Add this
+    notif_type: str
 
 
 class NotificationOut(NotificationUpdate):

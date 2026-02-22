@@ -350,6 +350,11 @@ const translations = {
     bangla_text_placeholder: "e.g. ৫০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!",
     save_changes: "Save Changes",
     highlight_banner: "Highlight Banner (Blink & Enlarge)",
+    notif_type: "Notification Type",
+    type_info: "General Info (Blue/Dark)",
+    type_success: "Success / New (Green)",
+    type_warning: "Warning / Delay (Orange)",
+    type_urgent: "Urgent / Flash Sale (Red)",
   },
 
   bn: {
@@ -694,6 +699,11 @@ const translations = {
     bangla_text_placeholder: "যেমন: ৫০ টাকার বেশি অর্ডারে ফ্রি ডেলিভারি!",
     save_changes: "সেভ করুন",
     highlight_banner: "ব্যানার হাইলাইট করুন (বড় ও ব্লিংক)",
+    notif_type: "নোটিফিকেশনের ধরন",
+    type_info: "সাধারণ তথ্য (ব্লু/ডার্ক)",
+    type_success: "সাফল্য / নতুন (সবুজ)",
+    type_warning: "সতর্কতা / বিলম্ব (কমলা)",
+    type_urgent: "জরুরী / ফ্ল্যাশ সেল (লাল)",
   },
 };
 
