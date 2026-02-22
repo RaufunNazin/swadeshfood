@@ -16,6 +16,7 @@ import os
 from typing import Optional, List
 from ..utils import random_string
 import magic
+import json
 
 router = APIRouter()
 
@@ -46,6 +47,96 @@ async def validate_file(file: UploadFile):
 # =========================================================
 # 1. SPECIFIC ROUTES (Must be defined FIRST)
 # =========================================================
+
+
+@router.get(
+    "/products/{product_id}/frequently-bought",
+    response_model=List[Product],
+    tags=["product"],
+)
+def get_frequently_bought(product_id: int, db: Session = Depends(get_db)):
+    # 1. Find all orders to analyze buying patterns
+    orders = db.query(models.Order).all()
+
+    related_counts = {}
+
+    # Scan through JSON order data
+    for order in orders:
+        try:
+            items = json.loads(order.products or "[]")
+            product_ids_in_order = [int(item.get("product")) for item in items]
+
+            # If the target product is in this order, count the other items!
+            if product_id in product_ids_in_order:
+                for pid in product_ids_in_order:
+                    if pid != product_id:
+                        related_counts[pid] = related_counts.get(pid, 0) + 1
+        except Exception:
+            continue
+
+    # 2. Get the top 2 most frequently bought items
+    top_ids = sorted(related_counts, key=related_counts.get, reverse=True)[:2]
+
+    # 3. Fetch from database
+    if top_ids:
+        return db.query(models.Product).filter(models.Product.id.in_(top_ids)).all()
+
+    # 4. FALLBACK: If no order history, just recommend 2 items from the same category
+    curr_product = (
+        db.query(models.Product).filter(models.Product.id == product_id).first()
+    )
+    if curr_product:
+        fallback_products = (
+            db.query(models.Product)
+            .filter(
+                models.Product.category == curr_product.category,
+                models.Product.id != product_id,
+            )
+            .limit(2)
+            .all()
+        )
+        return fallback_products
+
+    return []
+
+
+# Add this near your other GET routes
+@router.get("/products/user/buy-again", response_model=List[Product], tags=["product"])
+def get_buy_again_products(
+    limit: int = 8, user=Depends(oauth2.get_current_user), db: Session = Depends(get_db)
+):
+    # Fetch user's past orders
+    orders = (
+        db.query(models.Order)
+        .filter(models.Order.user_id == user.id)
+        .order_by(models.Order.created_at.desc())
+        .all()
+    )
+
+    if not orders:
+        return []
+
+    # Extract unique product IDs from the JSON string
+    product_ids = set()
+    for order in orders:
+        try:
+            items = json.loads(order.products or "[]")
+            for item in items:
+                product_ids.add(int(item.get("product")))
+        except Exception:
+            continue
+
+    if not product_ids:
+        return []
+
+    # Fetch and return the actual products
+    products = (
+        db.query(models.Product)
+        .filter(models.Product.id.in_(product_ids))
+        .limit(limit)
+        .all()
+    )
+    return products
 
 
 # --- Recipe Routes ---

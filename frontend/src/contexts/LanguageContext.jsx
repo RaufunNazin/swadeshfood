@@ -372,6 +372,11 @@ const translations = {
     cart_adjusted_stock: "Cart updated based on latest stock.",
     free: "FREE",
     qty_clamped_stock: "Quantity reduced to available stock: {{count}}",
+    buy_again: "Buy Again",
+    buy_again_subtitle: "Your past favorites, ready to reorder.",
+    frequently_bought: "Frequently Bought Together",
+    add_bundle: "Add all to cart",
+    this_item: "This item",
   },
 
   bn: {
@@ -737,6 +742,11 @@ const translations = {
     insufficient_stock: "চাহিদামতো পরিমাণ এখন আর উপলব্ধ নেই।",
     cart_adjusted_stock: "সর্বশেষ স্টক অনুযায়ী কার্ট আপডেট করা হয়েছে।",
     free: "ফ্রি",
+    buy_again: "আবার কিনুন",
+    buy_again_subtitle: "আপনার আগের পছন্দের পণ্যগুলো সহজেই রিনিউ করুন।",
+    frequently_bought: "একসাথে বেশি কেনা হয়",
+    add_bundle: "সবগুলো কার্টে যোগ করুন",
+    this_item: "এই আইটেমটি",
   },
 };
 

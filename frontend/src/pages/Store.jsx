@@ -33,6 +33,9 @@ const Store = () => {
   const filtersBodyRef = useRef(null);
   const [filtersMaxHeight, setFiltersMaxHeight] = useState("0px");
 
+  const [buyAgainProducts, setBuyAgainProducts] = useState([]);
+  const [buyAgainLoading, setBuyAgainLoading] = useState(true);
+
   const { theme } = useTheme();
   const { t } = useLanguage();
 
@@ -51,6 +54,19 @@ const Store = () => {
     },
     [setProducts],
   );
+
+  useEffect(() => {
+    // Attempt to fetch Buy Again products
+    api
+      .get("/products/user/buy-again")
+      .then((res) => {
+        setBuyAgainProducts(res.data);
+        setBuyAgainLoading(false);
+      })
+      .catch(() => {
+        setBuyAgainLoading(false); // Fail silently if logged out
+      });
+  }, []);
 
   useEffect(() => {
     const el = filtersBodyRef.current;
@@ -232,6 +248,43 @@ const Store = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          {/* --- BUY AGAIN SECTION --- */}
+          {(buyAgainLoading || buyAgainProducts.length > 0) && (
+            <div className="mb-12 border-b border-neutral-100 dark:border-neutral-800 pb-10">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
+                  {t("buy_again") || "Buy Again"}
+                  <span className="text-emerald-500 text-lg">↻</span>
+                </h2>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
+                  {t("buy_again_subtitle") ||
+                    "Your past favorites, ready to reorder."}
+                </p>
+              </div>
+
+              <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
+                {buyAgainLoading
+                  ? // Show 4 skeletons in a row while loading
+                    [...Array(4)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
+                      >
+                        <ItemCardSkeleton />
+                      </div>
+                    ))
+                  : // Show actual products once loaded
+                    buyAgainProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
+                      >
+                        <ItemCard product={product} />
+                      </div>
+                    ))}
+              </div>
+            </div>
+          )}
           {/* Filters Accordion */}
           <div className="mb-8 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm transition-colors overflow-hidden">
             {/* Header Button */}

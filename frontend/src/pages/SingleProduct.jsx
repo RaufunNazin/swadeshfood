@@ -3,20 +3,29 @@ import Footer from "../components/Footer";
 import api from "../api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
-import { RiShoppingBag3Line, RiAddLine, RiSubtractLine } from "react-icons/ri";
+import {
+  RiShoppingBag3Line,
+  RiAddLine,
+  RiSubtractLine,
+  RiCheckLine,
+} from "react-icons/ri"; // Add RiCheckLine
 import { useLanguage } from "../contexts/LanguageContext";
 import { useCart } from "../contexts/CartContext";
 
 const SingleProduct = () => {
+  const navigate = useNavigate();
+
   const { productId } = useParams();
 
   const [product, setProduct] = useState({});
   const [image, setImage] = useState("");
   const [allProducts, setAllProducts] = useState([]);
   const [sizes, setSizes] = useState([]);
+
+  const [fbtProducts, setFbtProducts] = useState([]);
 
   // 1. Renamed to localQty to prevent confusion with Context functions
   const [localQty, setLocalQty] = useState(1);
@@ -65,6 +74,12 @@ const SingleProduct = () => {
         setImage(res.data.image1);
         setLocalQty(1);
         getProductsByName(res.data.name);
+
+        // Fetch Frequently Bought Together items
+        api
+          .get(`/products/${productId}/frequently-bought`)
+          .then((fbtRes) => setFbtProducts(fbtRes.data))
+          .catch(() => {});
       })
       .catch((err) => console.log(err));
   }, [productId]);
@@ -115,6 +130,27 @@ const SingleProduct = () => {
     if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
     addedTimerRef.current = setTimeout(() => setAddState("idle"), 2000);
   };
+
+  const handleAddBundleToCart = () => {
+    // Add current product (qty 1)
+    addToCart(product, 1);
+
+    // Add all FBT products (qty 1)
+    fbtProducts.forEach((item) => {
+      if (item.stock > 0) {
+        addToCart(item, 1);
+      }
+    });
+
+    toast.success(t("added_to_cart") || "Bundle added to cart!", {
+      autoClose: 1500,
+    });
+  };
+
+  // Calculate bundle total price
+  const bundleTotal =
+    (product.price || 0) +
+    fbtProducts.reduce((acc, item) => acc + (item.price || 0), 0);
 
   const maxQty =
     typeof product.stock === "number" && product.stock > 0
@@ -295,6 +331,78 @@ const SingleProduct = () => {
                 {t("delivery_time") || "2–3 days within Dhaka"}
               </div>
             </div>
+            {/* --- FREQUENTLY BOUGHT TOGETHER --- */}
+            {fbtProducts.length > 0 && (
+              <div className="mt-10 p-6 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+                <h3 className="font-bold text-neutral-900 dark:text-white mb-4">
+                  {t("frequently_bought")}
+                </h3>
+
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                  {/* Current Item */}
+                  <div className="relative w-16 h-16 rounded-xl border-2 border-green-500 overflow-hidden bg-white">
+                    <img
+                      src={product.image1}
+                      className="w-full h-full object-cover"
+                      alt=""
+                    />
+                  </div>
+                  <RiAddLine className="text-neutral-400" />
+
+                  {/* FBT Items */}
+                  {fbtProducts.map((item, index) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <div
+                        className="w-16 h-16 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden bg-white cursor-pointer hover:border-green-400 transition-colors"
+                        onClick={() => navigate(`/product/${item.id}`)}
+                      >
+                        <img
+                          src={item.image1}
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
+                      </div>
+                      {index < fbtProducts.length - 1 && (
+                        <RiAddLine className="text-neutral-400" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2 mb-4 text-sm text-neutral-600 dark:text-neutral-300">
+                  <div className="flex items-center gap-2">
+                    <RiCheckLine className="text-green-500" />
+                    <span className="font-semibold text-neutral-900 dark:text-white">
+                      {t("this_item")}:
+                    </span>{" "}
+                    {product.name}
+                  </div>
+                  {fbtProducts.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <RiCheckLine className="text-green-500" />
+                      <span>
+                        {item.name}{" "}
+                        <span className="font-semibold text-neutral-900 dark:text-white pl-1">
+                          ৳{item.price}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                  <div className="font-bold text-lg text-neutral-900 dark:text-white">
+                    ৳{bundleTotal.toFixed(2)}
+                  </div>
+                  <button
+                    onClick={handleAddBundleToCart}
+                    className="px-6 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold rounded-full hover:scale-105 transition-transform text-sm"
+                  >
+                    {t("add_bundle")}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -313,9 +421,11 @@ const SingleProduct = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {allProducts.map((p) => (
-              <ItemCard key={p.id} product={p} />
-            ))}
+            {allProducts
+              .filter((p) => p.id !== product.id) // <--- THIS EXCLUDES THE CURRENT ITEM
+              .map((p) => (
+                <ItemCard key={p.id} product={p} />
+              ))}
           </div>
         </div>
       </main>

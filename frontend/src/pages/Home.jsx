@@ -17,6 +17,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
 
+  const [buyAgainProducts, setBuyAgainProducts] = useState([]);
+  const [buyAgainLoading, setBuyAgainLoading] = useState(true);
+
   // Language Context
   const { t } = useLanguage();
 
@@ -38,6 +41,18 @@ const Home = () => {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/products/user/buy-again")
+      .then((res) => {
+        setBuyAgainProducts(res.data);
+        setBuyAgainLoading(false); // Turn off loading on success
+      })
+      .catch(() => {
+        setBuyAgainLoading(false); // Turn off loading if logged out/error
+      });
   }, []);
 
   return (
@@ -89,6 +104,47 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* --- BUY AGAIN (Logged In Users Only) --- */}
+      {(buyAgainLoading || buyAgainProducts.length > 0) && (
+        <section className="py-12 bg-emerald-50/30 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/20 transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
+                {t("buy_again") || "Buy Again"}
+                <span className="text-emerald-500 text-lg">↻</span>
+              </h2>
+              <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
+                {t("buy_again_subtitle") ||
+                  "Your past favorites, ready to reorder."}
+              </p>
+            </div>
+
+            {/* Horizontal Scroll Container */}
+            <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
+              {buyAgainLoading
+                ? // Show 4 skeletons side-by-side while loading
+                  [...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
+                    >
+                      <ItemCardSkeleton />
+                    </div>
+                  ))
+                : // Show actual products once data arrives
+                  buyAgainProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
+                    >
+                      <ItemCard product={product} />
+                    </div>
+                  ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* --- CATEGORIES --- */}
       <div className="py-20 bg-white dark:bg-neutral-900 transition-colors">
