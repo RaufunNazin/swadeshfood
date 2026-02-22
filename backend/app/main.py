@@ -36,6 +36,7 @@ app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
 
 # In your main FastAPI file
 origins = [
+    "http://localhost:5173",
     "https://swadeshfood.app",
     "https://www.swadeshfood.app",
 ]
