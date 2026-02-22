@@ -355,6 +355,12 @@ const translations = {
     type_success: "Success / New (Green)",
     type_warning: "Warning / Delay (Orange)",
     type_urgent: "Urgent / Flash Sale (Red)",
+    delivery_settings: "Delivery Settings",
+    delivery_charge: "Standard Delivery Charge (৳)",
+    free_delivery_threshold: "Free Delivery Threshold (৳)",
+    free_delivery_unlocked: "Free Delivery Unlocked! 🎉",
+    add_more_for_free_delivery: "Add {amount} more for FREE Delivery!",
+    almost_there: "Almost there! 🚀",
   },
 
   bn: {
@@ -704,6 +710,12 @@ const translations = {
     type_success: "সাফল্য / নতুন (সবুজ)",
     type_warning: "সতর্কতা / বিলম্ব (কমলা)",
     type_urgent: "জরুরী / ফ্ল্যাশ সেল (লাল)",
+    delivery_settings: "ডেলিভারি সেটিংস",
+    delivery_charge: "স্ট্যান্ডার্ড ডেলিভারি চার্জ (৳)",
+    free_delivery_threshold: "ফ্রি ডেলিভারি থ্রেশহোল্ড (৳)",
+    free_delivery_unlocked: "ফ্রি ডেলিভারি আনলক হয়েছে! 🎉",
+    add_more_for_free_delivery: "ফ্রি ডেলিভারির জন্য আরও {amount} যোগ করুন!",
+    almost_there: "আর একটু বাকি! 🚀",
   },
 };
 

@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext"; // Added
+import FreeDeliveryBar from "../components/FreeDeliveryBar";
 
 const InputField = ({
   icon: Icon,
@@ -68,6 +69,11 @@ const Checkout = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
+  const [storeSettings, setStoreSettings] = useState({
+    delivery_charge: 50,
+    free_delivery_threshold: 500,
+  });
+
   const getProfile = () => {
     api
       .get("/me")
@@ -109,6 +115,11 @@ const Checkout = () => {
     if (localCart.length > 0) {
       validatePrices();
     }
+
+    api
+      .get("/admin/store-settings")
+      .then((res) => setStoreSettings(res.data))
+      .catch((err) => console.error(err));
   }, [state]);
 
   const PlaceOrder = () => {
@@ -136,7 +147,7 @@ const Checkout = () => {
       products: JSON.stringify(productsData),
       paid: 0,
       status: "new",
-      method: 1, 
+      method: 1,
     };
 
     api
@@ -146,7 +157,7 @@ const Checkout = () => {
           toast.success(t("order_placed"));
           localStorage.setItem("cart", JSON.stringify([]));
           setCart([]);
-          navigate("/"); 
+          navigate("/");
         }
       })
       .catch((err) => {
@@ -172,7 +183,10 @@ const Checkout = () => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
-  const shipping = 50;
+  const shipping =
+    subtotal >= storeSettings.free_delivery_threshold
+      ? 0
+      : storeSettings.delivery_charge;
   const total = subtotal + shipping;
 
   return (
@@ -238,7 +252,7 @@ const Checkout = () => {
                     </div>
                     <textarea
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-24 resize-none"
-                      placeholder={(t("full_address")) + "*"}
+                      placeholder={t("full_address") + "*"}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                     />
@@ -262,7 +276,10 @@ const Checkout = () => {
                 </h2>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 p-4 border border-green-500 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10 rounded-xl cursor-pointer">
-                    <Radio checked={true} className="text-green-600 dark:text-green-500" />
+                    <Radio
+                      checked={true}
+                      className="text-green-600 dark:text-green-500"
+                    />
                     <span className="font-semibold text-neutral-800 dark:text-neutral-100">
                       {t("cash_on_delivery")}
                     </span>
@@ -283,6 +300,8 @@ const Checkout = () => {
                 <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">
                   {t("your_order")}
                 </h2>
+
+                <FreeDeliveryBar subtotal={subtotal} />
 
                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin">
                   {cart.map((item) => (
@@ -317,15 +336,27 @@ const Checkout = () => {
                 <div className="border-t border-neutral-100 dark:border-neutral-700 pt-4 space-y-3">
                   <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
                     <span>{t("subtotal")}</span>
-                    <span className="dark:text-neutral-200">৳ {subtotal.toFixed(2)}</span>
+                    <span className="dark:text-neutral-200">
+                      ৳ {subtotal.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
                     <span>{t("shipping_cost")}</span>
-                    <span className="dark:text-neutral-200">৳ {shipping.toFixed(2)}</span>
+                    <span className="dark:text-neutral-200">
+                      {shipping === 0 ? (
+                        <span className="text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">
+                          {t("free") || "FREE"}
+                        </span>
+                      ) : (
+                        `৳ ${shipping.toFixed(2)}`
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between text-xl font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-700 mt-2">
                     <span>{t("total")}</span>
-                    <span className="text-green-600 dark:text-green-400">৳ {total.toFixed(2)}</span>
+                    <span className="text-green-600 dark:text-green-400">
+                      ৳ {total.toFixed(2)}
+                    </span>
                   </div>
                 </div>
 
@@ -352,7 +383,10 @@ const Checkout = () => {
           onOk={handleLogin}
           okText={t("login_continue")}
           onCancel={() => setOpenLogin(false)}
-          okButtonProps={{ className: "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500" }}
+          okButtonProps={{
+            className:
+              "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500",
+          }}
           centered
         >
           <p className="text-neutral-500 dark:text-neutral-400 text-center mb-6">

@@ -70,3 +70,10 @@ class NotificationBanner(Base):
     is_active = Column(Integer, default=1, nullable=False)  # 1 for active, 0 for hidden
     is_highlighted = Column(Integer, default=0, nullable=False)
     notif_type = Column(String(50), default="info", nullable=False)
+
+
+class StoreSetting(Base):
+    __tablename__ = "store_settings"
+    id = Column(Integer, primary_key=True, nullable=False)
+    delivery_charge = Column(Float, default=50.0, nullable=False)
+    free_delivery_threshold = Column(Float, default=500.0, nullable=False)

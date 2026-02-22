@@ -12,6 +12,8 @@ from ..schemas import (
     Order,
     NotificationOut,
     NotificationUpdate,
+    StoreSettingOut,
+    StoreSettingUpdate,
 )
 from typing import List, Dict, Any
 from datetime import datetime
@@ -139,6 +141,41 @@ def update_notification(
     db.commit()
     db.refresh(notif)
     return notif
+
+
+@router.get("/store-settings", response_model=StoreSettingOut, tags=["settings"])
+def get_store_settings(db: Session = Depends(get_db)):
+    settings = db.query(models.StoreSetting).first()
+    if not settings:
+        # Create default settings if they don't exist
+        settings = models.StoreSetting(
+            delivery_charge=50.0, free_delivery_threshold=500.0
+        )
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+@router.put("/store-settings", response_model=StoreSettingOut, tags=["settings"])
+def update_store_settings(
+    settings_update: StoreSettingUpdate,
+    db: Session = Depends(get_db),
+    user=Depends(oauth2.get_current_user),
+):
+    check_authorization(user)
+    settings = db.query(models.StoreSetting).first()
+
+    if not settings:
+        settings = models.StoreSetting(**settings_update.dict())
+        db.add(settings)
+    else:
+        settings.delivery_charge = settings_update.delivery_charge
+        settings.free_delivery_threshold = settings_update.free_delivery_threshold
+
+    db.commit()
+    db.refresh(settings)
+    return settings
 
 
 # 1. Top Selling Products

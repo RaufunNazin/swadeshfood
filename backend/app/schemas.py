@@ -207,3 +207,15 @@ class NotificationOut(NotificationUpdate):
 
     class Config:
         from_attributes = True
+
+
+class StoreSettingUpdate(BaseModel):
+    delivery_charge: float
+    free_delivery_threshold: float
+
+
+class StoreSettingOut(StoreSettingUpdate):
+    id: int
+
+    class Config:
+        from_attributes = True

@@ -23,6 +23,9 @@ const AdminSettings = () => {
   const { theme } = useTheme();
   const { t } = useLanguage();
 
+  const [storeForm] = Form.useForm();
+  const [savingStore, setSavingStore] = useState(false);
+
   useEffect(() => {
     fetchSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,6 +48,13 @@ const AdminSettings = () => {
         toast.error(t("load_settings_failed") || "Failed to load settings");
         setLoading(false);
       });
+
+    api.get("/admin/store-settings").then((res) => {
+      storeForm.setFieldsValue({
+        delivery_charge: res.data.delivery_charge,
+        free_delivery_threshold: res.data.free_delivery_threshold,
+      });
+    });
   };
 
   const handleSave = (values) => {
@@ -71,6 +81,19 @@ const AdminSettings = () => {
         );
         setSaving(false);
       });
+  };
+
+  const handleSaveStoreSettings = (values) => {
+    setSavingStore(true);
+    api
+      .put("/admin/store-settings", values)
+      .then(() =>
+        toast.success(t("settings_updated") || "Store settings updated!"),
+      )
+      .catch(() =>
+        toast.error(t("settings_update_failed") || "Failed to update settings"),
+      )
+      .finally(() => setSavingStore(false));
   };
 
   return (
@@ -189,6 +212,55 @@ const AdminSettings = () => {
                 </Form.Item>
               </Form>
             )}
+          </Card>
+          <Card
+            title={t("delivery_settings") || "Delivery Settings"}
+            className="shadow-sm rounded-xl border-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 mt-8"
+          >
+            <Form
+              form={storeForm}
+              layout="vertical"
+              onFinish={handleSaveStoreSettings}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Form.Item
+                  name="delivery_charge"
+                  label={
+                    <span className="dark:text-neutral-300">
+                      {t("delivery_charge") || "Standard Delivery Charge (৳)"}
+                    </span>
+                  }
+                  rules={[{ required: true }]}
+                >
+                  <Input type="number" size="large" />
+                </Form.Item>
+
+                <Form.Item
+                  name="free_delivery_threshold"
+                  label={
+                    <span className="dark:text-neutral-300">
+                      {t("free_delivery_threshold") ||
+                        "Free Delivery Threshold (৳)"}
+                    </span>
+                  }
+                  rules={[{ required: true }]}
+                >
+                  <Input type="number" size="large" />
+                </Form.Item>
+              </div>
+
+              <Form.Item className="mb-0 mt-4">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={savingStore}
+                  size="large"
+                  className="bg-green-600 hover:bg-green-700 border-none px-8"
+                >
+                  {t("save_changes") || "Save Changes"}
+                </Button>
+              </Form.Item>
+            </Form>
           </Card>
         </div>
       </AdminLayout>

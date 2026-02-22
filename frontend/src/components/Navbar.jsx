@@ -20,7 +20,8 @@ import {
 import PropTypes from "prop-types";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import debounce from "lodash.debounce"; // Ensure you have lodash.debounce or use custom
+import debounce from "lodash.debounce";
+import FreeDeliveryBar from "./FreeDeliveryBar";
 
 const Navbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -32,6 +33,12 @@ const Navbar = ({ onMenuClick }) => {
   const [options, setOptions] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [searchValue, setSearchValue] = useState(null);
+
+  const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+  const quickSubtotal = localCart.reduce(
+    (acc, item) => acc + (item.price || 0) * item.quantity,
+    0,
+  );
 
   // Contexts
   const { theme, toggleTheme } = useTheme();
@@ -157,50 +164,62 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <div className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-100 dark:border-neutral-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+      <FreeDeliveryBar subtotal={quickSubtotal} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative flex items-center justify-between h-20"> {/* Changed to justify-between */}
-          
+        <div className="relative flex items-center justify-between h-20">
+          {" "}
+          {/* Changed to justify-between */}
           {/* --- LEFT SIDE (Mobile Logo / Desktop Links) --- */}
-          
           {/* Logo (Mobile & Desktop) */}
           <div
             className="flex-shrink-0 flex items-center cursor-pointer"
             onClick={() => navigate("/")}
           >
-            <img 
-              src="/logo.png" 
-              alt="Swadesh Food" 
-              className="h-8 md:h-10 w-auto object-contain hover:opacity-90 transition-opacity" 
+            <img
+              src="/logo.png"
+              alt="Swadesh Food"
+              className="h-8 md:h-10 w-auto object-contain hover:opacity-90 transition-opacity"
             />
             {/* Optional: Add Brand Name text for mobile if desired, or leave just logo */}
           </div>
-
           {/* Desktop Nav Links (Hidden on Mobile) */}
           <div className="hidden md:flex space-x-10 items-center ml-8 mr-auto">
             <div onClick={() => navigate("/")} className={navLinkClass("/")}>
               {t("home")} <Underline path="/" />
             </div>
-            <div onClick={() => navigate("/store")} className={navLinkClass("/store")}>
+            <div
+              onClick={() => navigate("/store")}
+              className={navLinkClass("/store")}
+            >
               {t("store")} <Underline path="/store" />
             </div>
-            <div onClick={() => navigate("/new")} className={navLinkClass("/new")}>
+            <div
+              onClick={() => navigate("/new")}
+              className={navLinkClass("/new")}
+            >
               {t("new")} <Underline path="/new" />
             </div>
-            <div onClick={() => navigate("/connect")} className={navLinkClass("/connect")}>
+            <div
+              onClick={() => navigate("/connect")}
+              className={navLinkClass("/connect")}
+            >
               {t("connect")} <Underline path="/connect" />
             </div>
             {user.role === 1 && (
-              <div onClick={() => navigate("/admin/dashboard")} className={navLinkClass("/admin")}>
+              <div
+                onClick={() => navigate("/admin/dashboard")}
+                className={navLinkClass("/admin")}
+              >
                 {t("admin")} <Underline path="/admin" />
               </div>
             )}
           </div>
-
           {/* --- RIGHT SIDE (Actions, Cart, Burger Menu) --- */}
           <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
             {/* Search (Desktop Only) */}
             <div className="hidden lg:block w-64 relative">
-              <ConfigProvider theme={{
+              <ConfigProvider
+                theme={{
                   algorithm:
                     theme === "dark"
                       ? antdTheme.darkAlgorithm
@@ -208,13 +227,16 @@ const Navbar = ({ onMenuClick }) => {
                   token: {
                     borderRadius: 20,
                   },
-                }}>
+                }}
+              >
                 <Select
                   showSearch
                   placeholder={t("search_placeholder")}
                   optionLabelProp="searchValue"
                   defaultActiveFirstOption={false}
-                  suffixIcon={<RiSearchLine className="text-neutral-400 text-lg" />}
+                  suffixIcon={
+                    <RiSearchLine className="text-neutral-400 text-lg" />
+                  }
                   filterOption={false}
                   onSearch={debounceFetcher}
                   onChange={handleSelect}
@@ -231,16 +253,19 @@ const Navbar = ({ onMenuClick }) => {
 
             {/* Controls */}
             <div className="flex items-center space-x-1 sm:space-x-3 md:border-l md:pl-5 border-neutral-200 dark:border-neutral-700 h-8">
-              
               {/* Language Switcher (Hidden on small mobile to save space, available in sidebar) */}
               <button
                 onClick={() => switchLanguage(language === "en" ? "bn" : "en")}
                 className="hidden sm:flex text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-xs font-bold flex-col items-center leading-none"
                 title="Switch Language"
               >
-                <span className={language === "en" ? "text-green-600" : ""}>EN</span>
+                <span className={language === "en" ? "text-green-600" : ""}>
+                  EN
+                </span>
                 <span className="w-full h-[1px] bg-neutral-300 dark:bg-neutral-600 my-[1px]"></span>
-                <span className={language === "bn" ? "text-green-600" : ""}>BN</span>
+                <span className={language === "bn" ? "text-green-600" : ""}>
+                  BN
+                </span>
               </button>
 
               {/* Theme Toggle (Hidden on small mobile, available in sidebar) */}
@@ -248,18 +273,30 @@ const Navbar = ({ onMenuClick }) => {
                 onClick={toggleTheme}
                 className="hidden sm:block text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                {theme === "light" ? <RiMoonLine className="text-xl" /> : <RiSunLine className="text-xl" />}
+                {theme === "light" ? (
+                  <RiMoonLine className="text-xl" />
+                ) : (
+                  <RiSunLine className="text-xl" />
+                )}
               </button>
 
               {/* User Icon (Desktop Only) */}
               <button
-                onClick={() => navigate(isLoggedIn ? `/profile/${user.id}` : "/login")}
+                onClick={() =>
+                  navigate(isLoggedIn ? `/profile/${user.id}` : "/login")
+                }
                 className="hidden md:block text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800"
               >
                 {isLoggedIn ? (
-                  <Tooltip title={t("profile")}> <FiUser className="text-2xl" /> </Tooltip>
+                  <Tooltip title={t("profile")}>
+                    {" "}
+                    <FiUser className="text-2xl" />{" "}
+                  </Tooltip>
                 ) : (
-                  <Tooltip title={t("login")}> <FiLogIn className="text-2xl" /> </Tooltip>
+                  <Tooltip title={t("login")}>
+                    {" "}
+                    <FiLogIn className="text-2xl" />{" "}
+                  </Tooltip>
                 )}
               </button>
 
@@ -285,7 +322,6 @@ const Navbar = ({ onMenuClick }) => {
               >
                 <RiMenu4Line className="text-2xl sm:text-3xl" />
               </button>
-
             </div>
           </div>
         </div>
