@@ -2,7 +2,7 @@ from fastapi import Depends, APIRouter, Request, Response
 from fastapi.exceptions import HTTPException
 from ..database import get_db
 from sqlalchemy.orm import Session
-from ..schemas import User, ResponseUser, Token
+from ..schemas import ResponseUser, UserCreate
 from passlib.context import CryptContext
 from .. import models, oauth2
 from ..oauth2 import check_authorization
@@ -19,9 +19,12 @@ def home():
 
 @router.post("/register", status_code=201, tags=["user"])
 @limiter.limit("5/minute")
-# Add response: Response to the parameters below
+# 2. CHANGE THIS LINE: Change `user: User` to `user: UserCreate` 👇
 def create_user(
-    request: Request, response: Response, user: User, db: Session = Depends(get_db)
+    request: Request,
+    response: Response,
+    user: UserCreate,
+    db: Session = Depends(get_db),
 ):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -37,6 +40,8 @@ def create_user(
 
     hashed_pass = pwd_context.hash(user.password)
     user_data = user.dict()
+
+    # Backend securely hardcodes the role to 2 (Customer)
     user_data["role"] = 2
     user_data["password"] = hashed_pass
 
@@ -45,21 +50,21 @@ def create_user(
     db.commit()
     db.refresh(new_user)
 
+    # Generate the access token
     access_token = oauth2.create_access_token(
         {"id": new_user.id, "email": new_user.email}
     )
 
-    # --- ADD THIS BLOCK: Set the cookie so the user is instantly logged in! ---
+    # Set the cookie so the user is instantly logged in
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
-        httponly=True,  # JavaScript cannot read this
-        secure=True,  # Only sends over HTTPS
-        samesite="Lax",  # CSRF protection
-        max_age=60 * 60,  # 1 Hour
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+        max_age=60 * 60,
     )
 
-    # Return a success message instead of the raw token
     return {
         "message": "Registration successful",
         "user": {"username": new_user.username, "role": new_user.role},
