@@ -22,6 +22,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import debounce from "lodash.debounce";
 import FreeDeliveryBar from "./FreeDeliveryBar";
+import { useCart } from "../contexts/CartContext";
 
 const Navbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -29,16 +30,12 @@ const Navbar = ({ onMenuClick }) => {
   const [user, setUser] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const { cartCount, subtotal } = useCart();
+
   // --- Search States ---
   const [options, setOptions] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [searchValue, setSearchValue] = useState(null);
-
-  const localCart = JSON.parse(localStorage.getItem("cart")) || [];
-  const quickSubtotal = localCart.reduce(
-    (acc, item) => acc + (item.price || 0) * item.quantity,
-    0,
-  );
 
   // Contexts
   const { theme, toggleTheme } = useTheme();
@@ -164,7 +161,7 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <div className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-neutral-100 dark:border-neutral-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
-      <FreeDeliveryBar subtotal={quickSubtotal} />
+      <FreeDeliveryBar subtotal={subtotal} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-20">
           {" "}
@@ -302,14 +299,15 @@ const Navbar = ({ onMenuClick }) => {
 
               {/* Cart (Visible everywhere) */}
               <button
+                id="global-cart-icon"
                 onClick={() => navigate("/cart")}
                 className="relative text-neutral-600 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 sm:p-2 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800"
               >
                 <Tooltip title="Cart">
                   <RiShoppingCartLine className="text-2xl sm:text-3xl" />
-                  {JSON.parse(localStorage.getItem("cart"))?.length > 0 && (
+                  {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] sm:text-xs font-bold h-4 w-4 sm:h-5 sm:w-5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900">
-                      {JSON.parse(localStorage.getItem("cart")).length}
+                      {cartCount}
                     </span>
                   )}
                 </Tooltip>

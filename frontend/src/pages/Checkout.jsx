@@ -14,9 +14,10 @@ import {
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import { useTheme } from "../contexts/ThemeContext";
-import { useLanguage } from "../contexts/LanguageContext"; // Added
+import { useLanguage } from "../contexts/LanguageContext";
 import FreeDeliveryBar from "../components/FreeDeliveryBar";
 import { CheckoutSkeleton } from "../components/Skeletons";
+import { useStoreSettings } from "../contexts/StoreSettingsContext";
 
 const InputField = ({
   icon: Icon,
@@ -54,11 +55,13 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState({});
   const [cart, setCart] = useState([]);
-
-  const [loading, setLoading] = useState(true); // <-- Add this
+  const [loading, setLoading] = useState(true);
 
   const { theme } = useTheme();
-  const { t } = useLanguage(); // Added
+  const { t } = useLanguage();
+
+  // ✅ store settings from context
+  const { storeSettings } = useStoreSettings();
 
   // Form States
   const [name, setName] = useState("");
@@ -71,11 +74,6 @@ const Checkout = () => {
   const [openLogin, setOpenLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-
-  const [storeSettings, setStoreSettings] = useState({
-    delivery_charge: 50,
-    free_delivery_threshold: 500,
-  });
 
   const getProfile = () => {
     api
@@ -113,20 +111,15 @@ const Checkout = () => {
       } catch (err) {
         console.error("Price validation failed", err);
       } finally {
-        setLoading(false); // <-- Turn off loading here
+        setLoading(false);
       }
     };
 
     if (localCart.length > 0) {
       validatePrices();
     } else {
-      setLoading(false); // Turn off if cart is empty
+      setLoading(false);
     }
-
-    api
-      .get("/admin/store-settings")
-      .then((res) => setStoreSettings(res.data))
-      .catch((err) => console.error(err));
   }, [state]);
 
   const PlaceOrder = () => {
@@ -190,10 +183,12 @@ const Checkout = () => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
+
   const shipping =
     subtotal >= storeSettings.free_delivery_threshold
       ? 0
       : storeSettings.delivery_charge;
+
   const total = subtotal + shipping;
 
   return (
@@ -217,6 +212,7 @@ const Checkout = () => {
               {t("complete_purchase")}
             </p>
           </div>
+
           {loading ? (
             <CheckoutSkeleton />
           ) : (
@@ -303,7 +299,7 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* --- Right Column: Summary --- */}
+              {/* Summary */}
               <div className="lg:pl-8">
                 <div className="bg-white dark:bg-neutral-800 p-8 rounded-3xl shadow-sm border border-neutral-100 dark:border-neutral-700 sticky top-24">
                   <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-6">
@@ -349,6 +345,7 @@ const Checkout = () => {
                         ৳ {subtotal.toFixed(2)}
                       </span>
                     </div>
+
                     <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
                       <span>{t("shipping_cost")}</span>
                       <span className="dark:text-neutral-200">
@@ -361,6 +358,7 @@ const Checkout = () => {
                         )}
                       </span>
                     </div>
+
                     <div className="flex justify-between text-xl font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-700 mt-2">
                       <span>{t("total")}</span>
                       <span className="text-green-600 dark:text-green-400">

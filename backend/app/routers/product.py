@@ -212,11 +212,11 @@ def search_suggestions(query: str, db: Session = Depends(get_db)):
     # Select all columns required by the updated schema
     results = (
         db.query(
-            models.Product.id, 
-            models.Product.name, 
-            models.Product.image1, 
-            models.Product.price, 
-            models.Product.stock
+            models.Product.id,
+            models.Product.name,
+            models.Product.image1,
+            models.Product.price,
+            models.Product.stock,
         )
         .filter(models.Product.name.ilike(f"%{query}%"))
         .limit(10)
@@ -229,49 +229,41 @@ def search_suggestions(query: str, db: Session = Depends(get_db)):
 @router.post("/products", status_code=201, response_model=Product, tags=["product"])
 async def create_product(
     request: Request,
-    image: UploadFile = File(...),
-    name: str = Form(...),
-    description: str = Form(...),
-    price: float = Form(...),
-    category: str = Form(...),
-    stock: int = Form(...),
-    size: str = Form(...),
-    new: int = Form(...),
+    image: UploadFile = File(...),  # Must match key "image"
+    name: str = Form(...),  # Must match key "name"
+    description: str = Form(...),  # Must match key "description"
+    price: float = Form(...),  # Must match key "price"
+    category: str = Form(...),  # Must match key "category"
+    stock: int = Form(...),  # Must match key "stock"
+    size: str = Form(...),  # Must match key "size"
+    new: int = Form(...),  # Must match key "new"
     user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
     check_authorization(user)
 
-    # --- FIX: Validate File ---
+    # Validate file type and size
     file_ext = await validate_file(image)
-
-    # Read file content to verify size
     content = await image.read()
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File too large (Max 1MB)")
-
-    # Reset file cursor after reading so we can save it
     await image.seek(0)
 
+    # Save file
     base_url = str(request.base_url)
     photo_name = random_string()
-
-    # ... (Directory setup code remains the same) ...
     current_directory = os.path.dirname(os.path.realpath(__file__))
-    folder_path = os.path.join(current_directory, "..", "..", "static")
+    folder_path = os.path.abspath(os.path.join(current_directory, "..", "..", "static"))
     os.makedirs(folder_path, exist_ok=True)
 
     file_name = f"{photo_name}.{file_ext}"
     file_location = os.path.join(folder_path, file_name)
 
-    # Write the content we already read
-    with open(file_location, "wb") as file_object:
-        file_object.write(content)
-
-    image_url = f"{base_url}static/{file_name}"
+    with open(file_location, "wb") as f:
+        f.write(content)
 
     db_product = models.Product(
-        image1=image_url,
+        image1=f"{base_url}static/{file_name}",
         name=name,
         description=description,
         price=price,

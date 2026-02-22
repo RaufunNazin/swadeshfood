@@ -4,18 +4,44 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { RiAddLine, RiEyeLine } from "react-icons/ri";
 import { useLanguage } from "../contexts/LanguageContext";
+import { flyToCartAnimation } from "../utils/animations";
+import { useCart } from "../contexts/CartContext";
 
 const ItemCard = ({ product }) => {
+  const { addToCart } = useCart();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
+  // 2. Accept the event 'e' here
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    const productWithQuantity = { ...product, quantity: 1 };
+
+    // --- Logic for updating local storage ---
     const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const updatedCartItems = [...currentCart, productWithQuantity];
-    localStorage.setItem("cart", JSON.stringify(updatedCartItems));
-    toast.success(t("added_to_cart") || "Added to cart");
+
+    // Check if product already exists to avoid duplicates in the array
+    const existingItemIndex = currentCart.findIndex(
+      (item) => item.id === product.id,
+    );
+
+    if (existingItemIndex > -1) {
+      currentCart[existingItemIndex].quantity += 1;
+    } else {
+      currentCart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(currentCart));
+
+    // --- 3. Trigger the Animation ---
+    // Pass the event and the product image
+    flyToCartAnimation(e, product.image1);
+
+    setTimeout(() => {
+      addToCart(product);
+    }, 800);
+
+    // Optional: Keep the toast or remove it since the animation provides feedback
+    toast.success(t("added_to_cart") || "Added to cart", { autoClose: 1000 });
   };
 
   return (
@@ -75,7 +101,7 @@ const ItemCard = ({ product }) => {
           {/* Quick Add Button */}
           {!product.price_range && (
             <button
-              onClick={handleAddToCart}
+              onClick={handleAddToCart} // Now correctly triggers animation
               className="w-10 h-10 rounded-full bg-neutral-900 dark:bg-green-600 text-white flex items-center justify-center shadow-md hover:bg-emerald-600 dark:hover:bg-green-700 hover:shadow-emerald-200 dark:hover:shadow-none hover:scale-105 transition-all active:scale-95"
               title={t("add_to_cart") || "Add to Cart"}
             >

@@ -107,56 +107,61 @@ const AdminProducts = () => {
 
   // 2. Create / Edit Product Logic
   const handleSubmit = async (values) => {
-    const formData = new FormData();
-
-    // 1. Append standard fields
-    formData.append("name", values.name);
-    formData.append("price", values.price);
-    formData.append("stock", values.stock);
-    formData.append("category", values.category);
-    formData.append("size", values.size || "");
-    formData.append("description", values.description || "");
-    formData.append("new", values.new ? 1 : 0);
-
-    // 2. Safely handle the image file
-    if (!isEditMode) {
-      let fileObj = null;
-
-      if (values.image?.file?.originFileObj) {
-        fileObj = values.image.file.originFileObj;
-      } else if (values.image?.fileList?.[0]?.originFileObj) {
-        fileObj = values.image.fileList[0].originFileObj;
-      }
-
-      if (fileObj) {
-        formData.append("image", fileObj);
-      } else {
-        toast.error(
-          t("select_valid_image") || "Please select a valid image file",
-        );
-        return;
-      }
-    }
-
     try {
       if (isEditMode) {
-        await api.put(`/products/${currentProduct.id}`, {
-          ...values,
+        // Edit Mode uses JSON
+        const updatePayload = {
+          name: values.name,
+          description: values.description || "",
+          price: parseFloat(values.price),
+          category: values.category,
+          stock: parseInt(values.stock),
+          size: values.size || "",
           new: values.new ? 1 : 0,
-        });
-        toast.success(t("product_updated") || "Product Updated");
+        };
+        await api.put(`/products/${currentProduct.id}`, updatePayload);
+        toast.success(t("product_updated"));
       } else {
-        await api.post("/products", formData);
-        toast.success(t("product_created") || "Product Created");
+        // Create Mode uses FormData
+        const formData = new FormData();
+
+        // Extract the raw file correctly from Ant Design's Upload structure
+        const fileObj =
+          values.image?.file?.originFileObj ||
+          values.image?.fileList?.[0]?.originFileObj;
+
+        if (!fileObj) {
+          toast.error(t("select_valid_image"));
+          return;
+        }
+
+        // Append every field INDIVIDUALLY
+        formData.append("image", fileObj);
+        formData.append("name", values.name);
+        formData.append("description", values.description || "");
+        formData.append("price", parseFloat(values.price));
+        formData.append("category", values.category);
+        formData.append("stock", parseInt(values.stock));
+        formData.append("size", values.size || "");
+        formData.append("new", values.new ? 1 : 0);
+
+        // Send with appropriate headers
+        await api.post("/products", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(t("product_created"));
       }
+
       setIsModalOpen(false);
       fetchProducts(pagination.current);
     } catch (err) {
-      const errorMsg =
-        err.response?.data?.detail?.[0]?.msg ||
-        t("error_saving_product") ||
-        "Error saving product";
-      toast.error(errorMsg);
+      console.error("Submission error:", err.response?.data);
+      const detail = err.response?.data?.detail;
+      toast.error(
+        Array.isArray(detail)
+          ? detail[0].msg
+          : detail || t("error_saving_product"),
+      );
     }
   };
 
@@ -217,48 +222,27 @@ const AdminProducts = () => {
 
   const handleGalleryUpload = async () => {
     const formData = new FormData();
-    let hasFile = false;
-
-    const getFile = (uploadState) => {
-      if (uploadState?.file?.originFileObj)
-        return uploadState.file.originFileObj;
-      if (uploadState?.fileList?.[0]?.originFileObj)
-        return uploadState.fileList[0].originFileObj;
-      return null;
-    };
+    const getFile = (state) =>
+      state?.file?.originFileObj || state?.fileList?.[0]?.originFileObj;
 
     const img2File = getFile(galleryImages.img2);
     const img3File = getFile(galleryImages.img3);
 
-    if (img2File) {
-      formData.append("image2", img2File);
-      hasFile = true;
-    }
-    if (img3File) {
-      formData.append("image3", img3File);
-      hasFile = true;
-    }
+    if (img2File) formData.append("image2", img2File);
+    if (img3File) formData.append("image3", img3File);
 
-    if (!hasFile) {
-      toast.info(
-        t("select_image_upload") ||
-          "Please select at least one new image to upload",
-      );
+    if (!img2File && !img3File) {
+      toast.info(t("select_image_upload"));
       return;
     }
 
     try {
-      await api.post(`/products/${currentProduct.id}/images`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      toast.success(t("gallery_updated") || "Gallery updated successfully!");
+      await api.post(`/products/${currentProduct.id}/images`, formData);
+      toast.success(t("gallery_updated"));
       setGalleryModalOpen(false);
-      setGalleryImages({ img2: null, img3: null });
       fetchProducts(pagination.current);
     } catch (err) {
-      toast.error(t("upload_failed") || "Upload failed");
+      toast.error(t("upload_failed"));
     }
   };
 

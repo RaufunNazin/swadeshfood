@@ -1,50 +1,33 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
-import { useEffect, useState } from "react";
 import Notification from "../components/Notification";
 import { RxCross2 } from "react-icons/rx";
 import { RiAddLine, RiSubtractLine, RiShoppingBag3Line } from "react-icons/ri";
-import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { useLanguage } from "../contexts/LanguageContext";
+import { useCart } from "../contexts/CartContext";
+import { useStoreSettings } from "../contexts/StoreSettingsContext";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cart, setCart] = useState([]);
   const { t } = useLanguage();
 
-  useEffect(() => {
-    if (!localStorage.getItem("cart")) {
-      localStorage.setItem("cart", JSON.stringify([]));
-    }
-    setCart(JSON.parse(localStorage.getItem("cart")));
-  }, []);
+  // CartContext = single source of truth
+  const { cart, updateQuantity, removeFromCart, subtotal } = useCart();
 
-  const updateQuantity = (productId, increment, stock) => {
-    const updatedCartItems = cart
-      .map((item) =>
-        item.id === productId &&
-        item.quantity + increment <= stock &&
-        item.quantity + increment > 0
-          ? { ...item, quantity: item.quantity + increment }
-          : item,
-      )
-      .filter((item) => item.quantity > 0);
-    localStorage.setItem("cart", JSON.stringify(updatedCartItems));
-    setCart(updatedCartItems);
-  };
+  // Store settings from context (single API call globally)
+  const { storeSettings, loading: settingsLoading } = useStoreSettings();
 
-  const removeFromCart = (productId) => {
-    const updatedCartItems = cart.filter((item) => item.id !== productId);
-    localStorage.setItem("cart", JSON.stringify(updatedCartItems));
-    setCart(updatedCartItems);
-  };
+  // Same logic as Checkout
+  const shipping = useMemo(() => {
+    const threshold = Number(storeSettings.free_delivery_threshold || 0);
+    const charge = Number(storeSettings.delivery_charge || 0);
 
-  // Calculations
-  const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  );
-  const shipping = 50;
-  const total = subtotal + shipping;
+    if (subtotal >= threshold) return 0;
+    return charge;
+  }, [subtotal, storeSettings]);
+
+  const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
   return (
     <div className="bg-neutral-50 dark:bg-neutral-900 min-h-screen font-sans text-neutral-800 dark:text-white flex flex-col transition-colors duration-300">
@@ -58,7 +41,9 @@ const Cart = () => {
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400 mt-1">
             {cart.length > 0
-              ? `${t("you_have") || "You have"} ${cart.length} ${t("items_in_cart") || "items in your cart"}`
+              ? `${t("you_have") || "You have"} ${cart.length} ${
+                  t("items_in_cart") || "items in your cart"
+                }`
               : t("cart_empty_msg") || "Your cart is currently empty"}
           </p>
         </div>
@@ -142,6 +127,7 @@ const Cart = () => {
                           <RiAddLine size={14} />
                         </button>
                       </div>
+
                       <span className="text-neutral-400 dark:text-neutral-500 text-sm hidden sm:block">
                         {t("total") || "Total"}:{" "}
                         <span className="font-semibold text-neutral-700 dark:text-neutral-300">
@@ -168,13 +154,24 @@ const Cart = () => {
                       ৳ {subtotal.toFixed(2)}
                     </span>
                   </div>
+
                   <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
                     <span>{t("shipping") || "Shipping"}</span>
                     <span className="font-medium text-neutral-900 dark:text-neutral-200">
-                      ৳ {shipping.toFixed(2)}
+                      {settingsLoading ? (
+                        "..."
+                      ) : shipping === 0 ? (
+                        <span className="text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">
+                          {t("free") || "FREE"}
+                        </span>
+                      ) : (
+                        `৳ ${shipping.toFixed(2)}`
+                      )}
                     </span>
                   </div>
+
                   <div className="h-px bg-neutral-100 dark:bg-neutral-700 my-2"></div>
+
                   <div className="flex justify-between text-lg font-bold text-neutral-900 dark:text-white">
                     <span>{t("total") || "Total"}</span>
                     <span className="text-green-600 dark:text-green-400">
@@ -201,6 +198,7 @@ const Cart = () => {
           </div>
         )}
       </main>
+
       <Footer />
     </div>
   );

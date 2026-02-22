@@ -12,19 +12,24 @@ import {
   ConfigProvider,
   theme as antdTheme,
   Select,
-} from "antd"; // Import Select
+} from "antd";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useStoreSettings } from "../contexts/StoreSettingsContext";
 
 const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingStore, setSavingStore] = useState(false);
+
   const [form] = Form.useForm();
+  const [storeForm] = Form.useForm();
+
   const { theme } = useTheme();
   const { t } = useLanguage();
 
-  const [storeForm] = Form.useForm();
-  const [savingStore, setSavingStore] = useState(false);
+  // ✅ important: refresh global store settings after saving delivery settings
+  const { refreshStoreSettings } = useStoreSettings();
 
   useEffect(() => {
     fetchSettings();
@@ -32,6 +37,9 @@ const AdminSettings = () => {
   }, []);
 
   const fetchSettings = () => {
+    setLoading(true);
+
+    // Notification settings
     api
       .get("/admin/notification")
       .then((res) => {
@@ -40,31 +48,39 @@ const AdminSettings = () => {
           text_bn: res.data.text_bn,
           is_active: res.data.is_active === 1,
           is_highlighted: res.data.is_highlighted === 1,
-          notif_type: res.data.notif_type || "info", // Add this
+          notif_type: res.data.notif_type || "info",
         });
-        setLoading(false);
       })
       .catch(() => {
         toast.error(t("load_settings_failed") || "Failed to load settings");
+      })
+      .finally(() => {
         setLoading(false);
       });
 
-    api.get("/admin/store-settings").then((res) => {
-      storeForm.setFieldsValue({
-        delivery_charge: res.data.delivery_charge,
-        free_delivery_threshold: res.data.free_delivery_threshold,
+    // Store settings (delivery)
+    api
+      .get("/admin/store-settings")
+      .then((res) => {
+        storeForm.setFieldsValue({
+          delivery_charge: res.data.delivery_charge,
+          free_delivery_threshold: res.data.free_delivery_threshold,
+        });
+      })
+      .catch(() => {
+        toast.error(t("load_settings_failed") || "Failed to load settings");
       });
-    });
   };
 
   const handleSave = (values) => {
     setSaving(true);
+
     const payload = {
       text_en: values.text_en,
       text_bn: values.text_bn,
       is_active: values.is_active ? 1 : 0,
       is_highlighted: values.is_highlighted ? 1 : 0,
-      notif_type: values.notif_type, // Add this
+      notif_type: values.notif_type,
     };
 
     api
@@ -73,27 +89,36 @@ const AdminSettings = () => {
         toast.success(
           t("notification_updated") || "Notification updated successfully!",
         );
-        setSaving(false);
       })
       .catch(() => {
         toast.error(
           t("notification_update_failed") || "Failed to update notification",
         );
-        setSaving(false);
-      });
+      })
+      .finally(() => setSaving(false));
   };
 
-  const handleSaveStoreSettings = (values) => {
+  const handleSaveStoreSettings = async (values) => {
     setSavingStore(true);
-    api
-      .put("/admin/store-settings", values)
-      .then(() =>
-        toast.success(t("settings_updated") || "Store settings updated!"),
-      )
-      .catch(() =>
-        toast.error(t("settings_update_failed") || "Failed to update settings"),
-      )
-      .finally(() => setSavingStore(false));
+
+    // Ensure numbers are sent as numbers (backend-dependent, but safer)
+    const payload = {
+      delivery_charge: Number(values.delivery_charge),
+      free_delivery_threshold: Number(values.free_delivery_threshold),
+    };
+
+    try {
+      await api.put("/admin/store-settings", payload);
+
+      // ✅ refresh the global context so Navbar/Cart/Checkout update immediately
+      await refreshStoreSettings();
+
+      toast.success(t("settings_updated") || "Store settings updated!");
+    } catch (e) {
+      toast.error(t("settings_update_failed") || "Failed to update settings");
+    } finally {
+      setSavingStore(false);
+    }
   };
 
   return (
@@ -143,7 +168,6 @@ const AdminSettings = () => {
                   </Form.Item>
                 </div>
 
-                {/* --- NEW: Notification Type Select --- */}
                 <Form.Item
                   name="notif_type"
                   label={
@@ -213,6 +237,7 @@ const AdminSettings = () => {
               </Form>
             )}
           </Card>
+
           <Card
             title={t("delivery_settings") || "Delivery Settings"}
             className="shadow-sm rounded-xl border-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 mt-8"
