@@ -15,7 +15,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: deployer # Updated from root to deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
+          port: 5566
           script: |
             export PATH=$PATH:/usr/local/bin:/usr/bin
             export npm_config_cache=/home/deployer/.npm
