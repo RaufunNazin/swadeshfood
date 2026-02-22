@@ -1,12 +1,12 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect, useMemo } from "react"; // Added useMemo
+import { useState, useEffect, useMemo } from "react";
 import { slide as Menu } from "react-burger-menu";
 import { useNavigate } from "react-router-dom";
-import { Modal, ConfigProvider, theme as antdTheme, Select, Spin } from "antd"; // Added Select, Spin
+import { Modal, ConfigProvider, theme as antdTheme, Select, Spin } from "antd";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import debounce from "lodash.debounce"; // Added debounce
+import debounce from "lodash.debounce";
 import {
   RiHomeLine,
   RiStoreLine,
@@ -19,6 +19,9 @@ import {
   RiLoginCircleLine,
   RiArrowRightSLine,
   RiCloseLine,
+  RiSunLine,
+  RiMoonLine,
+  RiTranslate2,
 } from "react-icons/ri";
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -33,8 +36,8 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [searchValue, setSearchValue] = useState(null);
 
   // Contexts
-  const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+  const { language, switchLanguage, t } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
@@ -108,6 +111,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceFetcher = useMemo(() => debounce(fetchSuggestions, 500), []);
 
   const handleSelect = (productId) => {
@@ -148,7 +152,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         }}
       >
         <Menu
-          left
+          right
           isOpen={isOpen}
           onStateChange={(state) => !state.isOpen && handleClose()}
           customBurgerIcon={false}
@@ -208,7 +212,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               size="large"
               variant="filled"
               value={searchValue}
-              // Helps make sure dropdown stays within mobile screen
               dropdownStyle={{ minWidth: "250px", maxWidth: "300px" }}
               onInputKeyDown={(e) => {
                 if (e.key === "Enter" && searchValue) {
@@ -251,6 +254,20 @@ const Sidebar = ({ isOpen, onClose }) => {
 
             <div className="my-4 border-t border-neutral-100 dark:border-neutral-800 mx-2"></div>
 
+            {/* --- Theme & Language Toggles --- */}
+            <NavItem
+              icon={theme === "light" ? RiMoonLine : RiSunLine}
+              label={theme === "light" ? t("dark_mode") : t("light_mode")}
+              onClick={toggleTheme}
+            />
+            <NavItem
+              icon={RiTranslate2}
+              label={language === "en" ? "বাংলা" : "English"}
+              onClick={() => switchLanguage(language === "en" ? "bn" : "en")}
+            />
+
+            <div className="my-4 border-t border-neutral-100 dark:border-neutral-800 mx-2"></div>
+
             {isLoggedIn ? (
               <>
                 <NavItem
@@ -260,7 +277,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 />
                 <button
                   onClick={() => setModalOpen(true)}
-                  className="flex items-center gap-4 w-full p-4 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium"
+                  className="flex items-center gap-4 w-full p-3.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium text-base"
                 >
                   <RiLogoutBoxLine className="text-xl" />
                   <span>{t("logout")}</span>

@@ -15,11 +15,11 @@ body {
   position: fixed !important;
   height: 100%;
   top: 0;
-  left: 0;
+  right: 0; /* <--- CHANGE THIS FROM left: 0 TO right: 0 */
   z-index: 9999 !important;
 }
 
-/* 2. Fix the Overlay */
+/* 2. Fix the Overlay (Keep left: 0 here so the dark background covers the whole screen) */
 .bm-overlay {
   background: rgba(0, 0, 0, 0.5) !important;
   backdrop-filter: blur(2px);
