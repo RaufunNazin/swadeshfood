@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, Request
+from fastapi import Depends, APIRouter, Request, Response
 from fastapi.exceptions import HTTPException
 from ..database import get_db
 from sqlalchemy.orm import Session
@@ -19,8 +19,12 @@ def home():
 
 @router.post("/register", status_code=201, tags=["user"])
 @limiter.limit("5/minute")
-def create_user(request: Request, user: User, db: Session = Depends(get_db)):
+# Add response: Response to the parameters below
+def create_user(
+    request: Request, response: Response, user: User, db: Session = Depends(get_db)
+):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
     # check for same email or username
     if db.query(models.User).filter(models.User.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -30,18 +34,36 @@ def create_user(request: Request, user: User, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=400, detail="Password must be at least 8 characters"
         )
+
     hashed_pass = pwd_context.hash(user.password)
     user_data = user.dict()
     user_data["role"] = 2
     user_data["password"] = hashed_pass
+
     new_user = models.User(**user_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
     access_token = oauth2.create_access_token(
         {"id": new_user.id, "email": new_user.email}
     )
-    return {"access_token": access_token, "token_type": "Bearer"}
+
+    # --- ADD THIS BLOCK: Set the cookie so the user is instantly logged in! ---
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,  # JavaScript cannot read this
+        secure=True,  # Only sends over HTTPS
+        samesite="Lax",  # CSRF protection
+        max_age=60 * 60,  # 1 Hour
+    )
+
+    # Return a success message instead of the raw token
+    return {
+        "message": "Registration successful",
+        "user": {"username": new_user.username, "role": new_user.role},
+    }
 
 
 @router.get("/me", response_model=ResponseUser, tags=["user"])

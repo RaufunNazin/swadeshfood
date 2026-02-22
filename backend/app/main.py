@@ -14,8 +14,6 @@ from .limiter import limiter
 
 load_dotenv()
 
-models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
 # 1. Register the limiter state

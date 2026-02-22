@@ -76,7 +76,6 @@ const Register = () => {
         username: username,
         email: email,
         password: password,
-        role: 2, // Assuming 2 is for regular users/customers
       })
       .then((res) => {
         if (res.status === 201) {

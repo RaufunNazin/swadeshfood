@@ -13,7 +13,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: deployer # Updated from root to deployer
+          username: deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 5566
           script: |
@@ -29,6 +29,10 @@ jobs:
             # 2. Backend Update
             cd backend
             /root/swadeshfood/backend/venv/bin/pip install -r requirements.txt
+
+            # ---> ADD THIS LINE: Apply database migrations <---
+            /root/swadeshfood/backend/venv/bin/alembic upgrade head
+
             sudo /usr/bin/systemctl restart swadesh.service
 
             # 3. Frontend Update
@@ -36,7 +40,7 @@ jobs:
             npm install
             npm run build
 
-            # 4. Deploy files (Separated to match sudoers exactly)
+            # 4. Deploy files
             sudo /usr/bin/rm -rf /var/www/swadeshfood/*
             sudo /usr/bin/cp -r /root/swadeshfood/frontend/dist/* /var/www/swadeshfood/
             sudo /usr/sbin/restorecon -Rv /var/www/swadeshfood
