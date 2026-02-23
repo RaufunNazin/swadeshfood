@@ -6,8 +6,11 @@ from sqlalchemy.orm import relationship
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, nullable=False)
-    username = Column(String(50), nullable=False)
+    # 1. Change username to full_name
+    full_name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
+    # 2. Add phone (optional)
+    phone = Column(String(20), nullable=True)
     password = Column(String(100), nullable=False)
     role = Column(Integer, nullable=False)
 

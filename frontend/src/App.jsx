@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
+import ScrollToTop from "./components/ScrollToTop";
+import { useTheme } from "./contexts/ThemeContext";
 
 // Public Pages
 import Login from "./pages/Login";
@@ -30,6 +32,7 @@ import { ToastContainer } from "react-toastify";
 import AdminSettings from "./pages/AdminSettings";
 
 function App() {
+  const { theme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Helper to toggle sidebar from navbar
@@ -49,9 +52,10 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
+        theme={theme} // 2. Pass it dynamically here!
       />
       <BrowserRouter>
+        <ScrollToTop />
         {/* Sidebar at Root Level */}
         <Sidebar
           isOpen={isSidebarOpen}

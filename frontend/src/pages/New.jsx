@@ -8,6 +8,7 @@ import ItemCard from "../components/ItemCard";
 import Notification from "../components/Notification";
 import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
 import { ItemCardSkeleton } from "../components/Skeletons";
+import PageHeader from "../components/PageHeader";
 
 const New = () => {
   const navigate = useNavigate();
@@ -33,24 +34,17 @@ const New = () => {
       <Notification />
 
       {/* --- Modern Header --- */}
-      <div className="relative bg-green-50 dark:bg-neutral-800 py-20 overflow-hidden transition-colors">
-        {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-green-200/40 dark:bg-green-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-
-        <div className="relative z-10 text-center px-4">
-          <span className="text-green-600 dark:text-green-400 font-bold tracking-widest uppercase text-sm mb-3 block">
-            {t("fresh_in") || "Fresh In"}
-          </span>
-          <h1 className="text-4xl md:text-6xl font-bold text-neutral-900 dark:text-white mb-4">
-            {t("new_arrivals_title") || "New Arrivals"}
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400 max-w-lg mx-auto text-lg">
-            {t("new_arrivals_desc") ||
-              "Be the first to explore our latest organic additions. Handpicked for quality and freshness."}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={t("new_arrivals_title") || "New Arrivals"}
+        subtitle={
+          t("new_arrivals_desc") ||
+          "Be the first to explore our latest organic additions. Handpicked for quality and freshness."
+        }
+        breadcrumb={[
+          { label: t("home") || "Home", href: "/" },
+          { label: t("new") || "New Arrivals" },
+        ]}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {loading ? (

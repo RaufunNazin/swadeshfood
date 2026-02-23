@@ -19,7 +19,6 @@ def home():
 
 @router.post("/register", status_code=201, tags=["user"])
 @limiter.limit("5/minute")
-# 2. CHANGE THIS LINE: Change `user: User` to `user: UserCreate` 👇
 def create_user(
     request: Request,
     response: Response,
@@ -28,11 +27,10 @@ def create_user(
 ):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    # check for same email or username
+    # Only check email uniqueness now
     if db.query(models.User).filter(models.User.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-    if db.query(models.User).filter(models.User.username == user.username).first():
-        raise HTTPException(status_code=400, detail="Username unavailable")
+
     if len(user.password) < 8:
         raise HTTPException(
             status_code=400, detail="Password must be at least 8 characters"
@@ -41,7 +39,6 @@ def create_user(
     hashed_pass = pwd_context.hash(user.password)
     user_data = user.dict()
 
-    # Backend securely hardcodes the role to 2 (Customer)
     user_data["role"] = 2
     user_data["password"] = hashed_pass
 
@@ -50,12 +47,10 @@ def create_user(
     db.commit()
     db.refresh(new_user)
 
-    # Generate the access token
     access_token = oauth2.create_access_token(
         {"id": new_user.id, "email": new_user.email}
     )
 
-    # Set the cookie so the user is instantly logged in
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
@@ -67,7 +62,8 @@ def create_user(
 
     return {
         "message": "Registration successful",
-        "user": {"username": new_user.username, "role": new_user.role},
+        # Change username to full_name here
+        "user": {"full_name": new_user.full_name, "role": new_user.role},
     }
 
 

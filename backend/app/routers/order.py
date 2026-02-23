@@ -72,7 +72,6 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
             if qty <= 0:
                 raise HTTPException(status_code=400, detail="Quantity must be >= 1")
 
-            # ✅ Atomic decrement: succeeds only if stock >= qty
             stmt = (
                 update(models.Product)
                 .where(models.Product.id == item.product)
@@ -108,7 +107,7 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
             paid=0,
             status="new",
             created_at=int(time.time()),
-            stock_released=0,  # ✅ important
+            stock_released=0,
         )
 
         db.add(new_order)
@@ -153,19 +152,16 @@ def update_order(
 
         prev_status = (db_order.status or "").lower()
 
-        # ✅ prevent cancelling delivered orders (policy choice)
         if prev_status == "delivered" and next_status == "cancelled":
             raise HTTPException(
                 status_code=400, detail="Delivered orders cannot be cancelled"
             )
 
-        # ✅ optionally prevent reopening cancelled orders
         if prev_status == "cancelled" and next_status != "cancelled":
             raise HTTPException(
                 status_code=400, detail="Cancelled orders cannot be re-opened"
             )
 
-        # ✅ Restock only once: transition -> cancelled AND not released yet
         if next_status == "cancelled" and db_order.stock_released == 0:
             items = json.loads(db_order.products or "[]")
             for item in items:
@@ -180,7 +176,7 @@ def update_order(
                     .values(stock=models.Product.stock + qty)
                 )
 
-            db_order.stock_released = 1  # ✅ idempotency flag
+            db_order.stock_released = 1
 
         # Apply status/paid
         db_order.status = next_status

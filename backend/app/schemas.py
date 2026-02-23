@@ -14,8 +14,11 @@ class OrderStatus(str, Enum):
 
 # --- USER SCHEMAS ---
 class UserBase(BaseModel):
-    username: str
+    # 1. Change username to full_name
+    full_name: str
     email: EmailStr
+    # 2. Add phone
+    phone: Optional[str] = None
 
 
 class UserCreate(UserBase):

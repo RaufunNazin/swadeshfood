@@ -10,6 +10,7 @@ import Notification from "../components/Notification";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { ItemCardSkeleton } from "../components/Skeletons";
+import PageHeader from "../components/PageHeader";
 
 const Store = () => {
   const { searchCategory } = useParams();
@@ -34,7 +35,6 @@ const Store = () => {
   const [filtersMaxHeight, setFiltersMaxHeight] = useState("0px");
 
   const [buyAgainProducts, setBuyAgainProducts] = useState([]);
-  const [buyAgainLoading, setBuyAgainLoading] = useState(true);
 
   const { theme } = useTheme();
   const { t } = useLanguage();
@@ -56,16 +56,11 @@ const Store = () => {
   );
 
   useEffect(() => {
-    // Attempt to fetch Buy Again products
+    // Fetch silently in the background
     api
       .get("/products/user/buy-again")
-      .then((res) => {
-        setBuyAgainProducts(res.data);
-        setBuyAgainLoading(false);
-      })
-      .catch(() => {
-        setBuyAgainLoading(false); // Fail silently if logged out
-      });
+      .then((res) => setBuyAgainProducts(res.data))
+      .catch(() => {}); // Ignore errors completely
   }, []);
 
   useEffect(() => {
@@ -235,46 +230,48 @@ const Store = () => {
         <Notification />
 
         {/* Header */}
-        <div className="bg-neutral-50 dark:bg-neutral-800 py-16 text-center border-b border-neutral-100 dark:border-neutral-700 transition-colors">
-          <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-4 tracking-tight">
-            {searchCategory
+        <PageHeader
+          title={
+            searchCategory
               ? `${searchCategory} ${t("collection") || "Collection"}`
-              : t("the_store") || "The Store"}
-          </h1>
-          <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto text-lg p-2">
-            {t("store_desc") ||
-              "Browse our full range of organic, farm-fresh products delivered straight to your door."}
-          </p>
-        </div>
+              : t("the_store") || "The Store"
+          }
+          subtitle={
+            t("store_desc") ||
+            "Browse our full range of organic, farm-fresh products delivered straight to your door."
+          }
+          breadcrumb={[
+            { label: t("home") || "Home", href: "/" },
+            {
+              label: t("store") || "Shop",
+              href: searchCategory ? "/store" : undefined,
+            },
+            ...(searchCategory ? [{ label: searchCategory }] : []),
+          ]}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* --- BUY AGAIN SECTION --- */}
-          {(buyAgainLoading || buyAgainProducts.length > 0) && (
-            <div className="mb-12 border-b border-neutral-100 dark:border-neutral-800 pb-10">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
-                  {t("buy_again") || "Buy Again"}
-                  <span className="text-emerald-500 text-lg">↻</span>
-                </h2>
-                <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
-                  {t("buy_again_subtitle") ||
-                    "Your past favorites, ready to reorder."}
-                </p>
-              </div>
+          {/* --- BUY AGAIN (Smooth Dropdown) --- */}
+          <div
+            className={`grid transition-all duration-700 ease-in-out ${buyAgainProducts.length > 0 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+          >
+            <div className="overflow-hidden">
+              <section className="py-12 bg-emerald-50/30 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/20 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
+                      {t("buy_again") || "Buy Again"}
+                      <span className="text-emerald-500 text-lg">↻</span>
+                    </h2>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
+                      {t("buy_again_subtitle") ||
+                        "Your past favorites, ready to reorder."}
+                    </p>
+                  </div>
 
-              <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
-                {buyAgainLoading
-                  ? // Show 4 skeletons in a row while loading
-                    [...Array(4)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
-                      >
-                        <ItemCardSkeleton />
-                      </div>
-                    ))
-                  : // Show actual products once loaded
-                    buyAgainProducts.map((product) => (
+                  {/* Horizontal Scroll Container */}
+                  <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
+                    {buyAgainProducts.map((product) => (
                       <div
                         key={product.id}
                         className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
@@ -282,11 +279,13 @@ const Store = () => {
                         <ItemCard product={product} />
                       </div>
                     ))}
-              </div>
+                  </div>
+                </div>
+              </section>
             </div>
-          )}
+          </div>
           {/* Filters Accordion */}
-          <div className="mb-8 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm transition-colors overflow-hidden">
+          <div className="my-8 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-700 shadow-sm transition-colors overflow-hidden">
             {/* Header Button */}
             <button
               type="button"

@@ -29,7 +29,6 @@ export const CartProvider = ({ children }) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  // ✅ exact setter (best for live stock validation + checkout)
   const setQuantity = (productId, qty, stock) => {
     const maxQty = typeof stock === "number" ? stock : Infinity;
     const desired = Math.max(1, Math.min(Number(qty || 1), maxQty));
@@ -41,7 +40,6 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // ✅ +/- delta (good for cart UI buttons)
   const updateQuantity = (productId, delta, stock) => {
     const maxQty = typeof stock === "number" ? stock : Infinity;
 
@@ -56,7 +54,6 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // ✅ clamp add-to-cart by stock if product has stock
   const addToCart = (product, qty = 1) => {
     const stock = typeof product.stock === "number" ? product.stock : Infinity;
 
@@ -99,7 +96,7 @@ export const CartProvider = ({ children }) => {
         cart,
         addToCart,
         updateQuantity,
-        setQuantity, // ✅ new
+        setQuantity,
         removeFromCart,
         clearCart,
         subtotal,

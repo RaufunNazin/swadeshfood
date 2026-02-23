@@ -10,6 +10,7 @@ import {
   RiPhoneLine,
   RiMailLine,
   RiUserLine,
+  RiCheckLine,
 } from "react-icons/ri";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";
@@ -19,36 +20,76 @@ import FreeDeliveryBar from "../components/FreeDeliveryBar";
 import { CheckoutSkeleton } from "../components/Skeletons";
 import { useStoreSettings } from "../contexts/StoreSettingsContext";
 import { useCart } from "../contexts/CartContext";
+import PageHeader from "../components/PageHeader";
 
+// 1. Updated InputField to support "success" status and "onBlur"
 const InputField = ({
   icon: Icon,
   placeholder,
   value,
   onChange,
+  onBlur,
   type = "text",
   required,
-}) => (
-  <div className="relative">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
-      <Icon />
+  status = "none", // "none" | "error" | "warning" | "success"
+}) => {
+  let stylingClasses =
+    "border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-green-100 dark:focus:ring-green-900/30 bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700";
+  let iconColor = "text-neutral-400";
+
+  if (status === "error") {
+    stylingClasses =
+      "border-red-300 dark:border-red-500/50 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30 bg-red-50/50 dark:bg-red-900/10 placeholder-red-400/70";
+    iconColor = "text-red-400";
+  } else if (status === "warning") {
+    stylingClasses =
+      "border-yellow-300 dark:border-yellow-500/50 focus:border-yellow-500 focus:ring-yellow-100 dark:focus:ring-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10 placeholder-yellow-500/60";
+    iconColor = "text-yellow-500 dark:text-yellow-400";
+  } else if (status === "success") {
+    stylingClasses =
+      "border-green-400 dark:border-green-500/50 focus:border-green-500 focus:ring-green-100 dark:focus:ring-green-900/30 bg-green-50/50 dark:bg-green-900/10 placeholder-green-500/60";
+    iconColor = "text-green-500 dark:text-green-400";
+  }
+
+  return (
+    <div className="relative">
+      <div
+        className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors ${iconColor}`}
+      >
+        {status === "success" ? <RiCheckLine /> : <Icon />}
+      </div>
+      <input
+        type={type}
+        className={`w-full pl-10 pr-4 py-3 rounded-xl border focus:ring-2 outline-none transition-all text-neutral-800 dark:text-neutral-100 ${stylingClasses}`}
+        placeholder={placeholder + (required ? "*" : "")}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur} // <-- Hooked up onBlur
+      />
     </div>
-    <input
-      type={type}
-      className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500"
-      placeholder={placeholder + (required ? "*" : "")}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  </div>
-);
+  );
+};
 
 InputField.propTypes = {
   icon: PropTypes.elementType,
   placeholder: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func,
+  onBlur: PropTypes.func,
   type: PropTypes.string,
   required: PropTypes.bool,
+  status: PropTypes.oneOf(["none", "error", "warning", "success"]),
+};
+
+// 2. Regex Helpers
+const validateEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+const validateBdPhone = (phone) => {
+  // Matches: 01X..., +8801X..., 8801X... (must be 11 digits without country code)
+  const cleanPhone = phone.replace(/[\s-]/g, "");
+  return /^(?:\+88|88)?01[3-9]\d{8}$/.test(cleanPhone);
 };
 
 const Checkout = () => {
@@ -58,28 +99,24 @@ const Checkout = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
 
+  // 3. New state for the 2-second flash validation
+  const [showSubmitErrors, setShowSubmitErrors] = useState(false);
+
+  // States for onBlur validation
+  const [blurEmailStatus, setBlurEmailStatus] = useState("none");
+  const [blurPhoneStatus, setBlurPhoneStatus] = useState("none");
+
   const { theme } = useTheme();
   const { t } = useLanguage();
-
   const { storeSettings } = useStoreSettings();
+  const { cart, setQuantity, removeFromCart, clearCart, subtotal } = useCart();
 
-  // CartContext source of truth
-  const {
-    cart,
-    setQuantity,
-    removeFromCart,
-    clearCart,
-    subtotal,
-  } = useCart();
-
-  // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
 
-  // Login modal
   const [openLogin, setOpenLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -93,7 +130,6 @@ const Checkout = () => {
       .catch((err) => console.log(err));
   };
 
-  // Prefill if coming back from login
   useEffect(() => {
     if (state && state.from === "/login") {
       setName(state.name || "");
@@ -105,7 +141,6 @@ const Checkout = () => {
     getProfile();
   }, [state]);
 
-  // Validate live stock & prices for current cart
   useEffect(() => {
     const validateCartLive = async () => {
       try {
@@ -133,7 +168,7 @@ const Checkout = () => {
           }
 
           if (currentQty > liveStock) {
-            setQuantity(live.id, liveStock, liveStock); // ✅ set exact
+            setQuantity(live.id, liveStock);
             changed = true;
           }
         }
@@ -162,9 +197,40 @@ const Checkout = () => {
 
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
+  // 4. Handle Blur events for live validation
+  const handleEmailBlur = () => {
+    if (!email.trim()) {
+      setBlurEmailStatus("none");
+      return;
+    }
+    setBlurEmailStatus(validateEmail(email) ? "success" : "error");
+  };
+
+  const handlePhoneBlur = () => {
+    if (!phone.trim()) {
+      setBlurPhoneStatus("none");
+      return;
+    }
+    setBlurPhoneStatus(validateBdPhone(phone) ? "success" : "error");
+  };
+
   const PlaceOrder = async () => {
+    // Flash errors for 2 seconds
+    setShowSubmitErrors(true);
+    setTimeout(() => {
+      setShowSubmitErrors(false);
+    }, 2000);
+
     if (!name || !phone || !address) {
       toast.error(t("fill_required") || "Please fill all required fields");
+      return;
+    }
+    if (phone && !validateBdPhone(phone)) {
+      toast.error("Please enter a valid Bangladesh phone number");
+      return;
+    }
+    if (email && !validateEmail(email)) {
+      toast.error("Please enter a valid email address");
       return;
     }
     if (!user.id) {
@@ -176,7 +242,6 @@ const Checkout = () => {
       return;
     }
 
-    // 1) Re-validate just-in-time (prevents stale cart)
     try {
       const liveList = await Promise.all(
         cart.map(async (item) => {
@@ -201,7 +266,7 @@ const Checkout = () => {
         }
 
         if (qty > liveStock) {
-          setQuantity(live.id, liveStock, liveStock);
+          setQuantity(live.id, liveStock);
           blocked = true;
         }
       }
@@ -221,7 +286,6 @@ const Checkout = () => {
       return;
     }
 
-    // 2) Build payload that matches your OrderCreate schema
     const productsData = cart.map((item) => ({
       product: item.id,
       quantity: item.quantity,
@@ -235,13 +299,12 @@ const Checkout = () => {
       address,
       order_description: description || null,
       method: 1,
-      products: productsData, // ✅ list, not string
+      products: productsData,
     };
 
     try {
       const res = await api.post("/order", data);
 
-      // Your route is status_code=201
       if (res.status === 201 || res.status === 200) {
         toast.success(t("order_placed") || "Order placed successfully");
         clearCart();
@@ -250,7 +313,6 @@ const Checkout = () => {
         toast.error(t("place_order_failed") || "Failed to place order");
       }
     } catch (err) {
-      // If backend enforces stock, it should return 409
       if (err?.response?.status === 409) {
         toast.error(
           t("insufficient_stock") ||
@@ -278,6 +340,38 @@ const Checkout = () => {
       );
   };
 
+  const getTextareaClasses = (status) => {
+    const baseClasses =
+      "w-full px-4 py-3 rounded-xl border focus:ring-2 outline-none transition-all text-neutral-800 dark:text-neutral-100 resize-none";
+    if (status === "error") {
+      return `${baseClasses} border-red-300 dark:border-red-500/50 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30 bg-red-50/50 dark:bg-red-900/10 placeholder-red-400/70`;
+    }
+    if (status === "warning") {
+      return `${baseClasses} border-yellow-300 dark:border-yellow-500/50 focus:border-yellow-500 focus:ring-yellow-100 dark:focus:ring-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-900/10 placeholder-yellow-500/60`;
+    }
+    return `${baseClasses} border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-green-100 dark:focus:ring-green-900/30 bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 placeholder-neutral-400 dark:placeholder-neutral-500`;
+  };
+
+  // 5. Calculate field statuses
+  const nameStatus = showSubmitErrors && !name ? "error" : "none";
+  const addressStatus = showSubmitErrors && !address ? "error" : "none";
+  const descriptionStatus =
+    showSubmitErrors && !description ? "warning" : "none";
+
+  // Phone and Email: Favor the blur status if they tried to type something, otherwise show submit errors
+  const emailStatus =
+    blurEmailStatus !== "none"
+      ? blurEmailStatus
+      : showSubmitErrors && !email
+        ? "warning"
+        : "none";
+  const phoneStatus =
+    blurPhoneStatus !== "none"
+      ? blurPhoneStatus
+      : showSubmitErrors && !phone
+        ? "error"
+        : "none";
+
   return (
     <ConfigProvider
       theme={{
@@ -290,17 +384,20 @@ const Checkout = () => {
       <div className="bg-neutral-50 dark:bg-neutral-900 min-h-screen font-sans text-neutral-800 dark:text-neutral-200 flex flex-col transition-colors duration-300">
         <Notification />
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-              {t("checkout") || "Checkout"}
-            </h1>
-            <p className="text-neutral-500 dark:text-neutral-400">
-              {t("complete_purchase") ||
-                "Please complete your purchase details below."}
-            </p>
-          </div>
+        <PageHeader
+          title={t("checkout") || "Checkout"}
+          subtitle={
+            t("complete_purchase") ||
+            "Please complete your purchase details below."
+          }
+          breadcrumb={[
+            { label: t("home") || "Home", href: "/" },
+            { label: t("shopping_cart") || "Shopping Cart", href: "/cart" },
+            { label: t("checkout") || "Checkout" },
+          ]}
+        />
 
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           {loading ? (
             <CheckoutSkeleton />
           ) : (
@@ -321,6 +418,7 @@ const Checkout = () => {
                       value={name}
                       onChange={setName}
                       required
+                      status={nameStatus}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <InputField
@@ -328,23 +426,41 @@ const Checkout = () => {
                         placeholder={t("email_optional") || "Email (Optional)"}
                         type="email"
                         value={email}
-                        onChange={setEmail}
+                        onChange={(val) => {
+                          setEmail(val);
+                          if (blurEmailStatus !== "none")
+                            setBlurEmailStatus("none"); // Reset status on typing
+                        }}
+                        onBlur={handleEmailBlur}
+                        status={emailStatus}
                       />
                       <InputField
                         icon={RiPhoneLine}
                         placeholder={t("phone_number") || "Phone Number"}
                         value={phone}
-                        onChange={setPhone}
+                        onChange={(val) => {
+                          setPhone(val);
+                          if (blurPhoneStatus !== "none")
+                            setBlurPhoneStatus("none"); // Reset status on typing
+                        }}
+                        onBlur={handlePhoneBlur}
                         required
+                        status={phoneStatus}
                       />
                     </div>
 
                     <div className="relative">
-                      <div className="absolute top-3 left-3 pointer-events-none text-neutral-400">
+                      <div
+                        className={`absolute top-3 left-3 pointer-events-none transition-colors ${
+                          addressStatus === "error"
+                            ? "text-red-400"
+                            : "text-neutral-400"
+                        }`}
+                      >
                         <RiMapPinLine />
                       </div>
                       <textarea
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-24 resize-none"
+                        className={`${getTextareaClasses(addressStatus)} pl-10 h-24`}
                         placeholder={
                           (t("full_address") || "Full Address") + "*"
                         }
@@ -354,7 +470,7 @@ const Checkout = () => {
                     </div>
 
                     <textarea
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 focus:border-green-500 dark:focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none transition-all bg-neutral-50 dark:bg-neutral-800 focus:bg-white dark:focus:bg-neutral-700 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 h-20 resize-none"
+                      className={`${getTextareaClasses(descriptionStatus)} h-20`}
                       placeholder={t("order_notes") || "Order notes (Optional)"}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}

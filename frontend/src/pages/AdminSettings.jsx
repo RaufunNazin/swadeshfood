@@ -28,7 +28,6 @@ const AdminSettings = () => {
   const { theme } = useTheme();
   const { t } = useLanguage();
 
-  // ✅ important: refresh global store settings after saving delivery settings
   const { refreshStoreSettings } = useStoreSettings();
 
   useEffect(() => {
@@ -110,7 +109,6 @@ const AdminSettings = () => {
     try {
       await api.put("/admin/store-settings", payload);
 
-      // ✅ refresh the global context so Navbar/Cart/Checkout update immediately
       await refreshStoreSettings();
 
       toast.success(t("settings_updated") || "Store settings updated!");

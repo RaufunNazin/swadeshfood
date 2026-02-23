@@ -18,7 +18,6 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
 
   const [buyAgainProducts, setBuyAgainProducts] = useState([]);
-  const [buyAgainLoading, setBuyAgainLoading] = useState(true);
 
   // Language Context
   const { t } = useLanguage();
@@ -44,15 +43,11 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    // Fetch silently in the background
     api
       .get("/products/user/buy-again")
-      .then((res) => {
-        setBuyAgainProducts(res.data);
-        setBuyAgainLoading(false); // Turn off loading on success
-      })
-      .catch(() => {
-        setBuyAgainLoading(false); // Turn off loading if logged out/error
-      });
+      .then((res) => setBuyAgainProducts(res.data))
+      .catch(() => {}); // Ignore errors completely
   }, []);
 
   return (
@@ -68,19 +63,19 @@ const Home = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute inset-0 bg-neutral-900/80 dark:bg-black/80 flex items-center">
+        <div className="absolute inset-0 bg-neutral-900/10 dark:bg-black/80 flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="max-w-5xl space-y-8 animate-fade-in-up flex flex-col items-center mx-auto text-center">
-              <span className="inline-block px-4 py-1 rounded-full bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-300 text-sm font-semibold tracking-wide uppercase">
+              <span className="inline-block px-4 py-1 rounded-full bg-white/60 dark:bg-green-500/20 backdrop-blur-md border  border-neutral-200 dark:border-green-400/30 text-green-700 dark:text-green-300 text-sm font-semibold tracking-wide uppercase">
                 {t("direct_farm") || "Direct from Farm"}
               </span>
-              <h1 className="text-4xl md:text-8xl font-bold text-white leading-tight shadow-sm">
+              <h1 className="text-4xl md:text-8xl font-bold leading-tight text-neutral-900 dark:text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] tracking-tight md:tracking-[-0.02em]">
                 {t("organic") || "Organic"}{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r  from-green-600 to-emerald-700 dark:from-green-300 dark:to-emerald-400">
                   {t("living") || "Living."}
                 </span>
               </h1>
-              <p className="text-lg text-neutral-200 leading-relaxed font-light">
+              <p className="text-lg leading-relaxed font-light text-neutral-700 dark:text-neutral-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
                 {t("hero_subtitle") ||
                   "Nourish your family with the purest ingredients. No chemicals, just nature's love."}
               </p>
@@ -90,12 +85,12 @@ const Home = () => {
                   onClick={() => navigate("/store")}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-green-900/30 flex justify-center items-center gap-3 transform hover:-translate-y-1"
                 >
-                  {t("start_shopping") || "Start Shopping"}{" "}
+                  {t("start_shopping") || "Start Shopping"}
                   <AiOutlineArrowRight />
                 </button>
                 <button
                   onClick={() => navigate("/connect")}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-8 py-4 rounded-xl font-bold transition-all border border-white/20"
+                  className="px-8 py-4 rounded-xl font-bold transition-all border bg-white/70 text-neutral-900 border-neutral-200 hover:bg-white/90 dark:bg-white/10 dark:text-white dark:border-white/20 dark:hover:bg-white/20 backdrop-blur-md"
                 >
                   {t("our_story") || "Our Story"}
                 </button>
@@ -105,46 +100,39 @@ const Home = () => {
         </div>
       </div>
 
-      {/* --- BUY AGAIN (Logged In Users Only) --- */}
-      {(buyAgainLoading || buyAgainProducts.length > 0) && (
-        <section className="py-12 bg-emerald-50/30 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/20 transition-colors">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
-                {t("buy_again") || "Buy Again"}
-                <span className="text-emerald-500 text-lg">↻</span>
-              </h2>
-              <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
-                {t("buy_again_subtitle") ||
-                  "Your past favorites, ready to reorder."}
-              </p>
-            </div>
+      {/* --- BUY AGAIN (Smooth Dropdown) --- */}
+      <div
+        className={`grid transition-all duration-700 ease-in-out ${buyAgainProducts.length > 0 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="overflow-hidden">
+          <section className="py-12 bg-emerald-50/30 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/20 transition-colors">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
+                  {t("buy_again") || "Buy Again"}
+                  <span className="text-emerald-500 text-lg">↻</span>
+                </h2>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
+                  {t("buy_again_subtitle") ||
+                    "Your past favorites, ready to reorder."}
+                </p>
+              </div>
 
-            {/* Horizontal Scroll Container */}
-            <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
-              {buyAgainLoading
-                ? // Show 4 skeletons side-by-side while loading
-                  [...Array(4)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
-                    >
-                      <ItemCardSkeleton />
-                    </div>
-                  ))
-                : // Show actual products once data arrives
-                  buyAgainProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
-                    >
-                      <ItemCard product={product} />
-                    </div>
-                  ))}
+              {/* Horizontal Scroll Container */}
+              <div className="flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-emerald-200 dark:scrollbar-thumb-emerald-800">
+                {buyAgainProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start"
+                  >
+                    <ItemCard product={product} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        </div>
+      </div>
 
       {/* --- CATEGORIES --- */}
       <div className="py-20 bg-white dark:bg-neutral-900 transition-colors">

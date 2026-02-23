@@ -287,12 +287,12 @@ const Navbar = ({ onMenuClick }) => {
                 {isLoggedIn ? (
                   <Tooltip title={t("profile")}>
                     {" "}
-                    <FiUser className="text-2xl" />{" "}
+                    <FiUser className="text-xl" />{" "}
                   </Tooltip>
                 ) : (
                   <Tooltip title={t("login")}>
                     {" "}
-                    <FiLogIn className="text-2xl" />{" "}
+                    <FiLogIn className="text-xl" />{" "}
                   </Tooltip>
                 )}
               </button>
@@ -304,9 +304,9 @@ const Navbar = ({ onMenuClick }) => {
                 className="relative text-neutral-600 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 transition-colors p-1 sm:p-2 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800"
               >
                 <Tooltip title="Cart">
-                  <RiShoppingCartLine className="text-2xl sm:text-3xl" />
+                  <RiShoppingCartLine className="text-xl" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] sm:text-xs font-bold h-4 w-4 sm:h-5 sm:w-5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900">
+                    <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] text-xs font-bold h-4 w-4 sm:h-5 sm:w-5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-neutral-900">
                       {cartCount}
                     </span>
                   )}

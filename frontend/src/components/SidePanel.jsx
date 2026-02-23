@@ -77,6 +77,9 @@ const SidePanel = () => {
         collapsed={collapsed}
         backgroundColor={theme === "dark" ? "#171717" : "#ffffff"}
         className="h-full border-none"
+        rootStyles={{
+          borderRight: "none",
+        }}
       >
         {/* Header */}
         <button

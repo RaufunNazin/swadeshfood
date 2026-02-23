@@ -284,13 +284,13 @@ const SingleProduct = () => {
               {/* Add to Cart (state change) */}
               <button
                 onClick={handleAddToCart}
-                disabled={Number(product.stock ?? 0) <= 0}
+                disabled={Number(product.stock ?? 0) <= 0 || addState === "added"}
                 className={`flex-1 font-bold py-4 px-8 rounded-full transition-all flex items-center justify-center gap-2
     ${
       Number(product.stock ?? 0) <= 0
         ? "bg-neutral-300 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 cursor-not-allowed"
         : addState === "added"
-          ? "bg-emerald-600 text-white"
+          ? "bg-emerald-600 text-white cursor-default"
           : "bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white"
     }
     shadow-lg shadow-green-200 dark:shadow-none`}
@@ -299,7 +299,10 @@ const SingleProduct = () => {
                   <span>{t("out_of_stock") || "Out of stock"}</span>
                 ) : addState === "added" ? (
                   <>
-                    <span className="text-xl leading-none">✅</span>
+                    <RiCheckLine
+                      size={20}
+                      className="transition-transform duration-200 scale-110"
+                    />
                     <span>{t("added") || "Added!"}</span>
                   </>
                 ) : (

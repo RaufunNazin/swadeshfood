@@ -19,9 +19,10 @@ import {
   LockOutlined,
   PoweroffOutlined,
   ShoppingOutlined,
+  PhoneOutlined, // <-- Added Phone Icon
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
-import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 const Profile = () => {
@@ -212,17 +213,25 @@ const Profile = () => {
         {/* --- Header --- */}
         <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 transition-colors duration-300">
           <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 text-3xl font-bold border-4 border-white dark:border-neutral-700 shadow-lg">
-                {user.username?.charAt(0).toUpperCase()}
+                {/* Fallback to 'U' if name is still loading to prevent crash */}
+                {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="text-center md:text-left">
                 <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-                  {user.username}
+                  {user.full_name}
                 </h1>
-                <p className="text-neutral-500 dark:text-neutral-400 flex items-center justify-center md:justify-start gap-2">
-                  <MailOutlined /> {user.email}
-                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 sm:gap-6 mt-2 text-neutral-500 dark:text-neutral-400">
+                  <p className="flex items-center gap-2">
+                    <MailOutlined /> {user.email}
+                  </p>
+                  {user.phone && (
+                    <p className="flex items-center gap-2">
+                      <PhoneOutlined /> {user.phone}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -260,7 +269,6 @@ const Profile = () => {
                 pagination={{ pageSize: 5 }}
                 scroll={{ x: 600 }}
                 className="dark:border-neutral-700"
-                // Note: For full dark mode on AntD tables, global ConfigProvider or CSS overrides are best.
               />
             </div>
           </div>
@@ -279,7 +287,6 @@ const Profile = () => {
           onCancel={() => setOpenCustomerModal(false)}
           footer={null}
           width={600}
-          // Modal styling for dark mode usually requires global overrides
         >
           <Descriptions bordered column={1} size="small" className="mt-4">
             <Descriptions.Item label={t("recipient") || "Recipient"}>

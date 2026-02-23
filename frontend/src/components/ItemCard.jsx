@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { RiAddLine, RiEyeLine } from "react-icons/ri";
+import { RiAddLine, RiEyeLine, RiCheckLine } from "react-icons/ri";
 import { useLanguage } from "../contexts/LanguageContext";
 import { flyToCartAnimation } from "../utils/animations";
 import { useCart } from "../contexts/CartContext";
@@ -120,13 +120,13 @@ const ItemCard = ({ product }) => {
               onClick={handleAddToCart}
               disabled={outOfStock || addState === "added"}
               className={`w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md transition-all active:scale-95
-                ${
-                  outOfStock
-                    ? "bg-neutral-300 dark:bg-neutral-700 cursor-not-allowed opacity-60"
-                    : addState === "added"
-                      ? "bg-emerald-600"
-                      : "bg-neutral-900 dark:bg-green-600 hover:bg-emerald-600 dark:hover:bg-green-700 hover:shadow-emerald-200 dark:hover:shadow-none hover:scale-105"
-                }`}
+              ${
+                outOfStock
+                  ? "bg-neutral-300 dark:bg-neutral-700 cursor-not-allowed opacity-60"
+                  : addState === "added"
+                    ? "bg-emerald-600 cursor-default"
+                    : "bg-neutral-900 dark:bg-green-600 hover:bg-emerald-600 dark:hover:bg-green-700 hover:shadow-emerald-200 dark:hover:shadow-none hover:scale-105"
+              }`}
               title={
                 outOfStock
                   ? t("out_of_stock") || "Out of stock"
@@ -135,7 +135,14 @@ const ItemCard = ({ product }) => {
                     : t("add_to_cart") || "Add to Cart"
               }
             >
-              {addState === "added" ? "✅" : <RiAddLine size={20} />}
+              {addState === "added" ? (
+                <RiCheckLine
+                  size={18}
+                  className="transition-transform duration-200 scale-110"
+                />
+              ) : (
+                <RiAddLine size={20} />
+              )}
             </button>
           )}
 

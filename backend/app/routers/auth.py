@@ -9,7 +9,7 @@ from ..limiter import limiter
 router = APIRouter()
 
 
-@router.post("/login", tags=['auth'])
+@router.post("/login", tags=["auth"])
 @limiter.limit("5/minute")
 def login_user(
     request: Request,
@@ -23,7 +23,7 @@ def login_user(
     if username is None or password is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username and password are required",
+            detail="Email and password are required",
         )
 
     user = db.query(models.User).filter(models.User.email == username).first()
@@ -50,7 +50,8 @@ def login_user(
 
     return {
         "message": "Login successful",
-        "user": {"username": user.username, "role": user.role},
+        # Change username to full_name here
+        "user": {"full_name": user.full_name, "role": user.role},
     }
 
 

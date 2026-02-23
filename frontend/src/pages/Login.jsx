@@ -8,7 +8,12 @@ import {
   RiArrowLeftLine,
 } from "react-icons/ri";
 import { toast } from "react-toastify";
-import { useLanguage } from "../contexts/LanguageContext"; // Import Language Context
+import { useLanguage } from "../contexts/LanguageContext";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  IoMoonOutline,
+  IoSunnyOutline,
+} from "react-icons/io5";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +21,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { t } = useLanguage();
+  const { t, language, switchLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -77,6 +83,31 @@ const Login = () => {
           {t("back_home") || "Back to Home"}
         </span>
       </button>
+
+      {/* --- ADD THIS NEW BLOCK: Top Right Toggles --- */}
+      <div className="absolute top-6 right-6 flex items-center gap-4 z-10">
+        <button
+          onClick={() => switchLanguage(language === "en" ? "bn" : "en")}
+          className="hidden sm:flex text-neutral-500 dark:text-neutral-300 hover:text-green-700 dark:hover:text-green-400 p-1.5 rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-xs font-bold flex-col items-center leading-none"
+          title="Switch Language"
+        >
+          <span className={language === "en" ? "text-green-600" : ""}>EN</span>
+          <span className="w-full h-[1px] bg-neutral-300 dark:bg-neutral-600 my-[1px]"></span>
+          <span className={language === "bn" ? "text-green-600" : ""}>BN</span>
+        </button>
+
+        <button
+          onClick={toggleTheme}
+          className="text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+        >
+          {theme === "light" ? (
+            <IoMoonOutline className="text-xl" />
+          ) : (
+            <IoSunnyOutline className="text-xl" />
+          )}
+        </button>
+      </div>
+      {/* --- END NEW BLOCK --- */}
 
       <div className="bg-white dark:bg-neutral-800 w-full max-w-md rounded-3xl shadow-xl shadow-neutral-200/50 dark:shadow-none p-8 md:p-12 relative z-10 border border-white dark:border-neutral-700 transition-colors duration-300">
         {/* Header */}
