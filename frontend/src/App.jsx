@@ -18,6 +18,7 @@ import Checkout from "./pages/Checkout";
 import Search from "./pages/Search";
 import Connect from "./pages/Connect";
 import Profile from "./pages/Profile";
+import Maintenance from "./pages/Maintenance";
 
 // Admin Pages
 import AdminProducts from "./pages/AdminProducts";
@@ -35,10 +36,22 @@ function App() {
   const { theme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Set this to false to unlock the site again
+  const isUnderMaintenance = true;
+
   // Helper to toggle sidebar from navbar
   const toggleSidebar = () => {
     setIsSidebarOpen(true);
   };
+
+  // If maintenance is active, render ONLY the maintenance page
+  if (isUnderMaintenance) {
+    return (
+      <div className="App font-body dark:bg-neutral-900 min-h-screen">
+        <Maintenance />
+      </div>
+    );
+  }
 
   return (
     <div className="App font-body" id="outer-container">

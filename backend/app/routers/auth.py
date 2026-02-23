@@ -45,7 +45,7 @@ def login_user(
         httponly=True,  # JavaScript cannot read this
         secure=True,  # Only sends over HTTPS
         samesite="Lax",  # CSRF protection
-        max_age=60 * 60,  # 1 Hour
+        max_age=60 * 60 * 24 * 7,  # 7 Days
     )
 
     return {
