@@ -29,14 +29,6 @@ const Maintenance = () => {
           </span>{" "}
           is cleared.
         </p>
-
-        {/* Action Button */}
-        <button
-          className="w-full px-5 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-lg"
-          onClick={() => window.location.reload()} // Optional: just gives the button a click effect
-        >
-          Okay, I will pay shortly
-        </button>
       </div>
     </div>
   );
